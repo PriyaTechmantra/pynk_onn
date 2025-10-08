@@ -6,9 +6,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Models\User;
+use App\Models\Employee;
 use Carbon\Carbon;
-
+use DB;
+use Hash;
 class AuthController extends Controller
 {
     
@@ -80,11 +81,19 @@ class AuthController extends Controller
                     ], 403); 
                 }
             } else {
+<<<<<<< HEAD
+                return response()->json(['status' => true, 'message' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $user->password]);
+            }
+    
+        } catch (\Exception $e) {
+            
+=======
                 return response()->json(['status' => true, 'message' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $userCheck->password]);
             }
     
         } catch (\Exception $e) {
             Log::error('Login error: ' . $e->getMessage());
+>>>>>>> 8a4b0878606717d075ef23e99685b13b54a5e0ac
     
             return response()->json([
                 'message' => 'An error occurred while login.',
