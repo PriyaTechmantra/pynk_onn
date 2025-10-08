@@ -307,7 +307,42 @@ class ASEController extends Controller
         return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
     }
 }
+
+
+//store list
+
+    public function storeList(Request $request)
+    {
+		$ase = $_GET['ase_id'];
+		
+		$stores = Store::where('user_id',$ase)->where('status',1)->where('is_deleted',0)->get();
+		
+	
+        if ($stores) {
+
+            return response()->json(['error'=>false, 'resp'=>'Store data fetched successfully','data'=>$stores]);
+        } else {
+            return response()->json(['error' => true, 'resp' => 'Something happened']);
+        }
+    }
     
+
+    //inactive store list
+
+    public function inactivestoreList(Request $request)
+    {
+        $ase = $_GET['ase_id'];
+		
+		$stores = Store::where('user_id',$ase)->where('status',0)->where('is_deleted',0)->get();
+		
+	
+        if ($stores) {
+
+            return response()->json(['error'=>false, 'resp'=>'Store data fetched successfully','data'=>$stores]);
+        } else {
+            return response()->json(['error' => true, 'resp' => 'Something happened']);
+        }
+    }
 
 }
  
