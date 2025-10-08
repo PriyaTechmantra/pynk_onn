@@ -104,7 +104,205 @@ class ASEController extends Controller
             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
 	}
+	
+	//day start activity store
+	
+	 public function daystartactivityStore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "user_id" => "required",
+            "date" => "required",
+            "time" => "required",
+            "type" => "required",
+            "comment" => "nullable",
+            "location" => "nullable",
+            "lat" => "nullable",
+        ]);
 
+        if (!$validator->fails()) {
+            $data = [
+                "user_id" => $request->user_id,
+               
+                "date" => $request->date,
+                "time" => $request->time,
+                "type" => $request->type,
+                "comment" => $request->comment,
+                "location" => $request->location,
+                "lat" => $request->lat,
+                "lng" => $request->lng,
+                "created_at" => date('Y-m-d H:i:s'),
+                "updated_at" => date('Y-m-d H:i:s'),
+            ];
+
+            $resp = DB::table('activities')->insertGetId($data);
+            if( $resp){
+                return response()->json(['error' => false, 'resp' => 'Activity stored successfully', 'data' => $resp]);
+            }else{
+                return response()->json(['error'=>true, 'resp'=>'Something happend']);
+            }
+           
+        } else {
+            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+        }
+    }
+    //day end activity store
+    public function dayendactivityStore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "user_id" => "required",
+            "date" => "required",
+            "time" => "required",
+            "type" => "required",
+            "comment" => "nullable",
+            "location" => "nullable",
+            "lat" => "nullable",
+        ]);
+
+        if (!$validator->fails()) {
+            $data = [
+                "user_id" => $request->user_id,
+               
+                "date" => $request->date,
+                "time" => $request->time,
+                "type" => $request->type,
+                "comment" => $request->comment,
+                "location" => $request->location,
+                "lat" => $request->lat,
+                "lng" => $request->lng,
+                "created_at" => date('Y-m-d H:i:s'),
+                "updated_at" => date('Y-m-d H:i:s'),
+            ];
+
+            $resp = DB::table('activities')->insertGetId($data);
+            if( $resp){
+                return response()->json(['error' => false, 'resp' => 'Activity stored successfully', 'data' => $resp]);
+            }else{
+                return response()->json(['error'=>true, 'resp'=>'Something happend']);
+            }
+           
+        } else {
+            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+        }
+    }
+
+
+    //ase wise primary and secondary report on dashboard
+    
+    
+    public function aseSalesreport(Request $request) {
+
+    $validator = Validator::make($request->all(), [
+        "ase_id" => "required",
+    ]);
+    if (!$validator->fails()) {
+        $ase = $request->ase_id;
+		if ( request()->input('from') || request()->input('to') ) {
+            // date from
+            if (!empty(request()->input('from'))) {
+                $from = date('Y-m-d', strtotime(request()->input('from')));
+            } else {
+                $from = date('Y-m-01');
+            }
+
+            // date to
+            if (!empty(request()->input('to'))) {
+                
+                $to = date('Y-m-d', strtotime(request()->input('to').' +1 day'));
+            } else {
+                $to = date('Y-m-d', strtotime('+1 day'));
+            }
+
+          
+            
+
+            $distributor=Team::where('ase_id',$request->ase_id)->where('store_id',NULL)->with('distributor')->get();
+            
+            $respArrd = [];
+            foreach ($distributor as $key => $item) {
+                $report1 = \DB::select("SELECT od.user_id AS id,SUM(od.final_amount) AS amount, SUM(opd.qty) AS qty FROM `orders_distributors` AS od
+                INNER JOIN order_products_distributors AS opd
+                ON od.id = opd.order_id
+
+                WHERE od.distributor_id = '".$item->distributor_id."'  AND (od.created_at BETWEEN '".$from."' AND '".$to."') ");
+                  
+                $respArrd[] = [
+                    'distributor_id'=> $report1[0]->id ?? 0,
+                    'distributor_name' => $item->distributor->name,
+					'amount' => 0,
+                    'qty' => $report1[0]->qty ?? 0,
+                ];
+            }
+
+            $ase_id = DB::select("select id from users where name = '".$aseData."'");
+
+            $secondaryreport = DB::select("SELECT s.store_name AS name, s.id FROM `stores` AS s
+            WHERE s.user_id = '".$ase_id[0]->id."' and s.status=1");
+            //dd($secondaryreport);
+            $respArr = [];
+
+            foreach ($secondaryreport as $key => $value) {
+                $report = \DB::select("SELECT SUM(o.final_amount) AS amount, SUM(op.qty) AS qty FROM `orders` AS o
+                                                    INNER JOIN order_products AS op
+                                                    ON o.id = op.order_id
+                WHERE o.store_id = '".$value->id."' AND (o.created_at BETWEEN '".$from."' AND '".$to."') ");
+               //dd($value);
+                $respArr[] = [
+                    'retailer_id' => $value->id,
+                    'store_name' => $value->name,
+                    'amount' => $report[0]->amount ?? 0,
+                    'qty' => $report[0]->qty ?? 0,
+                ];
+
+            }
+        } else {
+            $ase_name = DB::select("select name from users where name = '".$aseData."'");
+            $primaryreport = DB::select("SELECT u.id AS user_id,distributor_name FROM `retailer_list_of_occ` AS ro
+            INNER JOIN users AS u
+                ON u.name = ro.distributor_name
+            WHERE ase = '".$ase_name[0]->name."'
+            GROUP BY distributor_name
+            ORDER BY distributor_name ");
+            $respArrd = [];
+            foreach ($primaryreport as $key => $item) {
+                $report1 = \DB::select("SELECT u.id AS user_id, SUM(od.final_amount) AS amount, SUM(opd.qty) AS qty FROM `orders_distributors` AS od
+                INNER JOIN order_products_distributors AS opd
+                ON od.id = opd.order_id
+                INNER JOIN users AS u ON od.user_id = u.id
+                WHERE od.distributor_name = '".$item->distributor_name."' AND DATE(od.created_at) = CURDATE() ");
+
+                $respArrd[] = [
+                    'distributor_id'=> $item->user_id,
+                    'distributor_name' => $item->distributor_name,
+                    'amount' => $report1[0]->amount ?? 0,
+                    'qty' => $report1[0]->qty ?? 0,
+                ];
+            }
+            $ase_id = DB::select("select id from users where name = '".$aseData."'");
+
+            $secondaryreport = DB::select("SELECT s.store_name AS name, s.id FROM `stores` AS s
+            WHERE s.user_id = '".$ase_id[0]->id."' ");
+            $respArr = [];
+
+            foreach ($secondaryreport as $key => $value) {
+                $report = \DB::select("SELECT SUM(o.final_amount) AS amount, SUM(op.qty) AS qty FROM `orders` AS o
+                INNER JOIN order_products AS op
+                ON o.id = op.order_id
+                WHERE o.store_id = '".$value->id."' AND DATE(o.created_at) = CURDATE() ");
+
+                $respArr[] = [
+                    'retailer_id' => $value->id,
+                    'store_name' => $value->name,
+                    'amount' => $report[0]->amount ?? 0,
+                    'qty' => $report[0]->qty ?? 0,
+                ];
+
+            }
+        }
+        return response()->json(['error' => false, 'message' => 'ASE wise Primary Sales report', 'Primary Sales|Distributor wise Daily Report' => $respArrd,'Secondary Sales|Retailer wise Daily Report' => $respArr]);
+    }else {
+        return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+    }
+}
     
 
 }
