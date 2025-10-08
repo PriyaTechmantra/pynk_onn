@@ -46,9 +46,14 @@ Route::post('day/end', [ASEController::class, 'dayEnd']);
 Route::get('check/visit/{id}', [ASEController::class, 'checkVisit']);
 
 
+<<<<<<< HEAD
 Route::post('day/start/activity/create', [ASEController::class, 'daystartactivityStore']);
 Route::post('day/end/activity/create', [ASEController::class, 'dayendactivityStore']);
 Route::get('/stores/list', [ASEController::class, 'storeList']);
+=======
+Route::get('/books/search/{id}', [BookController::class, 'search']);
+Route::get('/books/list', [BookController::class, 'index']);
+>>>>>>> 8a4b0878606717d075ef23e99685b13b54a5e0ac
 Route::get('/active-books/list/{id}', [BookController::class, 'activeBookList']);
 Route::get('/books/list/with-issuedbook', [BookController::class, 'bookWithIssuedBook']);
 Route::get('/books/detail', [BookController::class, 'bookDetails']);

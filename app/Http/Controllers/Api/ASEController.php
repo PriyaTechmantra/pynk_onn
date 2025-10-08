@@ -104,6 +104,7 @@ class ASEController extends Controller
             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
 	}
+<<<<<<< HEAD
 	
 	//day start activity store
 	
@@ -184,6 +185,8 @@ class ASEController extends Controller
             return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
         }
     }
+=======
+>>>>>>> 8a4b0878606717d075ef23e99685b13b54a5e0ac
 
     
 
