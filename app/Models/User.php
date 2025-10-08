@@ -23,6 +23,10 @@ class User extends Authenticatable
         'mobile',
         'otp',
         'password',
+        'designation',
+        'type',
+        'image',
+        'qrcode'
     ];
 
     /**
@@ -49,4 +53,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(IssueBooks::class);
     }
+
+       public function permissions()
+  {
+    return $this->hasMany(UserPermissionCategory::class, 'user_id');
+   }
+	
 }

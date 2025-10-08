@@ -1,0 +1,111 @@
+<?php
+use Illuminate\Support\Facades\Mail;
+use App\Models\Team;
+if (!function_exists('generateUniqueAlphaNumericValue')) {
+    function generateUniqueAlphaNumericValue($length = 10) {
+        $random_string = '';
+        for ($i = 0; $i < $length; $i++) {
+            $number = random_int(0, 36);
+            $character = base_convert($number, 10, 36);
+            $random_string .= $character;
+        }
+        return strtoupper($random_string);
+    }
+}
+
+if (!function_exists('getInitials')) {
+     function getInitials($fullName) {
+            return collect(explode(' ', $fullName))
+                ->map(fn($name) => Str::upper(Str::substr($name, 0, 1)))
+                ->join('');
+        }
+}
+
+
+
+function SendMail($data)
+{
+	if(isset($data['from']) || !empty($data['from'])) {
+		$mail_from = $data['from'];
+	} else {
+		$mail_from = 'admin@foxandmandal.co.in';
+	}
+	// $mail_from = $data['from'] ? $data['from'] : 'support@onninternational.com';
+
+
+
+    // send mail
+    Mail::send($data['blade_file'], $data, function ($message) use ($data) {
+		if(isset($data['from']) || !empty($data['from'])) {
+			$mail_from = $data['from'];
+		} else {
+			$mail_from = 'admin@foxandmandal.co.in';
+		}
+
+		// $mail_from = $data['from'] ? $data['from'] : 'support@onninternational.com';
+        $message->to($data['email'], $data['name'])->subject($data['subject'])->from($mail_from, env('APP_NAME'));
+    });
+}
+if (!function_exists('findManagerDetails')) {
+    function findManagerDetails($userName, $userType ) {
+        switch ($userType) {
+            case 1:
+                $namagerDetails = "";
+                break;
+            case 2:
+                $query=Team::select('vp_id')->where('rsm_id',$userName)->where('store_id',NULL)->groupby('rsm_id')->with('vp')->first();
+               
+                if ($query) {
+                    $namagerDetails = "<span class='text-dark'>VP:</span> ".$query->vp->name?? '';
+                } else {
+                    $namagerDetails = "";
+                }
+                break;
+            case 3:
+                $query=Team::select('vp_id','rsm_id')->where('asm_id',$userName)->where('store_id',NULL)->groupby('asm_id')->with('vp','rsm')->first();
+                
+                if ($query) {
+                    $namagerDetails = "<span class='text-dark'>VP:</span> ".$query->vp->name." 
+                    <br> 
+                    <span class='text-dark'>RSM:</span> ".$query->rsm->name;
+                } else {
+                    $namagerDetails = "";
+                }
+                break;
+            case 4:
+                $query=Team::select('vp_id','rsm_id','asm_id')->where('ase_id',$userName)->where('store_id',NULL)->orderby('id','desc')->with('vp','rsm','asm')->first();
+                 //dd($query);
+                if ($query) {
+                    $namagerDetails = "<span class='text-dark'>VP:</span> ".$query->vp->name." 
+                    <br> 
+                    <span class='text-dark'>RSM:</span> ".$query->rsm->name." 
+                    <br> 
+                    <span class='text-dark'>ASM:</span> ".$query->asm->name;
+                } else {
+                    $namagerDetails = "";
+                }
+                break;
+                
+				
+            default: 
+                $namagerDetails = "";
+                break;
+        }
+
+        return $namagerDetails;
+    }
+}
+
+
+if (!function_exists('userTypeName')) {
+    function userTypeName($userType ) {
+        switch ($userType) {
+            case 1: $userTypeDetail = "VP";break;
+            case 2: $userTypeDetail = "RSM";break;
+            case 3: $userTypeDetail = "ASM";break;
+            case 4: $userTypeDetail = "ASE";break;
+            default: $userTypeDetail = "";break;
+        }
+        return $userTypeDetail;
+    }
+}

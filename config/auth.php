@@ -109,7 +109,7 @@ return [
     | confirmation screen. By default, the timeout lasts for three hours.
     |
     */
-
+    'redirect' => '/login', 
     'password_timeout' => 10800,
 
 ];

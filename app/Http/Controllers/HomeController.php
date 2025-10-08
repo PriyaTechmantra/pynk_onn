@@ -3,7 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use App\Models\Book;
+use App\Models\Bookshelve;
+use App\Models\User;
+use App\Models\Office;
+use App\Models\CabBooking;
+use App\Models\FlightBooking;
+use App\Models\TrainBooking;
+use App\Models\HotelBooking;
+use App\Models\CaveLocation;
+use App\Models\CaveForm;
+use App\Models\CaveDoc;
+use Auth;
+use DB;
 class HomeController extends Controller
 {
     /**
@@ -23,6 +35,9 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $data = (object)[];
+        
+       
+        return view('home',compact('data'));
     }
 }

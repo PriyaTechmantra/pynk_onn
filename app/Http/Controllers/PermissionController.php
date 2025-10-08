@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
-
+use Spatie\Permission\Models\Role;
 class PermissionController extends Controller
 {
     public function __construct()
@@ -37,8 +37,12 @@ class PermissionController extends Controller
         ]);
 
         Permission::create([
-            'name' => $request->name
+            'name' => $request->name,
+            'category' =>'admin'
         ]);
+        $roleId=1;
+        $role = Role::findOrFail($roleId);
+        $role->givePermissionTo($request->name);
 
         return redirect('permissions')->with('success','Permission Created Successfully');
     }

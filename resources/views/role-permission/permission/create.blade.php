@@ -15,24 +15,30 @@
                 </ul>
                 @endif
 
-                <div class="card">
+                <div class="card data-card">
                     <div class="card-header">
-                        <h4>Create Permission
-                            <a href="{{ url('permissions') }}" class="btn btn-danger float-end">Back</a>
+                        <h4 class="d-flex">Create Permission
+                            <a href="{{ url('permissions') }}" class="btn btn-cta ms-auto">Back</a>
                         </h4>
                     </div>
                     <div class="card-body">
-                        <form action="{{ url('permissions') }}" method="POST">
-                            @csrf
-
-                            <div class="mb-3">
-                                <label for="">Permission Name</label>
-                                <input type="text" name="name" class="form-control" />
+                        <div class="row">
+                            <div class="col-xl-3 col-lg-2 col-12"></div>
+                            <div class="col-xl-6 col-lg-8 col-12">
+                                <form action="{{ url('permissions') }}" method="POST" class="data-form">
+                                    @csrf
+        
+                                    <div class="mb-3">
+                                        <label for="">Permission Name</label>
+                                        <input type="text" name="name" class="form-control" />
+                                    </div>
+                                    <div class="text-end mb-3">
+                                        <button type="submit" class="btn btn-submit">Save</button>
+                                    </div>
+                                </form>
                             </div>
-                            <div class="mb-3">
-                                <button type="submit" class="btn btn-primary">Save</button>
-                            </div>
-                        </form>
+                            <div class="col-xl-3 col-lg-2 col-12"></div>
+                        </div>
                     </div>
                 </div>
             </div>
