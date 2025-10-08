@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Employee;
 use App\Models\Area;
 use App\Models\UserArea;
+use App\Models\Store;
 use Str;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserPermissionCategory;
