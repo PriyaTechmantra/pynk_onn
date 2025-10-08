@@ -1,12 +1,33 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Facility\OfficeController;
-use App\Http\Controllers\Lms\BookCategoryController;
-use App\Http\Controllers\Lms\BookshelveController;
-use App\Http\Controllers\Lms\BookController;
+use App\Http\Controllers\StateController;
+use App\Http\Controllers\AreaController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\DistributorController;
+use App\Http\Controllers\Lms\LostBookController;
+use App\Http\Controllers\Lms\MemberController;
+use App\Http\Controllers\Lms\IssueController;
+use App\Http\Controllers\Facility\CabBookingController;
+use App\Http\Controllers\Facility\TrainBookingController;
+use App\Http\Controllers\Facility\FlightBookingController;
+use App\Http\Controllers\Facility\HotelBookingController;
+use App\Http\Controllers\Facility\PropertyController;
+use App\Http\Controllers\Cave\CaveFormController;
+use App\Http\Controllers\Cave\CaveLocationController;
+use App\Http\Controllers\Cave\CaveCategoryController;
 use Illuminate\Support\Facades\Route;
-
+Route::get('/cache-clear', function() {
+	// \Artisan::call('route:cache');
+	\Artisan::call('config:cache');
+	\Artisan::call('permission:cache-reset');
+   //	\Artisan::call('cache:clear');
+	\Artisan::call('view:clear');
+	\Artisan::call('config:clear');
+	\Artisan::call('view:cache');
+	\Artisan::call('route:clear');
+	dd('Cache cleared');
+});
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -41,7 +62,8 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-Route::group(['middleware' => ['role:super-admin|admin']], function() {
+//Route::group(['middleware' => ['role:super-admin|lms-admin']], function() {
+Route::group(['middleware' => ['auth']], function() {
 
     Route::resource('permissions', App\Http\Controllers\PermissionController::class);
     Route::get('permissions/{permissionId}/delete', [App\Http\Controllers\PermissionController::class, 'destroy']);
@@ -55,28 +77,219 @@ Route::group(['middleware' => ['role:super-admin|admin']], function() {
     Route::get('users/{userId}/delete', [App\Http\Controllers\UserController::class, 'destroy']);
     
     
-    //facility
+    //states
     
-    Route::resource('offices', OfficeController::class);
-    Route::get('offices/{userId}/delete', [OfficeController::class, 'destroy']);
+    Route::resource('states', StateController::class);
+    Route::get('states/{userId}/delete', [StateController::class, 'destroy']);
+    Route::get('states/{userId}/status/change', [StateController::class, 'status']);
+    Route::post('states/bulk/upload', [StateController::class, 'bulkUpload']);
+    Route::get('states/csv/export', [StateController::class, 'stateExport']);
+    
+    //area
+    Route::resource('areas', AreaController::class);
+    Route::get('areas/{userId}/delete', [AreaController::class, 'destroy']);
+    Route::get('areas/{userId}/status/change', [AreaController::class, 'status']);
+    Route::post('areas/bulk/upload', [AreaController::class, 'bulkUpload']);
+    Route::get('areas/csv/export', [AreaController::class, 'areaExport']);
+    Route::get('areas/state/wise/{id}', [AreaController::class, 'areaStateWise']);
+    
+    //employee
+    Route::resource('employees', EmployeeController::class);
+    Route::get('employees/{userId}/delete', [EmployeeController::class, 'destroy']);
+    Route::get('employees/{userId}/status/change', [AreaController::class, 'status']);
+    Route::get('employees/csv/export', [EmployeeController::class, 'employeeExport']);
+    Route::post('employees/bulk/upload', [EmployeeController::class, 'bulkUpload']);
+    Route::get('employees/state/{state}', [EmployeeController::class, 'state'])->name('users.state');
+    Route::get('employees/hierarchy', [EmployeeController::class, 'hierarchy'])->name('employees.hierarchy');
+    Route::get('employees/notifications', [EmployeeController::class, 'notifications'])->name('notifications.index');
+    Route::get('employees/filter-by-brand', [EmployeeController::class, 'hierarchy'])->name('employees.filter-by-brand');
+    Route::post('employee/area/save', [EmployeeController::class, 'addArea'])->name('employee.area.store');
+    Route::get('employee/area/delete/{id}', [EmployeeController::class, 'deleteArea'])->name('employee.area.delete');
+    //activity
+     Route::get('activity', [ActivityController::class, 'index'])->name('activities.index');
+    
+    //distributor
+    Route::resource('distributors', DistributorController::class);
+    Route::get('distributors/{userId}/delete', [DistributorController::class, 'destroy']);
+    Route::get('distributors/{userId}/status/change', [DistributorController::class, 'status']);
+    Route::get('distributors/csv/export', [DistributorController::class, 'employeeExport']);
+    Route::post('distributors/bulk/upload', [DistributorController::class, 'bulkUpload']);
+    Route::get('distributors/note', [DistributorController::class, 'note'])->name('distributors.note');
+    
+    //collections
+     Route::resource('collections', CollectionController::class);
+     Route::get('collections/{userId}/delete', [CollectionController::class, 'destroy']);
+     Route::get('collections/{userId}/status/change', [CollectionController::class, 'status']);
+     Route::get('collections/export/csv', [CollectionController::class, 'csvExport']);
+     Route::post('collections/upload/csv', [CollectionController::class, 'csvImport']);
+     
+     //colors
+     Route::resource('colors', ColorController::class);
+     Route::get('colors/{userId}/delete', [ColorController::class, 'destroy']);
+     Route::get('colors/{userId}/status/change', [ColorController::class, 'status']);
+     Route::get('colors/export/csv', [ColorController::class, 'csvExport']);
+     Route::post('colors/upload/csv', [ColorController::class, 'csvImport']);
+
+     //size
+     Route::resource('sizes', SizeController::class);
+     Route::get('sizes/{userId}/delete', [SizeController::class, 'destroy']);
+     Route::get('sizes/{userId}/status/change', [SizeController::class, 'status']);
+     Route::get('sizes/export/csv', [SizeController::class, 'csvExport']);
+     Route::post('sizes/upload/csv', [SizeController::class, 'csvImport']);
+    
+    //categories
+    Route::resource('categories', CategoryController::class);
+    Route::get('categories/{userId}/delete', [CategoryController::class, 'destroy']);
+    Route::get('categories/{userId}/status/change', [CategoryController::class, 'status']);
+    Route::get('categories/export/csv', [CategoryController::class, 'csvExport']);
+    Route::post('categories/upload/csv', [CategoryController::class, 'csvImport']);
+
+    //products
+    Route::resource('products', ProductController::class);
+    Route::get('products/{userId}/delete', [ProductController::class, 'destroy']);
+    Route::get('products/{userId}/status/change', [ProductController::class, 'status']);
+    Route::get('products/export/csv', [ProductController::class, 'csvExport']);
+    Route::post('products/upload/csv', [ProductController::class, 'csvImport']);
     
     
-    //lms
-    Route::resource('bookcategories', BookCategoryController::class);
-    Route::get('bookcategories/{userId}/delete', [BookCategoryController::class, 'destroy']);
+    //catalogues
+     Route::resource('catalogues', CatalogueController::class);
+     Route::get('catalogues/{userId}/delete', [CatalogueController::class, 'destroy']);
+     Route::get('catalogues/{userId}/status/change', [CatalogueController::class, 'status']);
+     Route::get('catalogues/export/csv', [CatalogueController::class, 'csvExport']);
+     Route::post('catalogues/upload/csv', [CatalogueController::class, 'csvImport']);
+
+
+     //schemes
+     Route::resource('schemes', SchemeController::class);
+     Route::get('schemes/{userId}/delete', [SchemeController::class, 'destroy']);
+     Route::get('schemes/{userId}/status/change', [SchemeController::class, 'status']);
+     Route::get('schemes/export/csv', [SchemeController::class, 'csvExport']);
+     Route::post('schemes/upload/csv', [SchemeController::class, 'csvImport']);
+
+      //news
+     Route::resource('news', NewsController::class);
+     Route::get('news/{userId}/delete', [NewsController::class, 'destroy']);
+     Route::get('news/{userId}/status/change', [NewsController::class, 'status']);
+     Route::get('news/export/csv', [NewsController::class, 'csvExport']);
+     Route::post('news/upload/csv', [NewsController::class, 'csvImport']);
+     
+     //stores
+    Route::resource('stores', StoreController::class);
+    Route::get('stores/{userId}/delete', [StoreController::class, 'destroy']);
+    Route::get('stores/{userId}/status/change', [StoreController::class, 'status']);
+    Route::get('stores/csv/export', [StoreController::class, 'employeeExport']);
+    Route::post('stores/bulk/upload', [StoreController::class, 'bulkUpload']);
+    Route::get('stores/noorderreason', [StoreController::class, 'noorderreason'])->name('stores.noorderreason');
     
-    Route::resource('bookshelves', BookshelveController::class);
-    Route::get('bookshelves/{userId}/delete', [BookshelveController::class, 'destroy']);
-    Route::get('bookshelves/export/csv', [BookshelveController::class, 'csvExport']);
-    Route::post('bookshelves/upload/csv', [BookshelveController::class, 'csvImport']);
-    
-    
-    Route::resource('books', BookController::class);
-    Route::get('books/{userId}/delete', [BookController::class, 'destroy']);
-    Route::get('books/{userId}/status/change', [BookController::class, 'status']);
-    Route::get('books/export/csv', [BookController::class, 'csvExport']);
-    Route::post('books/upload/csv', [BookController::class, 'csvImport']);
-    Route::get('bookshelves/list/officewise/{userId}', [BookController::class, 'bookshelveOffice']);
-    Route::get('books/{userId}/issue/list', [BookController::class, 'bookIssueList']);
-    Route::get('books/issue/list/export/csv', [BookController::class, 'bookIssuecsvExport']);
+
+    //orders
+    Route::get('primary/order', [OrderController::class, 'primaryOrder'])->name('primary.orders.index');
+    Route::get('primary/order/csv/export', [OrderController::class, 'primaryOrderExport'])->name('primary.orders.export');
+
+    Route::get('primary/order/report', [OrderController::class, 'primaryOrderReport'])->name('primary.order.report');
+    Route::get('primary/order/report/csv/export', [OrderController::class, 'primaryOrderReportExport'])->name('primary.order.report.export');
+
+
+    Route::get('secondary/order', [OrderController::class, 'secondaryOrder'])->name('secondary.orders.index');
+    Route::get('secondary/order/csv/export', [OrderController::class, 'secondaryOrderExport'])->name('secondary.orders.export');
+
+    Route::get('secondary/order/report', [OrderController::class, 'secondaryOrderReport'])->name('secondary.order.report');
+    Route::get('secondary/order/report/csv/export', [OrderController::class, 'secondaryOrderReportExport'])->name('secondary.order.report.export');
+
+
+    //attendance
+    Route::get('attendance/report', [OrderController::class, 'attendanceReport'])->name('attendance.report');
+    Route::get('attendance/report/csv/export', [OrderController::class, 'attendanceReportExport'])->name('attendance.report.export');
+
+
+
+    Route::prefix('reward')->name('reward.')->group(function () {
+        Route::prefix('/user')->name('retailer.user.')->group(function () {
+            Route::get('/', [RetailerUserController::class, 'index'])->name('index');
+            Route::get('/create', [RetailerUserController::class, 'create'])->name('create');
+            Route::post('/store', [RetailerUserController::class, 'store'])->name('store');
+            Route::get('/{id}/view', [RetailerUserController::class, 'show'])->name('view');
+            Route::get('/{id}/edit', [RetailerUserController::class, 'edit'])->name('edit');
+            Route::post('/{id}/update', [RetailerUserController::class, 'update'])->name('update');
+            Route::get('/{id}/status', [RetailerUserController::class, 'status'])->name('status');
+            Route::get('/{id}/verification', [RetailerUserController::class, 'verification'])->name('verification');
+            Route::get('/{id}/delete', [RetailerUserController::class, 'destroy'])->name('delete');
+        	Route::get('/export/csv', [RetailerUserController::class, 'exportCSV'])->name('export.csv');
+			Route::get('/login/count', [RetailerUserController::class, 'loginCount'])->name('login.count');
+			Route::get('/login/count/export/csv', [RetailerUserController::class, 'loginCountexportCSV'])->name('login.count.export.csv');
+			Route::get('/login/store/count/{state}', [RetailerUserController::class, 'loginStoreCount'])->name('login.store.count');
+			Route::get('/login/store/count/export/csv/{state}', [RetailerUserController::class, 'loginStoreCountCsv'])->name('login.store.export.csv');
+        });
+		    // product
+          Route::prefix('/product')->name('retailer.product.')->group(function () {
+            Route::get('/', [RetailerProductController::class, 'index'])->name('index');
+            Route::get('/create', [RetailerProductController::class, 'create'])->name('create');
+            Route::post('/store', [RetailerProductController::class, 'store'])->name('store');
+            Route::get('/{id}/view', [RetailerProductController::class, 'show'])->name('view');
+            Route::get('/{id}/edit', [RetailerProductController::class, 'edit'])->name('edit');
+            Route::post('/update/{id}', [RetailerProductController::class, 'update'])->name('update');
+            Route::get('/{id}/status', [RetailerProductController::class, 'status'])->name('status');
+            Route::get('/{id}/delete', [RetailerProductController::class, 'destroy'])->name('delete');
+            Route::get('/export/csv', [RetailerProductController::class, 'exportCSV'])->name('export.csv');
+			Route::post('/specification/add', [RetailerProductController::class, 'specificationAdd'])->name('specification.add');
+            Route::get('/specification/{id}/delete', [RetailerProductController::class, 'specificationDestroy'])->name('specification.delete');
+            Route::post('/specification/{id}/edit', [RetailerProductController::class, 'specificationEdit'])->name('specification.edit');
+
+        });
+
+        // product
+        Route::prefix('/qrcode')->name('retailer.barcode.')->group(function () {
+            Route::get('/', [BarcodeController::class, 'index'])->name('index');
+            Route::get('/create', [BarcodeController::class, 'create'])->name('create');
+            Route::get('/csv/export', [BarcodeController::class, 'csvExport'])->name('csv.export');
+            Route::get('{slug}/csv/export', [BarcodeController::class, 'csvExportSlug'])->name('detail.csv.export');
+            Route::post('/store', [BarcodeController::class, 'store'])->name('store');
+            Route::get('/{id}/view', [BarcodeController::class, 'show'])->name('view');
+		    Route::get('/{id}/detail', [BarcodeController::class, 'view'])->name('show');
+			Route::get('/{id}/used/qrcode', [BarcodeController::class, 'useqrcode'])->name('useqrcode');
+			Route::get('/{id}/edit', [BarcodeController::class, 'edit'])->name('edit');
+            Route::post('/{id}/update', [BarcodeController::class, 'update'])->name('update');
+            Route::get('/{id}/status', [BarcodeController::class, 'status'])->name('status');
+            Route::get('/{id}/delete', [BarcodeController::class, 'destroy'])->name('delete');
+            Route::get('/bulkDelete', [BarcodeController::class, 'bulkDestroy'])->name('bulkDestroy');
+			Route::get('qr/csv/export/page', [BarcodeController::class, 'qrcsvExport'])->name('qr.details.csv.export');
+			Route::post('/sequence/save', [BarcodeController::class, 'sequenceSave'])->name('sequence.save');
+			Route::get('/sequence/csv/download', [BarcodeController::class, 'sequenceCsv'])->name('sequence.csv.download');
+			Route::post('/sequence/csv/upload', [BarcodeController::class, 'sequenceCsvUpload'])->name('sequence.csv.upload');
+			Route::get('/error/log/Report', [BarcodeController::class, 'errorlogCsv'])->name('error.log.report.csv.export');
+        });
+  			// invoice
+          Route::prefix('/qrcode/redeem')->name('qrcode.redeem.')->group(function () {
+            Route::get('/', [BarcodeController::class, 'qrRedeem'])->name('index');
+            Route::get('/list/csv/export', [BarcodeController::class, 'qrRedeemcsvExport'])->name('csv.export');
+             Route::post('/csv/upload', [BarcodeController::class, 'areaCSVUpload'])->name('csv.upload');
+              Route::get('/retailer/wise/report', [BarcodeController::class, 'retailerwiseReport'])->name('retailer.wise.report');
+            Route::get('/retailer/list/csv/export', [BarcodeController::class, 'retailerReportcsvExport'])->name('retailer.csv.export');
+            Route::get('retailer/product/list/csv/export', [BarcodeController::class, 'retailerProductReportcsvExport'])->name('retailer.product.csv.export');
+            Route::get('/fetch-stores', [BarcodeController::class, 'fetchStores'])->name('fetch.stores');
+             Route::get('/retailer/scan/report/monthly', [BarcodeController::class, 'retailerscanReport'])->name('retailer.scan.report');
+              Route::get('/retailer/scan/report/monthly/csv/export', [BarcodeController::class, 'retailerscanReportCsv'])->name('retailer.scan.report.csv.export');
+               Route::get('/State/Distributor/Wise/Mismatch/Coupon/Report', [BarcodeController::class, 'couponmismatchCsv'])->name('mismatch.csv.export');
+                
+        });
+		
+		// invoice
+          Route::prefix('/terms')->name('retailer.terms.')->group(function () {
+            Route::get('/', [TermsController::class, 'index'])->name('index');
+            Route::post('/update', [TermsController::class, 'update'])->name('update');
+          
+
+        });
+        // product
+        Route::prefix('/order')->name('retailer.order.')->group(function () {
+            Route::get('/', [RetailerOrderController::class, 'index'])->name('index');
+            Route::get('/{id}/view', [RetailerOrderController::class, 'show'])->name('view');
+            Route::get('/export/csv', [RetailerOrderController::class, 'exportCSV'])->name('export.csv');
+			Route::get('/{id}/approval/{status}', [RetailerOrderController::class, 'approval'])->name('approval');
+			Route::get('/{id}/status/{status}', [RetailerOrderController::class, 'status'])->name('status');
+			Route::get('/{id}/product/status/{status}', [RetailerOrderController::class, 'orderProductStatus'])->name('product.status');
+			Route::post('/save/note', [RetailerOrderController::class, 'saveNote'])->name('note.save');
+        });
+    });
 });

@@ -1,0 +1,1 @@
+[04-Sep-2024 18:46:22 Asia/kolkata] PHP Fatal error:  Cannot use Illuminate\Database\Console\Seeds\WithoutModelEvents as WithoutModelEvents because the name is already in use in /home4/vangu1yt/public_html/dev/foxAndmandal/database/seeders/CreateAdminPermissionSeeder.php on line 10

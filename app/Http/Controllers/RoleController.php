@@ -40,11 +40,11 @@ class RoleController extends Controller
             ]
         ]);
 
-        Role::create([
+        $role=Role::create([
             'name' => $request->name
         ]);
 
-        return redirect('roles')->with('success','Role Created Successfully');
+        return redirect('roles/'.$role->id.'/give-permissions')->with('success','Role Created Successfully');
     }
 
     public function edit(Role $role)
@@ -80,7 +80,7 @@ class RoleController extends Controller
 
     public function addPermissionToRole($roleId)
     {
-        $permissions = Permission::get();
+        $permissions = Permission::get()->groupBy('category');
         $role = Role::findOrFail($roleId);
         $rolePermissions = DB::table('role_has_permissions')
                                 ->where('role_has_permissions.role_id', $role->id)

@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use  Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
-
+use DB;
 class UserController extends Controller
 {
     public function __construct()
@@ -19,13 +19,15 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::get();
+        $users = User::paginate(25);
+        
         return view('role-permission.user.index', ['users' => $users]);
     }
 
     public function create()
     {
         $roles = Role::pluck('name','name')->all();
+        
         return view('role-permission.user.create', ['roles' => $roles]);
     }
 
@@ -45,6 +47,12 @@ class UserController extends Controller
                     ]);
 
         $user->syncRoles($request->roles);
+        $user_id = 0;
+        DB::table('user_permission_categories')->updateOrInsert(
+                    ['user_id' => $user->id, 'brand' => $request->brand],
+                    
+                    ['created_at' => now(), 'updated_at' => now()]
+                    );
 
         return redirect('/users')->with('success','User created successfully with roles');
     }
@@ -62,6 +70,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+       
         $request->validate([
             'name' => 'required|string|max:255',
             'password' => 'nullable|string|min:8|max:20',
@@ -81,7 +90,11 @@ class UserController extends Controller
 
         $user->update($data);
         $user->syncRoles($request->roles);
-
+        DB::table('user_permission_categories')->updateOrInsert(
+                    ['user_id' => $user->id, 'brand' => $request->brand],
+                    
+                    ['created_at' => now(), 'updated_at' => now()]
+                    );
         return redirect('/users')->with('success','User Updated Successfully with roles');
     }
 

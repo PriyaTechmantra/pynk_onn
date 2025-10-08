@@ -1,81 +1,130 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | ONN & PYNK</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+   
 
-    <!-- Bootstrap CSS -->
-    <link href="{{ asset('backend/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('backend/css/style.css') }}" rel="stylesheet">
-    <link rel="shortcut icon" href="{{ asset('backend/images/logo.png') }}" type="image/x-icon">
-    <title>Fox & Mandal</title>
-  </head>
-  <body>
-    <main class="login">
-      {{-- <div class="login__left">
-        <img src="{{ asset('backend/images/onn_outerwear.png') }}">
-      </div> --}}
-      <div class="login__right">
-        <div class="login__block">
-          <div class="logo__block">
-            <img src="{{ asset('backend/images/logo.png') }}">
-          </div>
+  * {
+    box-sizing: border-box;
+  }
 
-          @if (Session::get('success'))<div class="alert alert-success">{{ Session::get('success') }}</div>@endif
-          @if (Session::get('failure'))<div class="alert alert-danger">{{ Session::get('failure') }}</div>@endif
+body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('') no-repeat center center fixed;
+      background-size: cover;
+    }
 
-          <form method="POST" action="{{ route('login') }}">
-          @csrf
-            <div class="form-floating mb-3">
-              <input type="email" class="form-control" name="email" value="{{ old('email') }}" id="floatingInput" placeholder="name@example.com">
-              <label for="floatingInput">Email address</label>
-            </div>
-            @error('email') <p class="small text-danger">{{ $message }}</p> @enderror
+    .overlay {
+      background: rgba(255, 255, 255, 0.9);
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+.login-box {
+  max-width: 600px;
+  margin: 50px auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  padding: 30px;
+  overflow: hidden;
+}
 
-            <div class="form-floating mb-3">
-              <input type="password" class="form-control" name="password" id="floatingPassword" placeholder="Password">
-              <label for="floatingPassword">Password</label>
-            </div>
-            @error('password') <p class="small text-danger">{{ $message }}</p> @enderror
+.logo-row {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 25px;
+}
 
-            {{-- <div class="row mb-3">
-              <div class="col-6">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                  <label class="form-check-label" for="flexCheckDefault">
-                    Remember Me
-                  </label>
-                </div>
-              </div>
-              <div class="col-6 text-end">
-                <a href="{{ route('admin.forget.password.get') }}">Forgot Password?</a>
-              </div>
-            </div> --}}
+.logo-row img {
+  height: 60px;
+  max-width: 100px;
+  object-fit: contain;
+}
 
-            <div class="d-grid">
-              <button type="submit" class="btn btn-lg btn-primary">Login</button>
-            </div>
-          </form>
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 22px;
+  color: #333;
+}
 
-          {{-- <div class="row mt-3">
-              <div class="col-12 text-center">
-                <a href="{{ url('/') }}">Back to homepage</a>
-              </div>
-            </div> --}}
-        </div>
-      </div>
-    </main>
+input[type="text"], input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 15px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+}
 
-    <!-- Optional JavaScript; choose one of the two! -->
 
-    <!-- Option 1: Bootstrap Bundle with Popper -->
-    <script src="{{ asset('backend/js/bootstrap.bundle.min.js') }}"></script>
 
-    <!-- Option 2: Separate Popper and Bootstrap JS -->
-    <!--
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
-    -->
-  </body>
+.footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: #777;
+}
+
+button {
+  width: 100%;
+  background: #dc3545; /* Red */
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #c82333; /* Darker red on hover */
+}
+
+
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <div class="logo-row">
+    <img src="{{ asset('backend/images/logo.png') }}" alt="ONN Logo">
+    <img src="{{ asset('backend/images/Pynk_logo.png') }}" alt="PYNK Logo">
+  </div>
+
+  <h2>Login to Your Account</h2>
+
+  <form action="{{route('login')}}" method="POST">
+    @csrf
+    <input type="text" name="email" placeholder="Email or Username" required>
+    @error('email')
+        <span class="invalid-feedback" role="alert">
+            <strong>{{ $message }}</strong>
+        </span>
+    @enderror
+    <input type="password" name="password" placeholder="Password" required>
+    @error('password')
+        <span class="invalid-feedback" role="alert">
+            <strong>{{ $message }}</strong>
+        </span>
+    @enderror
+    <button type="submit">Login</button>
+  </form>
+
+  <div class="footer">
+    © 2025 ONN & PYNK Brands
+  </div>
+</div>
+
+</body>
 </html>
