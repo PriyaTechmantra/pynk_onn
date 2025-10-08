@@ -5,13 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UserArea extends Model
+class Store extends Model
 {
     use HasFactory;
-    protected $table='user_areas';
 
-      public function area()
+     public function user()
      {
-         return $this->belongsTo(Area::class);
+         return $this->belongsTo(Employee::class,'user_id');
      }
 }
