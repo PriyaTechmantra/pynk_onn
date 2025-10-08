@@ -104,10 +104,7 @@ class ASEController extends Controller
             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
 	}
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 0bb39d771d696fc28da91b9dfc0f1d72ccdfc209
+
 	
 	//day start activity store
 	
@@ -122,77 +119,7 @@ class ASEController extends Controller
             "location" => "nullable",
             "lat" => "nullable",
         ]);
-<<<<<<< HEAD
-=======
 
-        if (!$validator->fails()) {
-            $data = [
-                "user_id" => $request->user_id,
-               
-                "date" => $request->date,
-                "time" => $request->time,
-                "type" => $request->type,
-                "comment" => $request->comment,
-                "location" => $request->location,
-                "lat" => $request->lat,
-                "lng" => $request->lng,
-                "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s'),
-            ];
-
-            $resp = DB::table('activities')->insertGetId($data);
-            if( $resp){
-                return response()->json(['error' => false, 'resp' => 'Activity stored successfully', 'data' => $resp]);
-            }else{
-                return response()->json(['error'=>true, 'resp'=>'Something happend']);
-            }
-           
-        } else {
-            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
-        }
-    }
-    //day end activity store
-    public function dayendactivityStore(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            "user_id" => "required",
-            "date" => "required",
-            "time" => "required",
-            "type" => "required",
-            "comment" => "nullable",
-            "location" => "nullable",
-            "lat" => "nullable",
-        ]);
-
-        if (!$validator->fails()) {
-            $data = [
-                "user_id" => $request->user_id,
-               
-                "date" => $request->date,
-                "time" => $request->time,
-                "type" => $request->type,
-                "comment" => $request->comment,
-                "location" => $request->location,
-                "lat" => $request->lat,
-                "lng" => $request->lng,
-                "created_at" => date('Y-m-d H:i:s'),
-                "updated_at" => date('Y-m-d H:i:s'),
-            ];
-
-            $resp = DB::table('activities')->insertGetId($data);
-            if( $resp){
-                return response()->json(['error' => false, 'resp' => 'Activity stored successfully', 'data' => $resp]);
-            }else{
-                return response()->json(['error'=>true, 'resp'=>'Something happend']);
-            }
-           
-        } else {
-            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
-        }
-    }
-=======
->>>>>>> 8a4b0878606717d075ef23e99685b13b54a5e0ac
->>>>>>> 0bb39d771d696fc28da91b9dfc0f1d72ccdfc209
 
         if (!$validator->fails()) {
             $data = [
@@ -260,6 +187,8 @@ class ASEController extends Controller
         }
     }
 
+
+       
 
     //ase wise primary and secondary report on dashboard
     
