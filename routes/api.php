@@ -49,6 +49,7 @@ Route::get('check/visit/{id}', [ASEController::class, 'checkVisit']);
 
 Route::post('day/start/activity/create', [ASEController::class, 'daystartactivityStore']);
 Route::post('day/end/activity/create', [ASEController::class, 'dayendactivityStore']);
+Route::get('dashboard/all/order/qty', [ASEController::class, 'aseSalesreport']);
 Route::get('stores/list', [ASEController::class, 'storeList']);
 Route::get('inactive/stores/list', [ASEController::class, 'inactivestoreList']);
 
