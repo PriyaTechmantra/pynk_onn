@@ -52,10 +52,10 @@ Route::post('day/end/activity/create', [ASEController::class, 'dayendactivitySto
 Route::get('dashboard/all/order/qty', [ASEController::class, 'aseSalesreport']);
 Route::get('stores/list', [ASEController::class, 'storeList']);
 Route::get('inactive/stores/list', [ASEController::class, 'inactivestoreList']);
+Route::get('serach/store', [ASEController::class, 'searchStore']);
 
 
-
-Route::get('/books/search/{id}', [BookController::class, 'search']);
+Route::get('distributor/list', [ASEController::class, 'distributorList']);
 Route::get('/books/list', [BookController::class, 'index']);
 
 Route::get('/active-books/list/{id}', [BookController::class, 'activeBookList']);

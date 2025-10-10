@@ -35,9 +35,9 @@ class ASEController extends Controller
 		$area=DB::table('visits')->where('user_id',$id)->where('start_date',date('Y-m-d'))->where('visit_id',NULL)->orderby('id','desc')->take(1)->get();
 		$user=Employee::where('id',$id)->first();
         if (count($area)==0) {
-            return response()->json(['error'=>true, 'resp'=>'Start Your Visit']);
+            return response()->json(['status'=>false, 'message'=>'Start Your Visit']);
         } else {
-            return response()->json(['error'=>false, 'resp'=>'Visit already started','area'=>$area[0]->area,'visit_id'=>$area[0]->id,'data'=>$user]);
+            return response()->json(['status'=>true, 'message'=>'Visit already started','area'=>$area[0]->area,'visit_id'=>$area[0]->id,'data'=>$user],200);
         } 
 		
 	}
@@ -56,7 +56,7 @@ class ASEController extends Controller
     ]);
 
     if ($validator->fails()) {
-        return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
     }
 
     $data = [
@@ -74,7 +74,7 @@ class ASEController extends Controller
 
     $visit_id = DB::table('visits')->insertGetId($data);
 
-    return response()->json(['error' => false, 'message' => 'Visit started', 'visit_id' => $visit_id]);
+    return response()->json(['status' => true, 'message' => 'Visit started', 'visit_id' => $visit_id],200);
 }
 
 
@@ -103,9 +103,9 @@ class ASEController extends Controller
 
             DB::table('visits')->where('id', $request->visit_id)->update($data);
 
-            return response()->json(['error' => false, 'message' => 'Visit ended', 'data' => $data]);
+            return response()->json(['status' => true, 'message' => 'Visit ended', 'data' => $data],200);
         } else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
 	}
 
@@ -142,13 +142,13 @@ class ASEController extends Controller
 
             $resp = DB::table('activities')->insertGetId($data);
             if( $resp){
-                return response()->json(['error' => false, 'resp' => 'Activity stored successfully', 'data' => $resp]);
+                return response()->json(['status' => true, 'message' => 'Activity stored successfully', 'data' => $resp],200);
             }else{
-                return response()->json(['error'=>true, 'resp'=>'Something happend']);
+                return response()->json(['status'=>false, 'message'=>'Something happend'],404);
             }
            
         } else {
-            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
     //day end activity store
@@ -181,13 +181,13 @@ class ASEController extends Controller
 
             $resp = DB::table('activities')->insertGetId($data);
             if( $resp){
-                return response()->json(['error' => false, 'resp' => 'Activity stored successfully', 'data' => $resp]);
+                return response()->json(['status' => true, 'message' => 'Activity stored successfully', 'data' => $resp],200);
             }else{
-                return response()->json(['error'=>true, 'resp'=>'Something happend']);
+                return response()->json(['status'=>false, 'message'=>'Something happend'],404);
             }
            
         } else {
-            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
 
@@ -204,7 +204,7 @@ public function aseSalesreport(Request $request)
     ]);
 
     if ($validator->fails()) {
-        return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
     }
 
     $ase = $request->ase_id;
@@ -263,11 +263,11 @@ public function aseSalesreport(Request $request)
     }
 
     return response()->json([
-        'error' => false,
+        'status' => true,
         'message' => 'ASE wise Primary & Secondary Sales Report',
         'Primary Sales | Distributor wise Daily Report' => $respArrd,
         'Secondary Sales | Retailer wise Daily Report' => $respArr,
-    ]);
+    ],200);
 }
 
 
@@ -283,9 +283,9 @@ public function aseSalesreport(Request $request)
 	
         if ($stores) {
 
-            return response()->json(['error'=>false, 'resp'=>'Store data fetched successfully','data'=>$stores]);
+            return response()->json(['status'=>true, 'message'=>'Store data fetched successfully','data'=>$stores],200);
         } else {
-            return response()->json(['error' => true, 'resp' => 'Something happened']);
+            return response()->json(['status' => false, 'message' => 'Something happened'],404);
         }
     }
     
@@ -301,11 +301,63 @@ public function aseSalesreport(Request $request)
 	
         if ($stores) {
 
-            return response()->json(['error'=>false, 'resp'=>'Store data fetched successfully','data'=>$stores]);
+            return response()->json(['status'=>true, 'message'=>'Store data fetched successfully','data'=>$stores],200);
         } else {
-            return response()->json(['error' => true, 'resp' => 'Something happened']);
+            return response()->json(['status' => false, 'message' => 'Something happened'],404);
         }
     }
+
+
+    public function searchStore(Request $request)
+    {
+		$search = !empty($request->keyword)?$request->keyword:'';
+        $query = Store::select('*')
+        ->where('status', 1)
+        ->where('is_deleted', 0);
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('contact', $search)
+                ->orWhere('name', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $data = $query->get();
+		if(!empty($data)){
+			foreach($data as $item){
+				$retailer=Team::where('store_id',$item->id)->first();
+				$item->team = $retailer;
+			}
+		}
+         return response()->json([
+            'status'=>true,
+            'message'=>"Store List",
+            'data'=> $data
+            
+        ],200);
+
+    }
+    
+    //distributor list area wise
+
+
+    public function distributorList(Request $request)
+    {
+        $distributors = Team::where('ase_id',$request->ase_id)->where('area_id',$request->area_id)->where('is_deleted',0)->with('distributor')->get();
+		
+	
+        if ($distributors) {
+
+            return response()->json(['status'=>true, 'message'=>'Distributor data fetched successfully','data'=>$distributors],200);
+        } else {
+            return response()->json(['status' => false, 'message' => 'Something happened'],404);
+        }
+    }
+
+
+    //add store
+
+
 
 }
  
