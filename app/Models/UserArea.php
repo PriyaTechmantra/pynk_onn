@@ -10,7 +10,7 @@ class UserArea extends Model
     use HasFactory;
     protected $table='user_areas';
 
-      public function area()
+    public function area()
      {
          return $this->belongsTo(Area::class);
      }

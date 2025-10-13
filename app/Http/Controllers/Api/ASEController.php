@@ -19,15 +19,51 @@ class ASEController extends Controller
 {
     public function areaList(Request $request)
     {
-        $data = UserArea::where('user_id',$request->ase_id)->where('is_deleted',0)->with('area')->get();
-        if ($data) {
-             return response()->json(['status'=>true,'message' => 'List of areas','data' => $data ], 200);
-        }else {
+        $data = UserArea::where('user_id', $request->ase_id)
+                ->where('is_deleted', 0)
+                ->with('area')
+                ->get();
+
+            $brandMap = [
+                1 => 'ONN',
+                2 => 'PYNK',
+                3 => 'Both',
+            ];
+
+            if ($data->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Area list not found'
+                ], 404);
+            }
+
+            // Extract unique brands from user_areas table
+            $brands = $data->pluck('brand')->unique()->toArray();
+
+            // Determine brand permission
+            if (in_array(3, $brands)) {
+                $brandPermissions = 'Both';
+            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                $brandPermissions = 'Both';
+            } else {
+                $brandPermissions = collect($brands)
+                    ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                    ->implode(', ');
+            }
+
+            // Add readable brand name to each record
+            $data->transform(function ($item) use ($brandMap) {
+                $item->brand_name = $brandMap[$item->brand] ?? 'Unknown';
+                return $item;
+            });
+
             return response()->json([
-                'status' => false,
-                'message' => 'Area list not found'
-            ], 404);
-        }
+                'status' => true,
+                'message' => 'List of areas',
+                'brand_permissions' => $brandPermissions,
+                'data' => $data
+            ], 200);
+
     }
     
     //check visit
@@ -131,7 +167,7 @@ class ASEController extends Controller
                
                 "date" => $request->date,
                 "time" => $request->time,
-                "type" => $request->type,
+                "type" => 'Visit Started',
                 "comment" => $request->comment,
                 "location" => $request->location,
                 "lat" => $request->lat,
@@ -170,7 +206,7 @@ class ASEController extends Controller
                
                 "date" => $request->date,
                 "time" => $request->time,
-                "type" => $request->type,
+                "type" => 'Visit Ended',
                 "comment" => $request->comment,
                 "location" => $request->location,
                 "lat" => $request->lat,
@@ -191,7 +227,47 @@ class ASEController extends Controller
         }
     }
 
+    //all activity store
+    public function activityStore(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "user_id" => "required",
+            "date" => "required",
+            "time" => "required",
+            "type" => "required",
+            "comment" => "nullable",
+            "location" => "nullable",
+            "lat" => "nullable",
+        ]);
 
+        if (!$validator->fails()) {
+            $data = [
+                "user_id" => $request->user_id,
+                "store_id" => $request->store_id?? '',
+                "order_id" => $request->order_id ?? '',
+                "distributor_id" => $request->distributor_id?? '',
+                "date" => $request->date,
+                "time" => $request->time,
+                "type" => $request->type,
+                "comment" => $request->comment,
+                "location" => $request->location,
+                "lat" => $request->lat,
+                "lng" => $request->lng,
+                "created_at" => date('Y-m-d H:i:s'),
+                "updated_at" => date('Y-m-d H:i:s'),
+            ];
+
+            $resp = DB::table('activities')->insertGetId($data);
+            if( $resp){
+                return response()->json(['status' => true, 'message' => 'Activity stored successfully', 'data' => $resp],200);
+            }else{
+                return response()->json(['status'=>false, 'message'=>'Something happend'],404);
+            }
+           
+        } else {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+    }
        
 
     //ase wise primary and secondary report on dashboard
@@ -353,9 +429,187 @@ public function aseSalesreport(Request $request)
             return response()->json(['status' => false, 'message' => 'Something happened'],404);
         }
     }
-
+    
 
     //add store
+    public function addStore(Request $request)
+    {
+         //dd($request->all());
+        $request->validate([
+            "name" => "required|string|unique:stores|max:255",
+            "contact" => "required|integer|digits:10|unique:stores,contact",
+            "whatsapp"=>"nullable|integer|digits:10",
+            "email" => "nullable|string",
+            'owner_name' => 'required|regex:/^[\pL\s\-]+$/u',
+			'owner_lname' => 'required|regex:/^[\pL\s\-]+$/u',
+            'contact_person' => 'required|regex:/^[\pL\s\-]+$/u',
+            'contact_person_lname' => 'required|regex:/^[\pL\s\-]+$/u',
+            "address" => "nullable|string",
+            "state_id" => "required",
+            "city" => "nullable|string",
+            "pin" => "nullable|string",
+            "area_id" => "required",
+            "user_id" => "required",
+            "distributor_id" => "required",
+            "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000"
+        ]);
+        $user = Employee::where('id',$request->user_id)->first();
+        $name = $user->name;
+        $store = new Store;
+        $store->user_id = $request->user_id;
+        $store->name = $request->name ?? null;
+        $slug = Str::slug($request->name, '-');
+        $slugExistCount = Store::where('name', $request->name)->count();
+        if ($slugExistCount > 0) $slug = $slug.'-'.($slugExistCount);
+        $store->slug = $slug;
+
+        // $store->slug = null;
+        $store->bussiness_name = $request->bussiness_name ?? null;
+        $store->store_OCC_number = $request->store_OCC_number ?? null;
+        $store->contact = $request->contact ?? null;
+        $store->email = $request->email ?? null;
+        $store->whatsapp = $request->whatsapp ?? null;
+        $store->address = $request->address ?? null;
+        $store->area_id = $request->area_id ?? null;
+        $store->state_id = $request->state_id ?? null;
+        $store->city = $request->city;
+        $store->pin = $request->pin ?? null;
+        $store->owner_name	 = $request->owner_name ?? null;
+        $store->owner_lname	 = $request->owner_lname ?? null;
+        $store->store_OCC_number = $request->store_OCC_number ?? null;
+        $store->gst_no = $request->gst_no ?? null;
+        $store->pan_no = $request->pan_no ?? null;
+        $store->date_of_birth	 = $request->date_of_birth?? null;
+        $store->date_of_anniversary	 = $request->date_of_anniversary?? null;
+        $store->contact_person_name	 = $request->contact_person_name ?? null;
+        $store->contact_person_lname = $request->contact_person_lname ?? null;
+        $store->contact_person_phone	= $request->contact_person_phone ?? null;
+        $store->contact_person_whatsapp	 = $request->contact_person_whatsapp ?? null;
+        $store->contact_person_date_of_birth	 = $request->contact_person_date_of_birth ?? null;
+        $store->contact_person_date_of_anniversary	 = $request->contact_person_date_of_anniversary ?? null;
+        $store->status = 0;
+        if($request->hasFile('image')) {
+            $imageName = mt_rand().'.'.$request->image->extension();
+            $uploadPath = 'uploads/store';
+            $request->image->move($uploadPath, $imageName);
+            $store->image = $uploadPath.'/'.$imageName;
+        }
+        $store->save();
+       
+        $result1 = Team::where('distributor_id',$request->distributor_id)->where('ase_id',$request->user_id)->where('state_id',$request->state_id)->where('area_id',$request->area_id)->first();
+
+        $retailerListOfOcc = new Team;
+        $retailerListOfOcc->vp_id = $result1->vp;
+        $retailerListOfOcc->state_id = $result1->state_id;
+        $retailerListOfOcc->distributor_id = $result1->distributor_id;
+        $retailerListOfOcc->area_id = $result1->area_id;
+        $retailerListOfOcc->store_id = $store->id ?? null;
+        $retailerListOfOcc->rsm_id = $result1->rsm_id;
+        $retailerListOfOcc->asm_id = $result1->asm_id;
+        $retailerListOfOcc->ase_id = $result1->ase_id;
+        $retailerListOfOcc->is_active = '1';
+        $retailerListOfOcc->is_deleted = '0';
+        $retailerListOfOcc->asm_rsm = $result1->rsm_id;
+        $retailerListOfOcc->code = '';
+        $retailerListOfOcc->save();
+
+        	// notification to Admin
+        	$loggedInUser = $name;
+        	sendNotification($store->user_id, 'admin', 'store-add', 'admin.stores.index', $store->name. '  added by ' .$loggedInUser , '  Store ' .$store->name.' added');
+        	// notification to ASM
+        	$loggedInUser = $name;
+        	$asm = DB::select("SELECT u.id as asm_id FROM `teams` t  INNER JOIN users u ON u.id = t.asm_id where t.ase_id = '$request->user_id' GROUP BY t.asm_id");
+                foreach($asm as $value){
+                    sendNotification($store->user_id, $value->asm_id, 'store-add', 'front.store.index', $store->name. '  added by ' .$loggedInUser , '  Store ' .$store->name.' added');
+                }
+                // notification to RSM
+                $loggedInUser = $name;
+                $rsm = DB::select("SELECT u.id as rsm_id FROM `teams` t  INNER JOIN users u ON u.id = t.rsm_id where t.ase_id = '$request->user_id' GROUP BY t.rsm_id");
+                foreach($rsm as $value){
+                    sendNotification($store->user_id, $value->rsm_id, 'store-add', '', $store->name. '  added by '  .$loggedInUser ,' Store ' .$store->name. ' added');
+                }
+
+               
+                
+                // notification to VP
+                $loggedInUser = $name;
+                $vp = DB::select("SELECT u.id as vp_id FROM `teams` t  INNER JOIN users u ON u.id = t.vp_id where t.ase_id = '$request->user_id' GROUP BY t.vp_id");
+                foreach($vp as $value){
+                    sendNotification($store->user_id, $value->vp_id, 'store-add', '', $store->name. '  added by ' .$loggedInUser ,'Store ' .$store->name.' added  ');
+                }
+                return response()->json(['status'=>true, 'message'=>'Store data created successfully','data'=>$store]);
+
+        
+    }
+    
+
+    public function storeimageUpdate(Request $request)
+    {
+
+        $response = Store::findOrFail($request->store_id);
+        $response->image=$request->image;
+        $response->save();
+		if ($response) {
+            return response()->json(['status' => true, 'message' => 'Data updated successfully', 'data' => $response]);
+        } else {
+            return response()->json(['status' => false, 'message' => 'Something happened']);
+        }
+        
+    }
+
+    public function noorderlist()
+    {
+
+        $data = NoOrderReason::all();
+
+        return response()->json(['status'=>true, 'message'=>'no order list data fetched successfully','data'=>$data]);
+    }
+
+
+    public function noorder(Request $request)
+    {
+       $request->validate([
+            "no_order_reason_id" => "required",
+            "store_id" => "required",
+            "user_id" => "required",
+       ]);
+        $data = UserNoOrderReason::new();
+        $data->no_order_reason_id= $request->no_order_reason_id;
+        $data->store_id= $request->store_id;
+        $data->user_id= $request->user_id;
+        $data->comment= $request->comment;
+        $data->description= $request->description;
+        $data->location= $request->location;
+        $data->lat= $request->lat;
+        $data->lng= $request->lng;
+        $data->date= $request->date;
+        $data->time= $request->time;
+        $data->save();
+        return response()->json(['status'=>true, 'message'=>'no order list data fetched successfully','data'=>$data]);
+    }
+
+    public function noorderhistory(Request $request, $id)
+    {
+        $noOrder=UserNoOrderReason::where('store_id', $id)->with('user','store')->orderby('id','desc')->get();
+		if ($noOrder) {
+        return response()->json(['status'=>true, 'message'=>'no order list data fetched successfully','data'=>$noOrder]);
+		}else{
+			  return response()->json(['error' => false, 'message' => 'No data found']);
+		}
+        
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -56,12 +56,12 @@ Route::get('serach/store', [ASEController::class, 'searchStore']);
 
 
 Route::get('distributor/list', [ASEController::class, 'distributorList']);
-Route::get('/books/list', [BookController::class, 'index']);
+Route::post('add/store', [ASEController::class, 'addStore']);
 
-Route::get('/active-books/list/{id}', [BookController::class, 'activeBookList']);
-Route::get('/books/list/with-issuedbook', [BookController::class, 'bookWithIssuedBook']);
-Route::get('/books/detail', [BookController::class, 'bookDetails']);
-Route::get('/books/details-by-qrcode', [BookController::class, 'searchDetailsByQrCode']);
+Route::post('store/image/update', [ASEController::class, 'storeimageUpdate']);
+Route::post('no-order-reason/update', [ASEController::class, 'noorder']);
+Route::get('no-order-reason', [ASEController::class, 'noorderlist']);
+Route::get('no-order-history/{id}', [ASEController::class, 'noorderhistory']);
 Route::get('/books/category-wise-list', [BookController::class, 'CategoryWiseBookList']);
 Route::get('/books/history/{id}', [IssueBookController::class, 'history']);
 
