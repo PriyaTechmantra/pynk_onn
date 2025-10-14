@@ -16,6 +16,8 @@ use App\Http\Controllers\Facility\PropertyController;
 use App\Http\Controllers\Cave\CaveFormController;
 use App\Http\Controllers\Cave\CaveLocationController;
 use App\Http\Controllers\Cave\CaveCategoryController;
+use App\Http\Controllers\RetailerProductController;
+
 use Illuminate\Support\Facades\Route;
 Route::get('/cache-clear', function() {
 	// \Artisan::call('route:cache');
@@ -222,7 +224,7 @@ Route::group(['middleware' => ['auth']], function() {
 			Route::get('/login/store/count/export/csv/{state}', [RetailerUserController::class, 'loginStoreCountCsv'])->name('login.store.export.csv');
         });
 		    // product
-          Route::prefix('/product')->name('retailer.product.')->group(function () {
+        Route::prefix('/product')->name('retailer.product.')->group(function () {
             Route::get('/', [RetailerProductController::class, 'index'])->name('index');
             Route::get('/create', [RetailerProductController::class, 'create'])->name('create');
             Route::post('/store', [RetailerProductController::class, 'store'])->name('store');
