@@ -83,7 +83,7 @@ class AuthController extends Controller
                 }
             } else {
 
-                return response()->json(['status' => true, 'message' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $userCheck->password]);
+                return response()->json(['status' => true, 'message' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $user->password]);
             }
     
         } catch (\Exception $e) {
