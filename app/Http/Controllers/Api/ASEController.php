@@ -15,7 +15,7 @@ use Str;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserPermissionCategory;
 use DB;
-use Log;
+use Illuminate\Support\Facades\Log;
 class ASEController extends Controller
 {
     public function areaList(Request $request)
