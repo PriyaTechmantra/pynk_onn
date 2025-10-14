@@ -10,6 +10,7 @@ use App\Models\Employee;
 use Carbon\Carbon;
 use DB;
 use Hash;
+use Illuminate\Support\Facades\Log;
 class AuthController extends Controller
 {
     
