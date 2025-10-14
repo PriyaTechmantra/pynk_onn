@@ -7,6 +7,8 @@ use App\Models\Employee;
 use App\Models\State;
 use App\Models\Area;
 use App\Models\UserArea;
+use App\Models\Team;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -69,14 +71,20 @@ class EmployeeController extends Controller
     if (in_array(3, $accessibleBrands)) {
         $accessibleBrands = [1, 2];
     }
+    
     // Brand filtering logic
     if ($brandFilter) {
         if ($brandFilter === 'All') {
             // "All" → show employees only from brands user has access to
-            $query->whereHas('permissions', fn($q) => $q->whereIn('brand', $accessibleBrands));
+            $query->whereHas('permissions', function($q) use ($accessibleBrands) {
+                $q->where(function($inner) use ($accessibleBrands) {
+                    $inner->whereIn('brand', $accessibleBrands)
+                        ->orWhere('brand', 3); // include Both
+                });
+            });
         } else {
             // Specific brand → show only if user has access
-            if (in_array($brandFilter, $accessibleBrands)) {
+            if (in_array($brandFilter, $accessibleBrands)|| in_array(3, $accessibleBrands)) {
                 $query->whereHas('permissions', fn($q) => $q->where('brand', $brandFilter));
             } else {
                 // If user tries to access brand they don’t have → return empty
@@ -85,13 +93,19 @@ class EmployeeController extends Controller
         }
     } else {
         // First page load → default to logged-in user's permitted brands
-        $query->whereHas('permissions', fn($q) => $q->whereIn('brand', $accessibleBrands));
+        $query->whereHas('permissions', function($q) use ($accessibleBrands) {
+            $q->where(function($inner) use ($accessibleBrands) {
+                $inner->whereIn('brand', $accessibleBrands)
+                    ->orWhere('brand', 3); // include Both
+            });
+        });
+        
     }
-
+    
     $data = $query->where('is_deleted', 0)->with('stateDetail', 'area')
                   ->latest('id')
                   ->paginate(25);
-
+    
     $state = State::where('status', 1)
         ->where('is_deleted', 0)
         ->orderBy('name')
@@ -136,6 +150,7 @@ class EmployeeController extends Controller
             'state'       => $request->state,
             'city'        => $request->area,
             'date_of_joining'  => $request->date_of_joining,
+            'created_by'  => auth()->id(),
             'password'    => Hash::make($request->password), // hash here ✅
         ]);
         DB::table('user_permission_categories')->updateOrInsert(
@@ -160,8 +175,11 @@ class EmployeeController extends Controller
         ->where('is_deleted', 0)
         ->orderBy('name')
         ->get();
-        $workAreaList=userArea::where('user_id',$id)->where('is_deleted', 0)->with('area')->get();
-        return view('employee.view',compact('data','state','workAreaList'));
+        $workAreaList=userArea::where('user_id',$id)->where('is_deleted', 0)->groupby('area_id')->with('area')->get();
+        $team = Team::where('ase_id', $data->id)->where('store_id', null)->where('is_deleted', 0)->first();
+        $storeList = Store::where('user_id',$data->id)->where('is_deleted', 0)->orderBy('name')->get();
+        $distributorList = Team::where('ase_id', $data->id)->where('distributor_id', '!=', null)->where('store_id',NULL)->where('is_deleted', 0)->groupBy('distributor_id')->orderBy('id','desc')->get();
+        return view('employee.view',compact('data','state','workAreaList','team','distributorList','storeList'));
     }
     
     /**
@@ -632,6 +650,74 @@ class EmployeeController extends Controller
  
          
      }
+
+     //store transfer
+    public function bulkASEDistributorransfer(Request $request)
+    {
+        //dd($request->all());
+        // Get the selected checkboxes
+        $statusChecks = $request->input('status_check', []);
+        $aseUsers = $request->input('aseUser', []);
+        $ids = [];
+        $names = [];
+        
+        // Loop through the original array
+        foreach ($aseUsers as $item) {
+           
+            // Add to respective arrays
+            $ids[] = $item;
+            
+        }
+
+        
+        
+        $distributorUsers = $request->input('distributorUser', []);
+        // Convert arrays to comma-separated strings
+        $aseUsersString = implode(',', $ids);
+        
+        
+        //
+        $distributorUsersString = implode(',', $distributorUsers);
+        
+        foreach ($statusChecks as $storeId) {
+            // Perform transfer logic for each selected store
+            // e.g., update the store's ASE and Distributor
+            
+            $store = Store::find($storeId);
+
+            if ($store) {
+                // Append new ASE User values to the existing values
+                $existingAseUsers = $store->user_id ?? '';
+                //$aseUsersArray = array_filter(array_unique(array_merge(explode(',', $existingAseUsers), $ids)));
+                $aseUsersArray = array_filter(array_unique($ids));
+                $newAseUsers = implode(',', $aseUsersArray);
+                
+                $store->user_id = $newAseUsers;
+                $store->save();
+                // Append new Distributor User values to the existing values
+                $team = Team::where('store_id',$storeId)->first();
+                $existingDistributors = $team->distributor_id ?? '';
+                $existingASE = $team->ase_id ?? '';
+                
+                //$asesArray = array_filter(array_unique(array_merge(explode(',', $existingASE), $names)));
+                $asesArray = array_filter(array_unique($ids));
+                $newases = implode(',', $asesArray);
+                
+                $distributorArray = array_filter(array_unique(array_merge(explode(',', $existingDistributors), $distributorUsers)));
+                //$distributorArray = array_filter(array_unique($distributorUsers));
+                $newDistributors = implode(',', $distributorArray);
+                //dd($newDistributors);
+                // Update the store with the new ASE User and Distributor values
+                
+                $team->distributor_id = $newDistributors ??'';
+                $team->ase_id = $newases;
+                $team->save();
+            }
+        }
+
+        // Redirect or return response
+        return redirect()->back()->with('success', 'Stores transferred successfully.');
+    }
 
      
 

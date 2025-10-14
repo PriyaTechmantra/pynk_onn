@@ -24,11 +24,7 @@ class ASEController extends Controller
                 ->with('area')
                 ->get();
 
-            $brandMap = [
-                1 => 'ONN',
-                2 => 'PYNK',
-                3 => 'Both',
-            ];
+            
 
             if ($data->isEmpty()) {
                 return response()->json([
@@ -37,30 +33,10 @@ class ASEController extends Controller
                 ], 404);
             }
 
-            // Extract unique brands from user_areas table
-            $brands = $data->pluck('brand')->unique()->toArray();
-
-            // Determine brand permission
-            if (in_array(3, $brands)) {
-                $brandPermissions = 'Both';
-            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
-                $brandPermissions = 'Both';
-            } else {
-                $brandPermissions = collect($brands)
-                    ->map(fn($brand) => $brandMap[$brand] ?? $brand)
-                    ->implode(', ');
-            }
-
-            // Add readable brand name to each record
-            $data->transform(function ($item) use ($brandMap) {
-                $item->brand_name = $brandMap[$item->brand] ?? 'Unknown';
-                return $item;
-            });
-
+            
             return response()->json([
                 'status' => true,
                 'message' => 'List of areas',
-                'brand_permissions' => $brandPermissions,
                 'data' => $data
             ], 200);
 
@@ -164,7 +140,7 @@ class ASEController extends Controller
         if (!$validator->fails()) {
             $data = [
                 "user_id" => $request->user_id,
-               
+                "area_id" => $request->area_id,
                 "date" => $request->date,
                 "time" => $request->time,
                 "type" => 'Visit Started',
@@ -203,7 +179,7 @@ class ASEController extends Controller
         if (!$validator->fails()) {
             $data = [
                 "user_id" => $request->user_id,
-               
+                "area_id" => $request->area_id,
                 "date" => $request->date,
                 "time" => $request->time,
                 "type" => 'Visit Ended',
