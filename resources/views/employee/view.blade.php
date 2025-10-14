@@ -193,22 +193,23 @@
                 <div class="card data-card">
                     <div class="card-header">
                         <h4 class="d-flex">Distributor Details
-                            @if($brandPermissions=='Both')
-                                                    <div class="col">
-                                                        <label class="small text-muted">Brand</label>
-                                                        <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
-                                                            <option value="" selected disabled>Select</option>
-                                                                 <option value="All" {{ (request()->input('brand') == "All") ? 'selected' : '' }}>All</option>
-                                                            
-                                                                <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
-                                                                <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
-                                                                
-                                                                
-                                                        </select>
-                                                    </div>
-                                                     @endif
+                            
                             
                         </h4>
+                        @if($brandPermissions=='Both')
+                                <div class="col-md-4">
+                                    <label class="small text-muted">Brand</label>
+                                    <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
+                                        <option value="" selected disabled>Select</option>
+                                                <option value="All" {{ (request()->input('brand') == "All") ? 'selected' : '' }}>All</option>
+                                        
+                                            <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
+                                            <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
+                                            
+                                            
+                                    </select>
+                                </div>
+                        @endif
                     </div>
                     <div class="card-body">
                         <div class="row">
