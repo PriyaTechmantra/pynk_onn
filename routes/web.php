@@ -183,7 +183,7 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('stores/csv/export', [StoreController::class, 'employeeExport']);
     Route::post('stores/bulk/upload', [StoreController::class, 'bulkUpload']);
     Route::get('stores/noorderreason', [StoreController::class, 'noorderreason'])->name('stores.noorderreason');
-    
+    Route::post('/stores/transfer/to/ase', [StoreController::class, 'bulkASEDistributorransfer'])->name('stores.transfer');
 
     //orders
     Route::get('primary/order', [OrderController::class, 'primaryOrder'])->name('primary.orders.index');

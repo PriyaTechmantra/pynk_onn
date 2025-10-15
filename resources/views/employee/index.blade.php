@@ -165,7 +165,7 @@
                                     
                                     @php
                                         $area ='';
-                                        $areaDetail = DB::table('user_areas')->where('user_id','=',$item->id)->get();
+                                        $areaDetail = DB::table('user_areas')->where('user_id','=',$item->id)->where('is_deleted', 0)->groupby('area_id')->get();
                                         
                                         if(!empty($areaDetail)) {
                                             foreach($areaDetail as $key => $obj) {

@@ -30,7 +30,7 @@ class Employee extends Model
     }
 
    public function permissions()
-  {
+   {
     return $this->hasMany(UserPermissionCategory::class, 'employee_id');
    }
 	
