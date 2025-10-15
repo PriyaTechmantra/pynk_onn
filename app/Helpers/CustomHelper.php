@@ -109,3 +109,18 @@ if (!function_exists('userTypeName')) {
         return $userTypeDetail;
     }
 }
+
+if(!function_exists('sendNotification')) {
+    function sendNotification($sender, $receiver, $type, $route, $title, $body='')
+    {
+        $noti = new Notification();
+        $noti->sender_id = $sender;
+        $noti->receiver_id = $receiver;
+        $noti->type = $type;
+        $noti->route = $route;
+        $noti->title = $title;
+        $noti->body = $body;
+        $noti->read_flag = 0;
+        $noti->save();
+    }
+}
