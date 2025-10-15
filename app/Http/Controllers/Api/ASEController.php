@@ -840,12 +840,12 @@ public function aseSalesreport(Request $request)
         $data->date= $request->date;
         $data->time= $request->time;
         $data->save();
-        return response()->json(['status'=>true, 'message'=>'no order list data fetched successfully','data'=>$data]);
+        return response()->json(['status'=>true, 'message'=>'no order reason data updated successfully','data'=>$data]);
     }
 
     public function noorderhistory(Request $request, $id)
     {
-        $noOrder=UserNoOrderReason::where('store_id', $id)->with('user','store')->orderby('id','desc')->get();
+        $noOrder=UserNoOrderReason::where('store_id', $id)->with('user','store','noorder')->orderby('id','desc')->get();
 		if ($noOrder->isNotEmpty()) {
 
             // Brand mapping
