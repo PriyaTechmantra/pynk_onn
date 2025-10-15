@@ -620,7 +620,7 @@ public function aseSalesreport(Request $request)
             "address" => "nullable|string",
             "state_id" => "required",
             "city" => "nullable|string",
-            "pin" => "nullable|string",
+            "pin" => "nullable",
             "area_id" => "required",
             "user_id" => "required",
             "distributor_id" => "required",
