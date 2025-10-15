@@ -357,6 +357,12 @@ public function aseSalesreport(Request $request)
     /**
      * ✅ Primary (Distributor-wise, Brand-wise)
      */
+
+    $brandMap = [
+        1 => 'ONN',
+        2 => 'PYNK',
+        3 => 'Both',
+    ];
     $distributors = Team::where('ase_id', $ase)
         ->whereNull('store_id')
         ->whereHas('distributor', function ($q) {
@@ -394,16 +400,25 @@ public function aseSalesreport(Request $request)
     /**
      * ✅ Secondary (Retailer-wise, Brand-wise)
      */
+
+    $brandMap = [
+        1 => 'ONN',
+        2 => 'PYNK',
+        3 => 'Both',
+    ];
     $stores = Store::where('user_id', $ase)
         ->where('status', 1)
         ->where('is_deleted', 0)
         ->get();
 
     foreach ($stores as $value) {
-        $brandPermission = $value->brand ?? ''; // brand column in store table ('ONN', 'PYNK', or 'Both')
+        $brandCode = $value->brand;
 
-        // Handle "Both" case for stores too
-        $brandsToCheck = ($brandPermission == 'Both') ? ['ONN', 'PYNK'] : [$brandPermission]; // brand column in store table
+        // Convert numeric to readable brand
+        $brandName = $brandMap[$brandCode] ?? null;
+
+        // Handle "Both" case
+         $brandsToCheck = ($brandCode == 3) ? ['ONN', 'PYNK'] : [$brandName];
             foreach ($brandsToCheck as $brand) {
                 $qty = SecondaryOrder::where('retailer_id', $value->id)
                     ->where('brand', $brand)
