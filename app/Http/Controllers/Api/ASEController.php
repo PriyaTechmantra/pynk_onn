@@ -575,6 +575,7 @@ public function aseSalesreport(Request $request)
         // Fetch distributors under ASE and Area
         $distributors = Team::where('ase_id', $ase_id)
             ->where('area_id', $area_id)
+            ->where('store_id',NULL)
             ->where('is_deleted', 0)
             ->with('distributor')
             ->get();
