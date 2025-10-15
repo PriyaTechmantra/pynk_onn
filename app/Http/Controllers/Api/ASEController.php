@@ -757,7 +757,7 @@ public function aseSalesreport(Request $request)
             $imageName = mt_rand().'.'.$request->image->extension();
 			$uploadPath = 'public/uploads/store';
             $filePath='uploads/store';
-			$request->image->move($filePath, $imageName);
+			$request->image->move($uploadPath, $imageName);
 			$total_path = $uploadPath.'/'.$imageName;
             
 			return response()->json(['status' => true, 'message' => 'Image added', 'data' => $total_path]);
