@@ -802,12 +802,15 @@ public function aseSalesreport(Request $request)
 
     public function noorder(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(),[
                 "no_order_reason_id" => "required",
                 "store_id" => "required",
                 "user_id" => "required",
                 'brand'   => 'required|string|in:ONN,PYNK,Both',
         ]);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
         // 🔁 Map brand name to numeric value
         $brandMap = [
             'ONN'  => 1,
