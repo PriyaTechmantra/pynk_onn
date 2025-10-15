@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 class RetailerProductController extends Controller
 {
    
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $query = RetailerProduct::query();
 
@@ -23,23 +23,19 @@ class RetailerProductController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
+            $brands = explode(',', $request->brand_selection);
 
-            if ($brand == 3) {
-                $query->where(function ($q) {
-                    $q->whereJsonContains('brand', '1')
-                    ->orWhereJsonContains('brand', '2');
-                });
-            } else {
-                $query->whereJsonContains('brand', (string)$brand);
-            }
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    $q->orWhereJsonContains('brand', (string) trim($brand));
+                }
+            });
         }
 
         $data = $query->orderBy('id', 'desc')->paginate(25);
 
         return view('reward.product.index', compact('data', 'request'));
     }
-
 
     public function create(Request $request)
     {
