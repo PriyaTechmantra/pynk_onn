@@ -12,6 +12,7 @@ use App\Models\Team;
 use App\Models\PrimaryOrder;
 use App\Models\SecondaryOrder;
 use App\Models\NoOrderReason;
+use App\Models\Category;
 use App\Models\UserNoOrderReason;
 use Str;
 use Illuminate\Support\Facades\Validator;
@@ -870,6 +871,40 @@ public function aseSalesreport(Request $request)
 			  return response()->json(['error' => false, 'message' => 'No data found']);
 		}
         
+    }
+
+    public function categoryList(Request $request)
+    {
+		
+
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+		
+		$stores = Category::where('status',1)->where('is_deleted',0)->get();
+		
+	
+        if ($stores->isNotEmpty()) {
+            // Transform brand values
+            $stores = $stores->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                return $store;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Category data fetched successfully',
+                'data'    => $stores,
+            ], 200);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No category data found',
+            ], 404);
+        }
     }
 
 

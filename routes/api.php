@@ -62,7 +62,7 @@ Route::post('store/image/update', [ASEController::class, 'storeimageUpdate']);
 Route::post('no-order-reason/update', [ASEController::class, 'noorder']);
 Route::get('no-order-reason', [ASEController::class, 'noorderlist']);
 Route::get('no-order-history/{id}', [ASEController::class, 'noorderhistory']);
-Route::get('/books/category-wise-list', [BookController::class, 'CategoryWiseBookList']);
+Route::get('category', [ASEController::class, 'categoryList']);
 Route::get('/books/history/{id}', [IssueBookController::class, 'history']);
 
 Route::post('/issue-books', [IssueBookController::class, 'store']);
