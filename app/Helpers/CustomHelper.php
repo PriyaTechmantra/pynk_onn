@@ -84,7 +84,7 @@ if (!function_exists('findManagerDetails')) {
                 break;
             
                 case 4:
-                        $query=Team::select('vp_id','rsm_id','asm_id','state_id','area_id','distributor_id')->where('ase_id',$userName)->orderby('id','desc')->with('vp','rsm','asm','states','areas','distributors')->first();
+                        $query=Team::select('vp_id','rsm_id','asm_id','state_id','area_id','distributor_id')->where('ase_id',$userName)->orderby('id','desc')->with('vp','rsm','asm','states','areas','distributor')->first();
                         
                         if ($query) {
                             $namagerDetails['vp'] = $query->vp->name ?? '';
