@@ -338,13 +338,7 @@ public function aseSalesreport(Request $request)
     $ase = $request->ase_id;
     $respArrd = [];
     $respArr = [];
-    // Brand map
-    $brandMap = [
-        1 => 'ONN',
-        2 => 'PYNK',
-        3 => 'Both',
-    ];
-
+    
     // Date range
     if ($request->filled('from') || $request->filled('to')) {
         $from = !empty($request->from) ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
@@ -377,7 +371,7 @@ public function aseSalesreport(Request $request)
         $brandPermissions = DB::table('user_permission_categories')
             ->where('distributor_id', $item->distributor_id)
             ->value('brand');
-        $brandName = $brandMap[$brandPermission] ?? '';
+        $brandName = $brandMap[$brandPermissions] ?? '';
 
         // Handle "Both" case
         $brandsToCheck = ($brandName == 'Both') ? ['ONN', 'PYNK'] : [$brandName];
