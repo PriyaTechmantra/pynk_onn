@@ -666,7 +666,7 @@ public function aseSalesreport(Request $request)
         $store->pin = $request->pin ?? null;
         $store->owner_name	 = $request->owner_name ?? null;
         $store->owner_lname	 = $request->owner_lname ?? null;
-        $store->store_OCC_number = $request->store_OCC_number ?? null;
+        
         $store->gst_no = $request->gst_no ?? null;
         $store->pan_no = $request->pan_no ?? null;
         $store->date_of_birth	 = $request->date_of_birth?? null;
@@ -677,13 +677,9 @@ public function aseSalesreport(Request $request)
         $store->contact_person_whatsapp	 = $request->contact_person_whatsapp ?? null;
         $store->contact_person_date_of_birth	 = $request->contact_person_date_of_birth ?? null;
         $store->contact_person_date_of_anniversary	 = $request->contact_person_date_of_anniversary ?? null;
+        $store->image	 = $request->image ?? null;
         $store->status = 0;
-        if($request->hasFile('image')) {
-            $imageName = mt_rand().'.'.$request->image->extension();
-            $uploadPath = 'uploads/store';
-            $request->image->move($uploadPath, $imageName);
-            $store->image = $uploadPath.'/'.$imageName;
-        }
+        
         $store->save();
        
         $result1 = Team::where('distributor_id',$request->distributor_id)->where('ase_id',$request->user_id)->where('state_id',$request->state_id)->where('area_id',$request->area_id)->first();
