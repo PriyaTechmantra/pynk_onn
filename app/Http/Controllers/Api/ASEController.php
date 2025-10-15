@@ -713,8 +713,7 @@ public function aseSalesreport(Request $request)
         $retailerListOfOcc->ase_id = $result1->ase_id;
         $retailerListOfOcc->status = '1';
         $retailerListOfOcc->is_deleted = '0';
-        $retailerListOfOcc->asm_rsm = $result1->rsm_id;
-        $retailerListOfOcc->code = '';
+        
         $retailerListOfOcc->save();
 
         	// notification to Admin
