@@ -55,6 +55,50 @@
                     </div>
                 </div>
                 <div class="card shadow-sm">
+                    <div class="mb-3">
+                        <div class="card-header">
+                            Brand Permission:
+                        </div>
+                        <div class="card-body">
+
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input medium-checkbox" 
+                                    type="checkbox" 
+                                    name="brand[]" 
+                                    value="1" 
+                                    id="mediumOnn"
+                                    onchange="toggleSelectBox()"
+                                >
+                                    <label class="form-check-label" for="mediumLMS">Onn</label>
+                            </div>
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input medium-checkbox" 
+                                    type="checkbox" 
+                                    name="brand[]" 
+                                    value="2" 
+                                    id="mediumPynk"
+                                    onchange="toggleSelectBox()"
+                                >
+                                <label class="form-check-label" for="mediumFMS">Pynk</label>
+                            </div>
+                                                
+                            <div class="form-check">
+                                <input 
+                                    class="form-check-input medium-checkbox" 
+                                    type="checkbox" 
+                                    name="brand[]" 
+                                    value="3" 
+                                    id="mediumBoth"
+                                    onchange="toggleSelectBox()"
+                                >
+                                <label class="form-check-label" for="mediumCave">Both</label>
+                            </div>
+                        </div>
+                   </div>
+                </div>
+                <div class="card shadow-sm">
                     <div class="card-header">
                         <h3>Product specification</h3>
                         <p class="small text-muted m-0">Add model | color from here</p>
@@ -89,50 +133,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card shadow-sm">
-                    <div class="mb-3">
-                        <div class="card-header">
-                            Brand Permission:
-                        </div>
-                        <div class="card-body">
-
-                            <div class="form-check">
-                            <input 
-                                class="form-check-input medium-checkbox" 
-                                type="checkbox" 
-                                name="brand[]" 
-                                value="1" 
-                                id="mediumOnn"
-                                onchange="toggleSelectBox()"
-                            >
-                                <label class="form-check-label" for="mediumLMS">Onn</label>
-                            </div>
-                            <div class="form-check">
-                                <input 
-                                    class="form-check-input medium-checkbox" 
-                                    type="checkbox" 
-                                    name="brand[]" 
-                                    value="2" 
-                                    id="mediumPynk"
-                                    onchange="toggleSelectBox()"
-                                >
-                                <label class="form-check-label" for="mediumFMS">Pynk</label>
-                            </div>
-                                                
-                        <div class="form-check">
-                            <input 
-                                class="form-check-input medium-checkbox" 
-                                type="checkbox" 
-                                name="brand[]" 
-                                value="3" 
-                                id="mediumBoth"
-                                onchange="toggleSelectBox()"
-                            >
-                            <label class="form-check-label" for="mediumCave">Both</label>
-                        </div>
-                    </div>
-                   </div>
-                </div>
+                
             </div>
             <div class="col-sm-3">
                 <div class="card shadow-sm">

@@ -13,17 +13,33 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 class RetailerProductController extends Controller
 {
+   
     public function index(Request $request)
     {
-        if(isset($request->term)){
-            $term = (!empty($request->term) && $request->term!='')?$request->term:'';
-            $brand = (!empty($request->brand_selection) && $request->brand_selection!='')?$request->brand_selection:'';
-            $data = RetailerProduct::where('title','LIKE','%'.$term.'%')->orWhere('brand',$brand)->orderby('id','desc')->paginate(25);
-        }else{
-            $data = RetailerProduct::orderby('id','desc')->paginate(25);
-        }  
-        return view('reward.product.index', compact('data','request'));
+        $query = RetailerProduct::query();
+
+        if (!empty($request->term)) {
+            $query->where('title', 'LIKE', '%' . $request->term . '%');
+        }
+
+        if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
+
+            if ($brand == 3) {
+                $query->where(function ($q) {
+                    $q->whereJsonContains('brand', '1')
+                    ->orWhereJsonContains('brand', '2');
+                });
+            } else {
+                $query->whereJsonContains('brand', (string)$brand);
+            }
+        }
+
+        $data = $query->orderBy('id', 'desc')->paginate(25);
+
+        return view('reward.product.index', compact('data', 'request'));
     }
+
 
     public function create(Request $request)
     {

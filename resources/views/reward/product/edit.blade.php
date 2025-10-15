@@ -176,6 +176,33 @@
                 </div>
             </div>
         </div>
+         <div class="card shadow-sm">
+                <div class="mb-4">
+                   <div class="card-header">
+                       Brand Permission:
+                   </div>
+                    <div class="card-body">
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="brand[]" value="1" id="brandOnn"
+                                {{ in_array(1, $data->brand ?? []) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="brandOnn">Onn</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="brand[]" value="2" id="brandPynk"
+                                {{ in_array(2, $data->brand ?? []) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="brandPynk">Pynk</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="brand[]" value="3" id="brandBoth"
+                                {{ in_array(3, $data->brand ?? []) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="brandBoth">Both</label>
+                        </div>
+                    </div>
+                </div>
+        </div>
     </form>
                 <div class="card shadow-sm">
                     <div class="card-header">
@@ -290,34 +317,7 @@
                     </div>
                         
                     </div>
-                    <div class="card shadow-sm">
-                        <div class="mb-3">
-                                <div class="card-header">
-                                    Brand Permission:
-                                </div>
-                                <div class="card-body">
-
-                                     <div class="form-check">
-                                        <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="brand[]" value="1" id="brandOnn"
-                                   {{ in_array(1, $data->brand ?? []) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="brandOnn">Onn</label>
-                                </div>
-
-                                <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="brand[]" value="2" id="brandPynk"
-                                    {{ in_array(2, $data->brand ?? []) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="brandPynk">Pynk</label>
-                                </div>
-
-                                <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="brand[]" value="3" id="brandBoth"
-                                    {{ in_array(3, $data->brand ?? []) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="brandBoth">Both</label>
-                                </div>
-                            </div>
-                        </div>
-                </div>
+                   
             </div>
 </section>
 <div class="modal fade" tabindex="-1" id="addColorModal" data-bs-backdrop="static">
