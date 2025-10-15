@@ -444,7 +444,7 @@ public function aseSalesreport(Request $request)
         ];
 
 		
-		$stores = Store::where('user_id',$ase)->where('status',1)->where('is_deleted',0)->get();
+		$stores = Store::where('user_id',$ase)->where('status',1)->where('is_deleted',0)->with('state','area','user')->get();
 		
 	
         if ($stores->isNotEmpty()) {
@@ -478,7 +478,7 @@ public function aseSalesreport(Request $request)
             2 => 'PYNK',
             3 => 'Both',
         ];
-		$stores = Store::where('user_id',$ase)->where('status',0)->where('is_deleted',0)->get();
+		$stores = Store::where('user_id',$ase)->where('status',0)->where('is_deleted',0)->with('state','area','user')->get();
 		
 	
         if ($stores->isNotEmpty()) {
@@ -516,7 +516,7 @@ public function aseSalesreport(Request $request)
         // Base query
         $query = Store::select('*')
             ->where('status', 1)
-            ->where('is_deleted', 0);
+            ->where('is_deleted', 0)->with('state','area','user');
 
         // Search filter
         if (!empty($search)) {

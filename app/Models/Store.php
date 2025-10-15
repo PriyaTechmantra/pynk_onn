@@ -13,4 +13,13 @@ class Store extends Model
      {
          return $this->belongsTo(Employee::class,'user_id');
      }
+
+      public function state()
+     {
+         return $this->belongsTo(State::class,'state_id');
+     }
+      public function area()
+     {
+         return $this->belongsTo(Area::class,'area_id');
+     }
 }
