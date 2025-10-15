@@ -674,7 +674,7 @@ public function aseSalesreport(Request $request)
         $store->pan_no = $request->pan_no ?? null;
         $store->date_of_birth	 = $request->date_of_birth?? null;
         $store->date_of_anniversary	 = $request->date_of_anniversary?? null;
-        $store->contact_person_name	 = $request->contact_person_name ?? null;
+        $store->contact_person	 = $request->contact_person ?? null;
         $store->contact_person_lname = $request->contact_person_lname ?? null;
         $store->contact_person_phone	= $request->contact_person_phone ?? null;
         $store->contact_person_whatsapp	 = $request->contact_person_whatsapp ?? null;
