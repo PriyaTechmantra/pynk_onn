@@ -221,7 +221,7 @@
                                     
                                         <div class="col-md-6">
                                             @can('view distributor')
-                                            <a href="{{ route('admin.distributors.show', $item->id) }}"><h5>{{$item->distributor->name ??''}}</h5></a>
+                                            <a href="{{ url('distributors/'.$item->id) }}"><h5>{{$item->distributor->name ??''}}</h5></a>
                                             @else
                                             <h5>{{$item->distributor->name ??''}}</h5>
                                             @endcan
@@ -281,7 +281,7 @@
                                                                         }
                                                                     @endphp>
                                                         @can('view store')
-                                                      <a href="{{ route('admin.stores.show', $item->id) }}" style="margin-left: 10px;"><h5>{{$item->name}}({{$item->unique_code}})</h5></a>
+                                                      <a href="{{ url('stores/'.$item->id) }}" style="margin-left: 10px;"><h5>{{$item->name}}({{$item->unique_code}})</h5></a>
                                                       @else
                                                         <h5>{{$item->name ??''}}({{$item->unique_code}})</h5>
                                                       @endcan
@@ -339,8 +339,8 @@
                                             <div class=" mb-3">
                                                 <select class="form-select select2" style="height:200px" id="distributorUser" name="distributorUser[]" aria-label="Floating label select example" multiple>
                                                     <option value="" selected disabled>Select</option>
-                                                    @foreach (DB::table('distributors')->orderBy('name')->get() as $distributorItem)
-                                                        <option value="{{ $distributorItem->id }}">{{ $distributorItem->name }}({{ $distributorItem->state->name }})</option>
+                                                    @foreach ($distributorList as $distributorItem)
+                                                        <option value="{{ $distributorItem->id }}">{{ $distributorItem->name }}({{ $distributorItem->states->name }})</option>
                                                     @endforeach
                                                 </select>
                                             </div>

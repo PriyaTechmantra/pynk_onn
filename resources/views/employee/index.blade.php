@@ -226,7 +226,7 @@
                                           
                                         </td>
                                         <td>
-                                          <p class="small text-muted">{!! findManagerDetails($item->id, $item->type) !!}</p>
+                                          <p style="text-transform: uppercase;">{!! findManagerDetails($item->id, $item->type) !!}</p>
                                         </td>
                                         
                                         <td>
