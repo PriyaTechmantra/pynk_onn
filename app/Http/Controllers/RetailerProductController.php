@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\RetailerProduct;
 use App\Models\ProductSpecification;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -48,7 +50,6 @@ class RetailerProductController extends Controller
 
         $request->validate([
             "title" => "required|string|max:255",
-            "short_desc" => "nullable",
             "desc" => "nullable",
             "image" => "required",
 			"amount" => "required",
@@ -59,6 +60,7 @@ class RetailerProductController extends Controller
         $storeData->short_desc=$request->short_desc;
         $storeData->desc=$request->desc;
         $storeData->amount=$request->amount;
+        $storeData->status=1;
         $storeData->position =$storeData->position+1;
         $storeData->brand =$request->brand;
         // $storeData->brand = !empty($request->brand) ? implode(',', $request->brand) : null;
@@ -202,6 +204,109 @@ class RetailerProductController extends Controller
         return redirect()->route('reward.retailer.product.index');
     }
 
+    //bulk upload
+    public function bulkUpload(Request $request): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
+        ], [
+            'file.mimes' => 'Please upload a valid CSV file.',
+            'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+
+        if (!empty($request->file)) {
+            $file = $request->file('file');
+            $filename = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
+
+            // Validate CSV extension and file size
+            $valid_extension = ["csv"];
+            $maxFileSize = 50097152; // Max 50MB
+
+            if (in_array(strtolower($extension), $valid_extension)) {
+                if ($fileSize <= $maxFileSize) {
+                    // Upload the file to the storage location
+                    $location = 'public/uploads/csv';
+                    $file->move($location, $filename);
+                    $filepath = $location . "/" . $filename;
+
+                    // Open the CSV file and read it
+                    $file = fopen($filepath, "r");
+                    $importData_arr = [];
+                    $i = 0;
+                    $successCount = 0;
+                    $errors = [];
+
+                    // Read the CSV file row by row
+                    while (($filedata = fgetcsv($file, 10000, ",")) !== false) {
+                        // Skip the header row
+                        if ($i == 0) {
+                            $i++;
+                            continue;
+                        }
+
+                        // Step 3: Extract the data from each row
+                        $rowData = [
+                            'title' => isset($filedata[0]) ? $filedata[0] : null,
+                            'desc' => isset($filedata[1]) ? $filedata[1] : null,
+                            'amount' => isset($filedata[2]) ? $filedata[2] : null,
+                        ];
+
+                        // Step 4: Validate each row's data
+                        $validator = Validator::make($rowData, [
+                            'title' => 'required|string|max:255',
+                            'desc' => 'nullable|string',
+                            'amount' => 'nullable|numeric',
+                        ]);
+
+                        if ($validator->fails()) {
+                            // Accumulate errors with row number context
+                            $errors[$i] = $validator->errors()->all();
+                        } else {
+                            // Step 5: Save data if validation passes
+                            $insertData = [
+                                "title" => $rowData['title'],
+                                "desc" => $rowData['desc'],
+                                "amount" => $rowData['amount'],
+                                "status" => 1,
+                                "created_at" => date('Y-m-d H:i:s'),
+                                "updated_at" => date('Y-m-d H:i:s'),
+                            ];
+
+                            RetailerProduct::create($insertData);
+                            $successCount++;
+                        }
+
+                        $i++;
+                    }
+
+                    fclose($file);
+
+                    if (!empty($errors)) {
+                        // Redirect back to upload page if there are row-level validation errors
+                        return redirect()->back()->with([
+                            'csv_errors' => $errors, 
+                        ]);
+                    } else {
+                        Session::flash('message', 'CSV Import Complete. Total number of entries: ' . $successCount);
+                    }
+                } else {
+                    Session::flash('message', 'File too large. File must be less than 50MB.');
+                }
+            } else {
+                Session::flash('message', 'Invalid File Extension. Supported extensions are ' . implode(', ', $valid_extension));
+            }
+        } else {
+            Session::flash('message', 'No file found.');
+        }
+
+        return redirect()->back();
+    }
 
     //export csv for product 
     public function exportCSV(Request $request)

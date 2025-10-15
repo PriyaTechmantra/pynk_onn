@@ -17,6 +17,8 @@ use App\Http\Controllers\Cave\CaveFormController;
 use App\Http\Controllers\Cave\CaveLocationController;
 use App\Http\Controllers\Cave\CaveCategoryController;
 use App\Http\Controllers\RetailerProductController;
+use App\Http\Controllers\TermsController;
+
 
 use Illuminate\Support\Facades\Route;
 Route::get('/cache-clear', function() {
@@ -233,6 +235,7 @@ Route::group(['middleware' => ['auth']], function() {
             Route::post('/update/{id}', [RetailerProductController::class, 'update'])->name('update');
             Route::get('/{id}/status', [RetailerProductController::class, 'status'])->name('status');
             Route::get('/{id}/delete', [RetailerProductController::class, 'destroy'])->name('delete');
+            Route::post('/bulk/upload', [RetailerProductController::class, 'bulkUpload'])->name('bulkUpload');
             Route::get('/export/csv', [RetailerProductController::class, 'exportCSV'])->name('export.csv');
 			Route::post('/specification/add', [RetailerProductController::class, 'specificationAdd'])->name('specification.add');
             Route::get('/specification/{id}/delete', [RetailerProductController::class, 'specificationDestroy'])->name('specification.delete');
@@ -276,13 +279,13 @@ Route::group(['middleware' => ['auth']], function() {
                 
         });
 		
-		// invoice
+		// terms
           Route::prefix('/terms')->name('retailer.terms.')->group(function () {
             Route::get('/', [TermsController::class, 'index'])->name('index');
+            Route::post('/store', [TermsController::class, 'store'])->name('store');
             Route::post('/update', [TermsController::class, 'update'])->name('update');
-          
-
         });
+
         // product
         Route::prefix('/order')->name('retailer.order.')->group(function () {
             Route::get('/', [RetailerOrderController::class, 'index'])->name('index');

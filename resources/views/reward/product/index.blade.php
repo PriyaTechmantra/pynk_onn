@@ -14,13 +14,15 @@
                 <div class="card data-card mt-3">
                     <div class="card-header">
                         <h4>Product
+                            <a href="{{route('reward.retailer.product.create')}}" class="btn btn-sm btn-cta float-end">Add Product</a>
+
+                            <a href="#csvModal" data-bs-toggle="modal" class="btn btn-sm btn-cta float-end">Bulk Upload</a>
                             
                             <a href="{{route('reward.retailer.product.export.csv')}}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 CSV
                             </a>
                            
-                            <a href="{{route('reward.retailer.product.create')}}" class="btn btn-sm btn-cta float-end">Add Product</a>
                         </h4>
 
                         <div class="search__filter mb-0">
@@ -112,6 +114,26 @@
                         </table>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+                    
+    <div class="modal action-modal fade" id="csvModal" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    Product Bulk Upload
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{{ route('reward.retailer.product.bulkUpload') }}" enctype="multipart/form-data">@csrf
+                        <input type="file" name="file" class="form-control" accept=".csv">
+                        <div class="cta-row">
+                        <a href="{{ asset('backend/csv/reward_product_sample.csv') }}" class="btn-cta" download>Download Sample CSV</a>
+                        <button type="submit" class="btn btn-cta" id="csvImportBtn">Import <i class="fas fa-upload"></i></button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
