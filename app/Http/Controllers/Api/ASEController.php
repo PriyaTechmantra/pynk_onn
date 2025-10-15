@@ -827,7 +827,7 @@ public function aseSalesreport(Request $request)
                 'message' => 'Invalid brand value.',
             ]);
         }
-        $data = UserNoOrderReason::new();
+        $data = new UserNoOrderReason();
         $data->no_order_reason_id= $request->no_order_reason_id;
         $data->store_id= $request->store_id;
         $data->user_id= $request->user_id;
