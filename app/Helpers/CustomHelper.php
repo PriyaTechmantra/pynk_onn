@@ -47,8 +47,8 @@ function SendMail($data)
         $message->to($data['email'], $data['name'])->subject($data['subject'])->from($mail_from, env('APP_NAME'));
     });
 }
-if (!function_exists('findTeamDetails')) {
-    function findTeamDetails($userName, $userType ) {
+if (!function_exists('findManagerDetails')) {
+    function findManagerDetails($userName, $userType ) {
         $namagerDetails = array();
         $team_wise_attendance =array();
         switch ($userType) {
