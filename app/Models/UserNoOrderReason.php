@@ -18,4 +18,8 @@ class UserNoOrderReason extends Model
      {
          return $this->belongsTo(Store::class);
      }
+
+     public function noorder(){
+        return $this->belongsTo(NoOrderReason::class,'no_order_reason_id');
+     }
 }
