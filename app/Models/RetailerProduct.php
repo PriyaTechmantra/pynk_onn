@@ -10,6 +10,12 @@ class RetailerProduct extends Model
     use HasFactory;
     protected $table='retailer_products';
   
+    protected $fillable = [
+        'title',
+        'desc',
+        'amount',
+        'status',
+    ];
     protected $casts = [
         'brand' => 'array',
     ];

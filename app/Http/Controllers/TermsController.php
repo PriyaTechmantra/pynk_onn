@@ -19,6 +19,7 @@ class TermsController extends Controller
         $storeData=new RewardTerms();
         $storeData->id = 1;
         $storeData->terms = $request->terms;
+        $storeData->brand = $request->brand;
 
         $storeData->save();
         
@@ -36,6 +37,8 @@ class TermsController extends Controller
         ]);
         $storeData =  RewardTerms::findOrFail($request->id);
         $storeData->terms = $request->terms;
+        $storeData->brand = $request->brand;
+
         $storeData->save();
         
         if ($storeData) {

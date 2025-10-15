@@ -8,4 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class RewardTerms extends Model
 {
     use HasFactory;
+    protected $casts = [
+        'brand' => 'array',
+    ];
 }

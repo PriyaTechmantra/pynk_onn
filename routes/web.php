@@ -235,6 +235,7 @@ Route::group(['middleware' => ['auth']], function() {
             Route::post('/update/{id}', [RetailerProductController::class, 'update'])->name('update');
             Route::get('/{id}/status', [RetailerProductController::class, 'status'])->name('status');
             Route::get('/{id}/delete', [RetailerProductController::class, 'destroy'])->name('delete');
+            Route::post('/bulk/upload', [RetailerProductController::class, 'bulkUpload'])->name('bulkUpload');
             Route::get('/export/csv', [RetailerProductController::class, 'exportCSV'])->name('export.csv');
 			Route::post('/specification/add', [RetailerProductController::class, 'specificationAdd'])->name('specification.add');
             Route::get('/specification/{id}/delete', [RetailerProductController::class, 'specificationDestroy'])->name('specification.delete');
