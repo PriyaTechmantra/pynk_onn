@@ -607,7 +607,7 @@ public function aseSalesreport(Request $request)
     //add store
     public function addStore(Request $request)
     {
-         //dd($request->all());
+         dd($request->all());
         $request->validate([
             "name" => "required|string|unique:stores|max:255",
             "contact" => "required|integer|digits:10|unique:stores,contact",
@@ -723,7 +723,7 @@ public function aseSalesreport(Request $request)
                 foreach($vp as $value){
                     sendNotification($store->user_id, $value->vp_id, 'store-add', '', $store->name. '  added by ' .$loggedInUser ,'Store ' .$store->name.' added  ');
                 }
-                return response()->json(['status'=>true, 'message'=>'Store data created successfully','data'=>$store]);
+            return response()->json(['status'=>true, 'message'=>'Store data created successfully','data'=>$store]);
 
         
     }
