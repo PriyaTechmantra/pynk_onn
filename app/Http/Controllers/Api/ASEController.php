@@ -655,7 +655,20 @@ public function aseSalesreport(Request $request)
         $slugExistCount = Store::where('name', $request->name)->count();
         if ($slugExistCount > 0) $slug = $slug.'-'.($slugExistCount);
         $store->slug = $slug;
-
+        $orderData = Store::select('sequence_no')->latest('sequence_no')->first();
+        				
+        				    if (empty($store->sequence_no)) {
+        						if (!empty($orderData->sequence_no)) {
+        							$new_sequence_no = (int) $orderData->sequence_no + 1;
+        							
+        						} else {
+        							$new_sequence_no = 1;
+        							
+        						}
+        					}
+        			$uniqueNo = sprintf("%'.06d",$new_sequence_no);
+        		    $store->sequence_no = $new_sequence_no;
+        			$store->unique_code = 'ST'.$uniqueNo;
         // $store->slug = null;
         $store->bussiness_name = $request->bussiness_name ?? null;
         $store->store_OCC_number = $request->store_OCC_number ?? null;
@@ -680,7 +693,9 @@ public function aseSalesreport(Request $request)
         $store->contact_person_whatsapp	 = $request->contact_person_whatsapp ?? null;
         $store->contact_person_date_of_birth	 = $request->contact_person_date_of_birth ?? null;
         $store->contact_person_date_of_anniversary	 = $request->contact_person_date_of_anniversary ?? null;
-        $store->image	 = $request->image ?? null;
+        if (!empty($request['image'])) {
+        				$store->image= $request->image;
+        }
         $store->status = 0;
         
         $store->save();
