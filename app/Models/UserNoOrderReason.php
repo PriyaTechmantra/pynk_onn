@@ -20,6 +20,6 @@ class UserNoOrderReason extends Model
      }
 
      public function noorder(){
-        return $this->belongsTo(NoOrderReason::class);
+        return $this->belongsTo(NoOrderReason::class,'no_order_reason_id');
      }
 }

@@ -8,4 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class NoOrderReason extends Model
 {
     use HasFactory;
+    protected $table='no_order_reasons';
 }
