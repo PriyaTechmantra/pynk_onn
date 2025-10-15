@@ -711,7 +711,7 @@ public function aseSalesreport(Request $request)
         $retailerListOfOcc->rsm_id = $result1->rsm_id;
         $retailerListOfOcc->asm_id = $result1->asm_id;
         $retailerListOfOcc->ase_id = $result1->ase_id;
-        $retailerListOfOcc->is_active = '1';
+        $retailerListOfOcc->status = '1';
         $retailerListOfOcc->is_deleted = '0';
         $retailerListOfOcc->asm_rsm = $result1->rsm_id;
         $retailerListOfOcc->code = '';
