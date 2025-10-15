@@ -608,7 +608,7 @@ public function aseSalesreport(Request $request)
     public function addStore(Request $request)
     {
          
-        $request->validate([
+       $validator = Validator::make($request->all(), [
             "name" => "required|string|unique:stores|max:255",
             "contact" => "required|integer|digits:10|unique:stores,contact",
             "whatsapp"=>"nullable|integer|digits:10",
@@ -627,6 +627,9 @@ public function aseSalesreport(Request $request)
              'brand'   => 'required|string|in:ONN,PYNK,Both',
             "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
         ]);
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
          // 🔁 Map brand name to numeric value
         $brandMap = [
             'ONN'  => 1,
