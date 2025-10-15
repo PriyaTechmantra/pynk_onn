@@ -251,7 +251,7 @@ class ASEController extends Controller
     //ase wise primary and secondary report on dashboard
     
     
-public function aseSalesreport(Request $request)
+/*public function aseSalesreport(Request $request)
 {
     $validator = Validator::make($request->all(), [
         "ase_id" => "required",
@@ -322,7 +322,112 @@ public function aseSalesreport(Request $request)
         'Primary Sales | Distributor wise Daily Report' => $respArrd,
         'Secondary Sales | Retailer wise Daily Report' => $respArr,
     ],200);
+}*/
+
+
+public function aseSalesreport(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        "ase_id" => "required",
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+    }
+
+    $ase = $request->ase_id;
+    $respArrd = [];
+    $respArr = [];
+    // Brand map
+    $brandMap = [
+        1 => 'ONN',
+        2 => 'PYNK',
+        3 => 'Both',
+    ];
+
+    // Date range
+    if ($request->filled('from') || $request->filled('to')) {
+        $from = !empty($request->from) ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
+        $to   = !empty($request->to) ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
+    } else {
+        $from = date('Y-m-01');
+        $to   = date('Y-m-d');
+    }
+
+    /**
+     * ✅ Primary (Distributor-wise, Brand-wise)
+     */
+    $distributors = Team::where('ase_id', $ase)
+        ->whereNull('store_id')
+        ->whereHas('distributor', function ($q) {
+            $q->where('status', 1)
+              ->where('is_deleted', 0);
+        })
+        ->with('distributor')
+        ->get();
+
+    foreach ($distributors as $item) {
+        // Get brands permitted for this distributor
+        $brandPermissions = DB::table('user_permission_categories')
+            ->where('distributor_id', $item->distributor_id)
+            ->value('brand');
+        $brandName = $brandMap[$brandPermission] ?? '';
+
+        // Handle "Both" case
+        $brandsToCheck = ($brandName == 'Both') ? ['ONN', 'PYNK'] : [$brandName];
+        foreach ($brandsToCheck  as $brand) {
+            $qty = PrimaryOrder::where('distributor_id', $item->distributor_id)
+                ->where('brand', $brand)
+                ->whereBetween('order_date', [$from, $to])
+                ->sum('qty');
+
+            $respArrd[] = [
+                'distributor_id'   => $item->distributor_id ?? 0,
+                'distributor_name' => $item->distributor->name ?? '',
+                'brand'            => $brand ?? '',
+                'amount'           => 0,
+                'qty'              => $qty ?? 0,
+            ];
+        }
+    }
+
+    /**
+     * ✅ Secondary (Retailer-wise, Brand-wise)
+     */
+    $stores = Store::where('user_id', $ase)
+        ->where('status', 1)
+        ->where('is_deleted', 0)
+        ->get();
+
+    foreach ($stores as $value) {
+        $brandPermission = $value->brand ?? ''; // brand column in store table ('ONN', 'PYNK', or 'Both')
+
+        // Handle "Both" case for stores too
+        $brandsToCheck = ($brandPermission == 'Both') ? ['ONN', 'PYNK'] : [$brandPermission]; // brand column in store table
+            foreach ($brandsToCheck as $brand) {
+                $qty = SecondaryOrder::where('retailer_id', $value->id)
+                    ->where('brand', $brand)
+                    ->whereBetween('order_date', [$from, $to])
+                    ->sum('qty');
+
+                $respArr[] = [
+                    'retailer_id' => $value->id,
+                    'store_name'  => $value->name,
+                    'brand'       => $brand,
+                    'amount'      => 0,
+                    'qty'         => $qty ?? 0,
+                ];
+            }
+    }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'ASE wise Primary & Secondary Sales Report',
+        'Primary Sales | Distributor wise Brand wise Report' => $respArrd,
+        'Secondary Sales | Retailer wise Brand wise Report' => $respArr,
+    ], 200);
 }
+
 
 
 
@@ -331,15 +436,34 @@ public function aseSalesreport(Request $request)
     public function storeList(Request $request)
     {
 		$ase = $_GET['ase_id'];
+
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
 		
 		$stores = Store::where('user_id',$ase)->where('status',1)->where('is_deleted',0)->get();
 		
 	
-        if ($stores) {
+        if ($stores->isNotEmpty()) {
+            // Transform brand values
+            $stores = $stores->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                return $store;
+            });
 
-            return response()->json(['status'=>true, 'message'=>'Store data fetched successfully','data'=>$stores],200);
+            return response()->json([
+                'status'  => true,
+                'message' => 'Store data fetched successfully',
+                'data'    => $stores,
+            ], 200);
         } else {
-            return response()->json(['status' => false, 'message' => 'Something happened'],404);
+            return response()->json([
+                'status'  => false,
+                'message' => 'No store data found',
+            ], 404);
         }
     }
     
@@ -349,26 +473,52 @@ public function aseSalesreport(Request $request)
     public function inactivestoreList(Request $request)
     {
         $ase = $_GET['ase_id'];
-		
+		$brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
 		$stores = Store::where('user_id',$ase)->where('status',0)->where('is_deleted',0)->get();
 		
 	
-        if ($stores) {
+        if ($stores->isNotEmpty()) {
+            // Transform brand values
+            $stores = $stores->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                return $store;
+            });
 
-            return response()->json(['status'=>true, 'message'=>'Store data fetched successfully','data'=>$stores],200);
+            return response()->json([
+                'status'  => true,
+                'message' => 'Store data fetched successfully',
+                'data'    => $stores,
+            ], 200);
         } else {
-            return response()->json(['status' => false, 'message' => 'Something happened'],404);
+            return response()->json([
+                'status'  => false,
+                'message' => 'No store data found',
+            ], 404);
         }
     }
 
 
     public function searchStore(Request $request)
-    {
-		$search = !empty($request->keyword)?$request->keyword:'';
-        $query = Store::select('*')
-        ->where('status', 1)
-        ->where('is_deleted', 0);
+   {
+        $search = $request->keyword ?? '';
 
+        // Brand map
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        // Base query
+        $query = Store::select('*')
+            ->where('status', 1)
+            ->where('is_deleted', 0);
+
+        // Search filter
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('contact', $search)
@@ -377,37 +527,72 @@ public function aseSalesreport(Request $request)
         }
 
         $data = $query->get();
-		if(!empty($data)){
-			foreach($data as $item){
-				$retailer=Team::where('store_id',$item->id)->first();
-				$item->team = $retailer;
-			}
-		}
-         return response()->json([
-            'status'=>true,
-            'message'=>"Store List",
-            'data'=> $data
-            
-        ],200);
 
+        if ($data->isNotEmpty()) {
+            foreach ($data as $item) {
+                // Fetch team info
+                $item->team = Team::where('store_id', $item->id)->first();
+
+                // Convert brand numeric value to name
+                $item->brand_name = $brandMap[$item->brand] ?? null;
+            }
+        }
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Store List',
+            'data'    => $data,
+        ], 200);
     }
+
     
     //distributor list area wise
 
 
+    
+    
     public function distributorList(Request $request)
     {
-        $distributors = Team::where('ase_id',$request->ase_id)->where('area_id',$request->area_id)->where('is_deleted',0)->with('distributor')->get();
-		
-	
-        if ($distributors) {
+        $ase_id  = $request->ase_id;
+        $area_id = $request->area_id;
 
-            return response()->json(['status'=>true, 'message'=>'Distributor data fetched successfully','data'=>$distributors],200);
+        // Brand map
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        // Fetch distributors under ASE and Area
+        $distributors = Team::where('ase_id', $ase_id)
+            ->where('area_id', $area_id)
+            ->where('is_deleted', 0)
+            ->with('distributor')
+            ->get();
+
+        if ($distributors->isNotEmpty()) {
+            foreach ($distributors as $item) {
+                // Fetch brand permission for distributor
+                $brandPermission = DB::table('user_permission_categories')
+                    ->where('distributor_id', $item->distributor_id)
+                    ->value('brand'); // Assuming column name is brand_permission
+
+                // Add readable brand name
+                $item->brand_name = $brandMap[$brandPermission] ?? null;
+            }
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Distributor data fetched successfully',
+                'data'    => $distributors,
+            ], 200);
         } else {
-            return response()->json(['status' => false, 'message' => 'Something happened'],404);
+            return response()->json([
+                'status'  => false,
+                'message' => 'No distributor data found',
+            ], 404);
         }
     }
-    
 
     //add store
     public function addStore(Request $request)
@@ -429,12 +614,29 @@ public function aseSalesreport(Request $request)
             "area_id" => "required",
             "user_id" => "required",
             "distributor_id" => "required",
-            "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000"
+             'brand'   => 'required|string|in:ONN,PYNK,Both',
+            "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
         ]);
+         // 🔁 Map brand name to numeric value
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandValue = $brandMap[$request->brand] ?? null;
+
+        if (!$brandValue) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid brand value.',
+            ]);
+        }
         $user = Employee::where('id',$request->user_id)->first();
         $name = $user->name;
         $store = new Store;
         $store->user_id = $request->user_id;
+        $store->brand = $brandValue;
         $store->name = $request->name ?? null;
         $slug = Str::slug($request->name, '-');
         $slugExistCount = Store::where('name', $request->name)->count();
@@ -537,24 +739,63 @@ public function aseSalesreport(Request $request)
 
     public function noorderlist()
     {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
 
         $data = NoOrderReason::all();
+         if ($data->isNotEmpty()) {
+            // Add brand name to response
+            $data = $data->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null;
+                return $store;
+            });
 
-        return response()->json(['status'=>true, 'message'=>'no order list data fetched successfully','data'=>$data]);
+            return response()->json([
+                'status'  => true,
+                'message' => 'no order list data fetched successfully',
+                'data'    => $data,
+            ], 200);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No list data found',
+            ], 404);
+        }
+        
     }
 
 
     public function noorder(Request $request)
     {
-       $request->validate([
-            "no_order_reason_id" => "required",
-            "store_id" => "required",
-            "user_id" => "required",
-       ]);
+        $request->validate([
+                "no_order_reason_id" => "required",
+                "store_id" => "required",
+                "user_id" => "required",
+                'brand'   => 'required|string|in:ONN,PYNK,Both',
+        ]);
+        // 🔁 Map brand name to numeric value
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandValue = $brandMap[$request->brand] ?? null;
+
+        if (!$brandValue) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid brand value.',
+            ]);
+        }
         $data = UserNoOrderReason::new();
         $data->no_order_reason_id= $request->no_order_reason_id;
         $data->store_id= $request->store_id;
         $data->user_id= $request->user_id;
+        $data->brand= $brandValue;
         $data->comment= $request->comment;
         $data->description= $request->description;
         $data->location= $request->location;
@@ -569,8 +810,26 @@ public function aseSalesreport(Request $request)
     public function noorderhistory(Request $request, $id)
     {
         $noOrder=UserNoOrderReason::where('store_id', $id)->with('user','store')->orderby('id','desc')->get();
-		if ($noOrder) {
-        return response()->json(['status'=>true, 'message'=>'no order list data fetched successfully','data'=>$noOrder]);
+		if ($noOrder->isNotEmpty()) {
+
+            // Brand mapping
+            $brandMap = [
+                1 => 'ONN',
+                2 => 'PYNK',
+                3 => 'Both',
+            ];
+
+            // Add brand name from table
+            $noOrder->transform(function ($item) use ($brandMap) {
+                $item->brand_name = $brandMap[$item->brand] ?? 'Unknown';
+                return $item;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'No order list data fetched successfully',
+                'data'    => $noOrder
+            ], 200);
 		}else{
 			  return response()->json(['error' => false, 'message' => 'No data found']);
 		}
