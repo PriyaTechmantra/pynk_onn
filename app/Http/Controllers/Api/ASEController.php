@@ -607,7 +607,7 @@ public function aseSalesreport(Request $request)
     //add store
     public function addStore(Request $request)
     {
-         dd($request->all());
+         
         $request->validate([
             "name" => "required|string|unique:stores|max:255",
             "contact" => "required|integer|digits:10|unique:stores,contact",
