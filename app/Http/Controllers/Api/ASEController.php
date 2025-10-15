@@ -625,7 +625,7 @@ public function aseSalesreport(Request $request)
             "user_id" => "required",
             "distributor_id" => "required",
              'brand'   => 'required|string|in:ONN,PYNK,Both',
-            "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "image" => "required",
         ]);
         if ($validator->fails()) {
             return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
