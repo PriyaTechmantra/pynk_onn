@@ -92,7 +92,7 @@ if (!function_exists('findManagerDetails')) {
                             $namagerDetails['asm'] = $query->asm->name?? '';
                             $namagerDetails['state'] = $query->states->name?? '';
 							$namagerDetails['area'] = $query->areas->name?? '';
-							$namagerDetails['distributor'] = $query->distributors->name?? '';
+							$namagerDetails['distributor'] = $query->distributor->name?? '';
                         } else {
                             $namagerDetails[] = "";
                         }
