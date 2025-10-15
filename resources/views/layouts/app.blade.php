@@ -213,8 +213,14 @@
                     </ul>
                 </li>
                 @endcan
-
-                
+                 <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
+                    <a href="#"><i class="fi fi-br-cube"></i> <span>Reward App</span></a>
+                    <ul>
+                        <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
+                            <a href="{{ route('reward.retailer.product.index') }}"><i class="fi fi-br-box"></i> <span>Product</span></a>
+                        </li>
+                    </ul>
+                </li>
                 
             </ul>
         </nav>
