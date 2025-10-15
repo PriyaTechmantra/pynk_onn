@@ -688,7 +688,7 @@ public function aseSalesreport(Request $request)
         $result1 = Team::where('distributor_id',$request->distributor_id)->where('ase_id',$request->user_id)->where('state_id',$request->state_id)->where('area_id',$request->area_id)->first();
 
         $retailerListOfOcc = new Team;
-        $retailerListOfOcc->vp_id = $result1->vp;
+        $retailerListOfOcc->vp_id = $result1->vp_id;
         $retailerListOfOcc->state_id = $result1->state_id;
         $retailerListOfOcc->distributor_id = $result1->distributor_id;
         $retailerListOfOcc->area_id = $result1->area_id;
