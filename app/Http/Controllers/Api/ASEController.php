@@ -13,6 +13,7 @@ use App\Models\PrimaryOrder;
 use App\Models\SecondaryOrder;
 use App\Models\NoOrderReason;
 use App\Models\Category;
+use App\Models\Collection;
 use App\Models\UserNoOrderReason;
 use Str;
 use Illuminate\Support\Facades\Validator;
@@ -907,6 +908,87 @@ public function aseSalesreport(Request $request)
         }
     }
 
+
+    public function collectionList(Request $request)
+    {
+		
+
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+		
+		$stores = Collection::where('status',1)->where('is_deleted',0)->get();
+		
+	
+        if ($stores->isNotEmpty()) {
+            // Transform brand values
+            $stores = $stores->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                return $store;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Collection data fetched successfully',
+                'data'    => $stores,
+            ], 200);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No collection data found',
+            ], 404);
+        }
+    }
+
+
+    // collection wise category & products
+	public function collectionWiseCategoryProduct($id="")
+    {
+        // 10000 means all - coming from app
+       if ($id != "10000") {
+            $collection = Collection::where('id',$id)->first();
+
+            $collection_name = $collection->name;
+
+            //$categories = DB::select("SELECT DISTINCT p.cat_id AS category_id, c.name AS category_name FROM products AS p INNER JOIN categories AS c ON c.id = p.cat_id WHERE p.collection_id = ".$id." ORDER BY c.position ASC");
+            //$categories = DB::select("SELECT DISTINCT c.id AS category_id, c.name AS category_name FROM categories  AS c ORDER BY c.position ASC");
+            $categories = Category::select('id','name')->orderby('position','ASC')->get();
+            $products = DB::select("SELECT id, style_no AS product_style_no, name AS product_name FROM `products` WHERE collection_id = ".$id." ORDER BY position ASC");
+        } else {
+            $collection_name = 'all';
+
+            $categories = DB::select("SELECT DISTINCT p.cat_id AS category_id, c.name AS category_name FROM products AS p INNER JOIN categories AS c ON c.id = p.cat_id ORDER BY c.position ASC");
+
+            $products = DB::select("SELECT p.id, p.style_no AS product_style_no, p.name AS product_name FROM `products` AS p INNER JOIN collections AS c ON p.collection_id = c.id ORDER BY c.position ASC, p.position ASC;");
+        }
+
+		$resp = [
+            'collection_name' => $collection_name,
+            'category' => [],
+            'product' => [],
+        ];
+
+        foreach($categories as $category) {
+            $resp['category'][] = [
+                'cat_id' => $category->category_id,
+                'cat_name' => $category->category_name,
+                
+            ];
+        }
+
+        foreach($products as $product) {
+            $resp['product'][] = [
+                //'cat_id' =>$product->cat_id,
+                'product_id' => $product->id,
+                'product_style_no' => $product->product_style_no,
+                'product_name' => $product->product_name,
+            ];
+        }
+        return response()->json(['error' => false, 'message' => 'Collection wise Category and Product list', 'data' => $resp]);
+    }
 
 
 

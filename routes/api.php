@@ -63,7 +63,7 @@ Route::post('no-order-reason/update', [ASEController::class, 'noorder']);
 Route::get('no-order-reason', [ASEController::class, 'noorderlist']);
 Route::get('no-order-history/{id}', [ASEController::class, 'noorderhistory']);
 Route::get('category', [ASEController::class, 'categoryList']);
-Route::get('/books/history/{id}', [IssueBookController::class, 'history']);
+Route::get('collection', [ASEController::class, 'collectionList']);
 
 Route::post('/issue-books', [IssueBookController::class, 'store']);
 Route::post('/issue-bulk-books-with-qr', [IssueBookController::class, 'bulkBookIssueWithQR']);
