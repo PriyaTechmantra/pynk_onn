@@ -1,6 +1,7 @@
 <?php
 use Illuminate\Support\Facades\Mail;
 use App\Models\Team;
+use App\Models\Notification;
 if (!function_exists('generateUniqueAlphaNumericValue')) {
     function generateUniqueAlphaNumericValue($length = 10) {
         $random_string = '';
