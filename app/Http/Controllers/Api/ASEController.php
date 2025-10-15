@@ -749,13 +749,21 @@ public function aseSalesreport(Request $request)
     public function storeimageUpdate(Request $request)
     {
 
-        $response = Store::findOrFail($request->store_id);
-        $response->image=$request->image;
-        $response->save();
-		if ($response) {
-            return response()->json(['status' => true, 'message' => 'Data updated successfully', 'data' => $response]);
-        } else {
-            return response()->json(['status' => false, 'message' => 'Something happened']);
+        $validator = Validator::make($request->all(),[
+            'image' => ['required', 'image', 'max:1000000']
+        ]);
+
+        if(!$validator->fails()){
+            $imageName = mt_rand().'.'.$request->image->extension();
+			$uploadPath = 'public/uploads/store';
+            $filePath='uploads/store';
+			$request->image->move($filePath, $imageName);
+			$total_path = $uploadPath.'/'.$imageName;
+            
+			return response()->json(['status' => true, 'message' => 'Image added', 'data' => $total_path]);
+
+        }else {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
         
     }
