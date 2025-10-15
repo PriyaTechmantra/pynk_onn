@@ -434,8 +434,8 @@ public function aseSalesreport(Request $request)
     return response()->json([
         'status' => true,
         'message' => 'ASE wise Primary & Secondary Sales Report',
-        'Primary Sales' => $respArrd,
-        'Secondary Sales' => $respArr,
+        'PrimarySales' => $respArrd,
+        'SecondarySales' => $respArr,
     ], 200);
 }
 
