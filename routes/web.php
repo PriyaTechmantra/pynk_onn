@@ -19,6 +19,7 @@ use App\Http\Controllers\Cave\CaveCategoryController;
 use App\Http\Controllers\RetailerProductController;
 use App\Http\Controllers\TermsController;
 use App\Http\Controllers\RetailerOrderController;
+use App\Http\Controllers\CatalogueController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -159,10 +160,15 @@ Route::group(['middleware' => ['auth']], function() {
     
     //catalogues
      Route::resource('catalogues', CatalogueController::class);
-     Route::get('catalogues/{userId}/delete', [CatalogueController::class, 'destroy']);
-     Route::get('catalogues/{userId}/status/change', [CatalogueController::class, 'status']);
-     Route::get('catalogues/export/csv', [CatalogueController::class, 'csvExport']);
-     Route::post('catalogues/upload/csv', [CatalogueController::class, 'csvImport']);
+     Route::get('catalogues/{userId}/edit', [CatalogueController::class, 'edit'])->name('catalogues.edit');
+     Route::post('catalogues/{userId}/update', [CatalogueController::class, 'update'])->name('catalogues.update');
+     Route::get('catalogues/{userId}/view', [CatalogueController::class, 'show'])->name('catalogues.view');
+     Route::get('catalogues/{userId}/delete', [CatalogueController::class, 'destroy'])->name('catalogues.delete');
+     Route::get('catalogues/{userId}/status/change', [CatalogueController::class, 'status'])->name('catalogues.status');
+     Route::get('catalogues/export/csv', [CatalogueController::class, 'csvExport'])->name('csvExport');
+    //  Route::post('catalogues/upload/csv', [CatalogueController::class, 'csvImport']);
+     Route::post('catalogues/{userId}/pdf', [CatalogueController::class, 'pdf'])->name('pdf');
+
 
 
      //schemes
