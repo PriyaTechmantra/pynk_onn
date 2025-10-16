@@ -49,53 +49,86 @@ function SendMail($data)
 }
 if (!function_exists('findManagerDetails')) {
     function findManagerDetails($userName, $userType ) {
+        $namagerDetails = array();
+        $team_wise_attendance =array();
         switch ($userType) {
             case 1:
-                $namagerDetails = "";
+                $namagerDetails[] = "";
                 break;
             case 2:
-                $query=Team::select('vp_id')->where('rsm_id',$userName)->where('store_id',NULL)->groupby('rsm_id')->with('vp')->first();
+                $query=Team::select('vp_id','state_id','area_id')->where('rsm_id',$userName)->groupby('rsm_id')->with('vp','states','areas')->first();
                
                 if ($query) {
-                    $namagerDetails = "<span class='text-dark'>VP:</span> ".$query->vp->name?? '';
+                    $namagerDetails['vp'] = $query->vp->name?? '';
+                    $namagerDetails['state'] = $query->states->name?? '';
+					$namagerDetails['area'] = $query->areas->name?? '';
+                    $namagerDetails['rsm'] = "";
+                    $namagerDetails['asm'] = "";
                 } else {
-                    $namagerDetails = "";
+                    $namagerDetails[] = "";
                 }
                 break;
             case 3:
-                $query=Team::select('vp_id','rsm_id')->where('asm_id',$userName)->where('store_id',NULL)->groupby('asm_id')->with('vp','rsm')->first();
+                $query=Team::select('vp_id','rsm_id','state_id','area_id')->where('asm_id',$userName)->groupby('asm_id')->with('vp','rsm','states','areas')->first();
                 
                 if ($query) {
-                    $namagerDetails = "<span class='text-dark'>VP:</span> ".$query->vp->name." 
-                    <br> 
-                    <span class='text-dark'>RSM:</span> ".$query->rsm->name;
+                    $namagerDetails['vp'] = $query->vp->name?? '';
+                    $namagerDetails['rsm'] = $query->rsm->name?? '';
+                    $namagerDetails['state'] = $query->states->name?? '';
+					$namagerDetails['area'] = $query->areas->name?? '';
+                    
+                    $namagerDetails['asm'] = "";
                 } else {
-                    $namagerDetails = "";
+                    $namagerDetails[] = "";
                 }
                 break;
-            case 4:
-                $query=Team::select('vp_id','rsm_id','asm_id')->where('ase_id',$userName)->where('store_id',NULL)->orderby('id','desc')->with('vp','rsm','asm')->first();
-                 //dd($query);
-                if ($query) {
-                    $namagerDetails = "<span class='text-dark'>VP:</span> ".$query->vp->name." 
-                    <br> 
-                    <span class='text-dark'>RSM:</span> ".$query->rsm->name." 
-                    <br> 
-                    <span class='text-dark'>ASM:</span> ".$query->asm->name;
-                } else {
-                    $namagerDetails = "";
-                }
-                break;
+            
+                case 4:
+                        $query=Team::select('vp_id','rsm_id','asm_id','state_id','area_id','distributor_id')->where('ase_id',$userName)->orderby('id','desc')->with('vp','rsm','asm','states','areas','distributor')->first();
+                        
+                        if ($query) {
+                            $namagerDetails['vp'] = $query->vp->name ?? '';
+                            $namagerDetails['rsm'] = $query->rsm->name?? '';
+                            $namagerDetails['asm'] = $query->asm->name?? '';
+                            
+                        } else {
+                            $namagerDetails[] = "";
+                        }
+                        break;
+				case 5:
+                        $query=Team::select('vp_id','rsm_id','asm_id','ase_id','state_id','area_id')->where('distributor_id',$userName)->orderby('id','desc')->with('vp','rsm','asm','ase','states','areas')->first();
+                        
+                        if ($query) {
+                            $namagerDetails['VP'] = $query->vp->name ?? '';
+                            $namagerDetails['RSM'] = $query->rsm->name?? '';
+                            $namagerDetails['ASM'] = $query->asm->name?? '';
+							$namagerDetails['ASE'] = $query->ase->name?? '';
+							$namagerDetails['STATE'] = $query->states->name?? '';
+							$namagerDetails['AREA'] = $query->areas->name?? '';
+                        } else {
+                            $namagerDetails[] = "";
+                        }
+                        break;
                 
-				
             default: 
-                $namagerDetails = "";
+                $namagerDetails[] = "";
                 break;
         }
+        //array_push($team_wise_attendance, $namagerDetails);
+        
+        //return $team_wise_attendance;
+          // Convert array to HTML string with line breaks
+        $output = '';
+        foreach ($namagerDetails as $role => $name) {
+            if(!empty($name)){
+                $output .= '<span style="color: #343a40; font-weight:600;">' .$role . ' : </span> ' . $name . '<br>';
+            }
+        }
 
-        return $namagerDetails;
+        return $output;
     }
 }
+
 
 
 if (!function_exists('userTypeName')) {
