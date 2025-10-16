@@ -16,7 +16,6 @@
                     <div class="card-header">
                         <h4>Order report
 
-                            <a href="#csvModal" data-bs-toggle="modal" class="btn btn-sm btn-cta float-end">Bulk Upload</a>
                             
                              <a href="{{ route('reward.retailer.order.export.csv', [
                                                 'date_from'=>$request->date_from,
