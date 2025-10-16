@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('page', 'Terms and Condition')
 @section('content')
 <section>
     <div class="row">

@@ -18,9 +18,10 @@ use App\Http\Controllers\Cave\CaveLocationController;
 use App\Http\Controllers\Cave\CaveCategoryController;
 use App\Http\Controllers\RetailerProductController;
 use App\Http\Controllers\TermsController;
-
+use App\Http\Controllers\RetailerOrderController;
 
 use Illuminate\Support\Facades\Route;
+
 Route::get('/cache-clear', function() {
 	// \Artisan::call('route:cache');
 	\Artisan::call('config:cache');
