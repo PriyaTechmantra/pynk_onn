@@ -40,15 +40,61 @@
                                         <input type="date" name="end_date" class="form-control">{{old('end_date')}}</textarea>
                                         @error('end_date') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label class="label-control">State </label>
-                                        <input type="text" name="state" class="form-control">{{old('state')}}</textarea>
+                                   <div class="form-group mb-3">
+                                        <label class="label-control">State <span class="text-danger">*</span></label>
+                                        <select name="state" class="form-control">
+                                            <option value="">Select State</option>
+                                            @foreach($states as $state)
+                                                <option value="{{ $state->id }}" {{ old('state') == $state->id ? 'selected' : '' }}>
+                                                    {{ $state->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                         @error('state') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
+
                                     <div class="form-group mb-3">
                                         <label class="label-control">VP </label>
-                                        <input type="text" name="vp" class="form-control">{{old('vp')}}</textarea>
+                                        <input type="text" name="vp" class="form-control" value="{{old('vp')}}">
                                         @error('vp') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Brand Permission</label>
+
+                                                <div class="form-check">
+                                                    <input 
+                                                        class="form-check-input medium-checkbox" 
+                                                        type="checkbox" 
+                                                        name="brand[]" 
+                                                        value="1" 
+                                                        id="mediumOnn"
+                                                        onchange="toggleSelectBox()"
+                                                    >
+                                                        <label class="form-check-label" for="mediumLMS">Onn</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input 
+                                                        class="form-check-input medium-checkbox" 
+                                                        type="checkbox" 
+                                                        name="brand[]" 
+                                                        value="2" 
+                                                        id="mediumPynk"
+                                                        onchange="toggleSelectBox()"
+                                                    >
+                                                    <label class="form-check-label" for="mediumFMS">Pynk</label>
+                                                </div>
+                                                                    
+                                                <div class="form-check">
+                                                    <input 
+                                                        class="form-check-input medium-checkbox" 
+                                                        type="checkbox" 
+                                                        name="brand[]" 
+                                                        value="3" 
+                                                        id="mediumBoth"
+                                                        onchange="toggleSelectBox()"
+                                                    >
+                                                    <label class="form-check-label" for="mediumCave">Both</label>
+                                                </div>
                                     </div>
                                     <div class="col-12 col-md-6 col-xl-12">
                                         <div class="row">

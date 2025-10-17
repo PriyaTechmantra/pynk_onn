@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Catalogue;
 use Illuminate\Http\Request;
+use App\Models\State;
 use App\Interfaces\CatalogueInterface;
 use App\Models\ProductCatalogue;
 use DB;
@@ -14,15 +15,19 @@ class CatalogueController extends Controller
     {
         $term = $request->term;
 
+        $query = ProductCatalogue::query();
+
         if (!empty($term)) {
-            $data = ProductCatalogue::where('title', 'LIKE', '%' . $term . '%')->paginate(5);
+            $query->where('title', 'LIKE', '%' . $term . '%');
+        }
+
+        $query->latest();
+
+        if ($request->has('export_all')) {
+            $count = ProductCatalogue::count();
+            $data = $query->paginate($count);
         } else {
-            if ($request->has('export_all')) {
-                $count = ProductCatalogue::count();
-                $data = ProductCatalogue::paginate($count);
-            } else {
-                $data = ProductCatalogue::paginate(10);
-            }
+            $data = $query->paginate(10);
         }
 
         return view('catalogue.index', compact('data'));
@@ -30,7 +35,8 @@ class CatalogueController extends Controller
 
     public function create()
     {
-        return view('catalogue.create');
+        $states = State::where('is_deleted', 0)->where('status', 1)->get();
+        return view('catalogue.create', compact('states'));
     }
 
     public function store(Request $request)
@@ -39,8 +45,10 @@ class CatalogueController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "nullable|date",
             "end_date" => "nullable|date",
+            "state" => 'nullable|exists:states,id',
             "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
+            "brand" => "nullable|array",
         ]);
 
         $params = $request->except('_token');
@@ -52,6 +60,11 @@ class CatalogueController extends Controller
         $storeData->title = $collection['title'];
         $storeData->start_date = $collection['start_date'];
         $storeData->end_date = $collection['end_date'];
+        $storeData->state = $collection['state'];
+        
+        $storeData->vp = $collection['vp'];
+        $storeData->brand = $request->brand;
+
 
         // image image
         $image = $collection['image'];
@@ -84,8 +97,9 @@ class CatalogueController extends Controller
 
     public function edit($id)
     {
-         $data = ProductCatalogue::findOrFail($id);
-        return view('catalogue.edit', compact('data'));
+        $data = ProductCatalogue::findOrFail($id);
+        $states = State::where('is_deleted', 0)->where('status', 1)->get();
+        return view('catalogue.edit', compact('data', 'states'));
     }
 
     public function update(Request $request, $id)
@@ -94,8 +108,10 @@ class CatalogueController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "nullable|date",
             "end_date" => "nullable|date",
+            "state" => 'nullable|exists:states,id',
             "image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
+            "brand" => "nullable|array",
         ]);
 
         $params = $request->except('_token');
@@ -107,6 +123,12 @@ class CatalogueController extends Controller
         $storeData->title = $collection['title'];
         $storeData->start_date = $collection['start_date'];
         $storeData->end_date = $collection['end_date'];
+
+        $state = State::find($request->state);
+        $storeData->state = $state ? $state->id : $storeData->state;
+        $storeData->vp = $collection['vp'];
+        $storeData->brand =$request->brand;
+
 
         if (isset($params['image'])) {
             $image = $collection['image'];

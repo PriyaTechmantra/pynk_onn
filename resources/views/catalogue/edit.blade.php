@@ -42,6 +42,45 @@
                                         <input type="date" name="end_date" class="form-control" value="{{date('Y-m-d', strtotime($data->end_date))}}">
                                         @error('end_date') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
+                                    <div class="form-group mb-3">
+                                        <select name="state" class="form-control">
+                                            <option value="">Select State</option>
+                                            @foreach($states as $state)
+                                                <option value="{{ $state->id }}" {{ $data->state == $state->id ? 'selected' : '' }}>
+                                                    {{ $state->name }}
+                                                </option>
+
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                     <div class="form-group mb-3">
+                                        <label class="label-control">VP </label>
+                                        <input type="text" name="vp" class="form-control" value="{{$data->vp}}">
+                                        @error('vp') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group mb-3">
+                                            <label class="label-control">
+                                                Brand Permission:
+                                            </label>
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="brand[]" value="1" id="brandOnn"
+                                                        {{ in_array(1, $data->brand ?? []) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="brandOnn">Onn</label>
+                                                </div>
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="brand[]" value="2" id="brandPynk"
+                                                        {{ in_array(2, $data->brand ?? []) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="brandPynk">Pynk</label>
+                                                </div>
+
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="brand[]" value="3" id="brandBoth"
+                                                        {{ in_array(3, $data->brand ?? []) ? 'checked' : '' }}>
+                                                    <label class="form-check-label" for="brandBoth">Both</label>
+                                                </div>
+                                        </div>
                                     <div class="row">
                                         <div class="col-md-6 card">
                                             <div class="card-header p-0 mb-3">Image <span class="text-danger">*</span></div>
