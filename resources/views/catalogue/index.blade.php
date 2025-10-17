@@ -14,7 +14,7 @@
                         <h4>Catalogue
                             <a href="{{url('catalogues/create')}}" class="btn btn-sm btn-cta float-end">Add Catalogue</a>
 
-                            <a href="{{route('reward.retailer.product.export.csv')}}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
+                            <a href="{{route('catalogues.exportCSV')}}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 CSV
                             </a>
@@ -30,7 +30,7 @@
                             <div class="row">
                                         
                                 <div class="col-12">
-                                    <form action="{{url('catelogues/')}}">
+                                    <form action="{{url('catalogues/')}}">
                                         <div class="row">
                                             <div class="col-3">
                                                 <input type="search" name="term" id="term" class="form-control form-control-sm" placeholder="Search by keyword." value="{{app('request')->input('term')}}" autocomplete="off">
@@ -95,8 +95,16 @@
                                             <img src="{{ asset($item->image) }}" style="max-width: 80px;max-height: 80px;">
                                         </td>
                                         <td class="text-center column-thumb">
-                                            <a class="btn btn-sm btn-primary" href="" target="_blank" > View</a>
-                                            <a class="btn btn-sm btn-info" href="" download><i class="app-menu__icon fa fa-download"></i> Download</a>
+                                            @if($item->pdf)
+                                                <a class="btn btn-sm btn-primary" href="{{ asset($item->pdf) }}" target="_blank">
+                                                    View
+                                                </a>
+                                                <a class="btn btn-sm btn-info" href="{{ asset($item->pdf) }}" download>
+                                                    <i class="app-menu__icon fa fa-download"></i> Download
+                                                </a>
+                                            @else
+                                                <span class="text-muted small">No PDF</span>
+                                            @endif
                                         </td>
                                         <td>
                                             <h3 class="text-dark">{{$item->title}}</h3>

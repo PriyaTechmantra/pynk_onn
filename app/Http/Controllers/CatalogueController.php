@@ -13,15 +13,23 @@ class CatalogueController extends Controller
 {
     public function index(Request $request)
     {
-        $term = $request->term;
-
         $query = ProductCatalogue::query();
 
-        if (!empty($term)) {
-            $query->where('title', 'LIKE', '%' . $term . '%');
+        if (!empty($request->term)) {
+            $query->where('title', 'LIKE', '%' . $request->term . '%');
         }
 
-        $query->latest();
+        if (!empty($request->brand_selection)) {
+            $brands = explode(',', $request->brand_selection);
+
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    $q->orWhereJsonContains('brand', (string) trim($brand));
+                }
+            });
+        }
+
+        $query->latest(); 
 
         if ($request->has('export_all')) {
             $count = ProductCatalogue::count();
@@ -30,8 +38,9 @@ class CatalogueController extends Controller
             $data = $query->paginate(10);
         }
 
-        return view('catalogue.index', compact('data'));
+        return view('catalogue.index', compact('data', 'request'));
     }
+
 
     public function create()
     {
@@ -181,6 +190,76 @@ class CatalogueController extends Controller
         } else {
             return redirect('/catalogues/create')->withInput($request->all());
         }
+    }
+
+    public function exportCSV(Request $request)
+    {
+        $query = ProductCatalogue::query();
+
+        // Keyword search
+        if (!empty($request->keyword)) {
+            $query->where('title', 'LIKE', '%' . $request->keyword . '%');
+        }
+
+        // Brand filter (JSON column)
+        if (!empty($request->brand_selection)) {
+            $brands = explode(',', $request->brand_selection);
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    $q->orWhereJsonContains('brand', trim($brand));
+                }
+            });
+        }
+
+        $data = $query->orderBy('id', 'desc')->get();
+
+        if ($data->isEmpty()) {
+            return redirect()->back()->with('message', 'No data found for export.');
+        }
+
+        $delimiter = ",";
+        $filename = "catalogue-report" . date('Y-m-d') . ".csv";
+
+        // Open memory stream
+        $f = fopen('php://memory', 'w');
+
+        // CSV headers
+        $headers = ['TITLE', 'START DATE', 'END DATE', 'STATE', 'VP','STATUS'];
+        fputcsv($f, $headers, $delimiter);
+
+         $stateName = '';
+        
+
+        $count = 1;
+
+        foreach ($data as $row) {
+            if ($row->state) {
+                $state = State::find($row->state);
+                $stateName = $state ? $state->name : '';
+            }
+
+            $lineData = [
+                $row->title ?? '',
+                $row->start_date ? date('d M Y', strtotime($row->start_date)) : '',
+                $row->end_date ? date('d M Y', strtotime($row->end_date)) : '',
+                $stateName,
+                $row->vp ?? '',
+                ($row->status == 1) ? 'Active' : 'Inactive',
+
+            ];
+
+            fputcsv($f, $lineData, $delimiter);
+            $count++;
+        }
+
+        fseek($f, 0);
+
+        // Output headers for download
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '";');
+
+        fpassthru($f);
+        exit;
     }
 
 

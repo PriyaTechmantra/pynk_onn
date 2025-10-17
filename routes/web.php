@@ -165,11 +165,7 @@ Route::group(['middleware' => ['auth']], function() {
      Route::get('catalogues/{userId}/view', [CatalogueController::class, 'show'])->name('catalogues.view');
      Route::get('catalogues/{userId}/delete', [CatalogueController::class, 'destroy'])->name('catalogues.delete');
      Route::get('catalogues/{userId}/status/change', [CatalogueController::class, 'status'])->name('catalogues.status');
-     Route::get('catalogues/export/csv', [CatalogueController::class, 'csvExport'])->name('csvExport');
-    //  Route::post('catalogues/upload/csv', [CatalogueController::class, 'csvImport']);
-     Route::post('catalogues/{userId}/pdf', [CatalogueController::class, 'pdf'])->name('pdf');
-
-
+     Route::get('catalogues/export/csv', [CatalogueController::class, 'exportCSV'])->name('catalogues.exportCSV');
 
      //schemes
      Route::resource('schemes', SchemeController::class);
