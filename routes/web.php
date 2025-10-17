@@ -20,6 +20,7 @@ use App\Http\Controllers\RetailerProductController;
 use App\Http\Controllers\TermsController;
 use App\Http\Controllers\RetailerOrderController;
 use App\Http\Controllers\CatalogueController;
+use App\Http\Controllers\SchemeController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -169,10 +170,11 @@ Route::group(['middleware' => ['auth']], function() {
 
      //schemes
      Route::resource('schemes', SchemeController::class);
-     Route::get('schemes/{userId}/delete', [SchemeController::class, 'destroy']);
-     Route::get('schemes/{userId}/status/change', [SchemeController::class, 'status']);
-     Route::get('schemes/export/csv', [SchemeController::class, 'csvExport']);
-     Route::post('schemes/upload/csv', [SchemeController::class, 'csvImport']);
+     Route::get('schemes/{userId}/edit', [SchemeController::class, 'edit'])->name('schemes.edit');
+     Route::post('schemes/{userId}/update', [SchemeController::class, 'update'])->name('schemes.update');
+     Route::get('schemes/{userId}/view', [SchemeController::class, 'show'])->name('schemes.view');
+     Route::get('schemes/{userId}/delete', [SchemeController::class, 'destroy'])->name('schemes.delete');
+     Route::get('schemes/{userId}/status/change', [SchemeController::class, 'status'])->name('schemes.status');
 
       //news
      Route::resource('news', NewsController::class);

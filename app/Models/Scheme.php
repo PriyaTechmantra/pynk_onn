@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Scheme extends Model
 {
     use HasFactory;
+
+    protected $casts = [
+        'brand' => 'array',
+    ];
 }

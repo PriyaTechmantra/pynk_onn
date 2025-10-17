@@ -15,17 +15,21 @@
 
                 <div class="card data-card">
                     <div class="card-header">
-                        <h4 class="d-flex">Catalogue Detail
-                            <a href="{{ url('catalogues') }}" class="btn btn-cta ms-auto">Back</a>
-                                <a href="{{ route('catalogues.edit',$data->id) }}" class="btn btn-cta">
-                                    Edit
-                                </a>
+                        <h4 class="d-flex">Scheme Detail
+                            <a href="{{ url('schemes') }}" class="btn btn-cta ms-auto">Back</a>
+                             <a href="{{ route('schemes.edit',$data->id) }}" class="btn btn-cta">
+                                Edit
+                            </a>
                         </h4>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-xl-6 col-lg-8 col-12">
                                 <div class="card-body">
+                                    <div class="col-md-12">
+                                            <h3>Type</h3>
+                                            <div class="btn btn-danger">{{ $data->type }}</div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-12">
                                             <h3>{{ $data->title }}</h3>
