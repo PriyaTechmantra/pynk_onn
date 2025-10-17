@@ -26,7 +26,7 @@ class SchemeController extends Controller
             });  
         }
 
-        $data = $query->orderBy('id', 'desc')->paginate(25);
+        $data = $query->orderBy('id')->paginate(25);
        return view('scheme.index', compact('data', 'request'));
     }
 

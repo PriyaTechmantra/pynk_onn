@@ -21,6 +21,7 @@ use App\Http\Controllers\TermsController;
 use App\Http\Controllers\RetailerOrderController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\SchemeController;
+use App\Http\Controllers\NewsController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -178,10 +179,12 @@ Route::group(['middleware' => ['auth']], function() {
 
       //news
      Route::resource('news', NewsController::class);
-     Route::get('news/{userId}/delete', [NewsController::class, 'destroy']);
-     Route::get('news/{userId}/status/change', [NewsController::class, 'status']);
-     Route::get('news/export/csv', [NewsController::class, 'csvExport']);
-     Route::post('news/upload/csv', [NewsController::class, 'csvImport']);
+     Route::get('news/{userId}/edit', [NewsController::class, 'edit'])->name('news.edit');
+     Route::post('news/{userId}/update', [NewsController::class, 'update'])->name('news.update');
+     Route::get('news/{userId}/view', [NewsController::class, 'show'])->name('news.view');
+     Route::get('news/{userId}/delete', [NewsController::class, 'destroy'])->name('news.delete');
+     Route::get('news/{userId}/status/change', [NewsController::class, 'status'])->name('news.status');
+
      
      //stores
     Route::resource('stores', StoreController::class);
