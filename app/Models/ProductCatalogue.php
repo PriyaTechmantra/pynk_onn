@@ -29,5 +29,6 @@ class ProductCatalogue extends Model
     }
     protected $casts = [
         'brand' => 'array',
+        'state' => 'array',
     ];
 }

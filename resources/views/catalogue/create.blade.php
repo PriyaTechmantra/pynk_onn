@@ -41,11 +41,11 @@
                                         @error('end_date') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                    <div class="form-group mb-3">
-                                        <label class="label-control">State <span class="text-danger">*</span></label>
-                                        <select name="state" class="form-control">
-                                            <option value="">Select State</option>
+                                        <label class="label-control">States <span class="text-danger">*</span></label>
+                                        <select name="state[]" id="stateSelect" class="form-control" multiple>
                                             @foreach($states as $state)
-                                                <option value="{{ $state->id }}" {{ old('state') == $state->id ? 'selected' : '' }}>
+                                                <option value="{{ $state->id }}" 
+                                                    {{ (collect(old('state'))->contains($state->id)) ? 'selected' : '' }}>
                                                     {{ $state->name }}
                                                 </option>
                                             @endforeach
@@ -96,39 +96,36 @@
                                                     <label class="form-check-label" for="mediumCave">Both</label>
                                                 </div>
                                     </div>
-                                    <div class="col-12 col-md-6 col-xl-12">
-                                        <div class="row">
-                                            <div class="col-md-6 card">
-                                                <div class="card-header p-0 mb-3">Image <span class="text-danger">*</span></div>
-                                                <div class="card-body p-0">
-                                                    <div class="w-100 product__thumb">
-                                                        <label for="icon"><img id="iconOutput" src="{{ asset('admin/images/placeholder-image.jpg') }}" /></label>
-                                                    </div>
-                                                    <input type="file" name="image" id="icon" accept="image/*" onchange="loadIcon(event)" class="d-none">
-                                                    <script>
-                                                        let loadIcon = function(event) {
-                                                            let iconOutput = document.getElementById('iconOutput');
-                                                            iconOutput.src = URL.createObjectURL(event.target.files[0]);
-                                                            iconOutput.onload = function() {
-                                                                URL.revokeObjectURL(iconOutput.src) // free memory
-                                                            }
-                                                        };
-                                                    </script>
-                                                </div>
-                                                @error('image') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Image <span class="text-danger">*</span></label>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="product__thumb">
+                                                <label for="icon">
+                                                    <img id="iconOutput" src="{{ asset('admin/images/placeholder-image.jpg') }}" style="width:100px; height:100px; object-fit:cover; cursor:pointer;" />
+                                                </label>
                                             </div>
-                                            <div class="col-md-6 card">
-                                                <div class="card-header p-0 mb-3">Pdf <span class="text-danger">*</span></div>
-                                                <div class="card-body p-0">
-                                                    <div class="w-100 product__thumb">
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <input class="form-control" type="file" name="pdf" id="pdf">
-                                                </div>
-                                                </div>
-                                                @error('pdf') <p class="small text-danger">{{ $message }}</p> @enderror
-                                            </div>
+                                                <input type="file" name="image" id="icon" accept="image/*" onchange="loadIcon(event)" class="d-none">
                                         </div>
+
+                                        @error('image') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+
+                                    <script>
+                                    let loadIcon = function(event) {
+                                        let iconOutput = document.getElementById('iconOutput');
+                                        iconOutput.src = URL.createObjectURL(event.target.files[0]);
+                                        iconOutput.onload = function() {
+                                            URL.revokeObjectURL(iconOutput.src) // free memory
+                                        }
+                                    };
+                                    </script>
+
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Pdf <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="file" name="pdf" id="pdf">
+                                        @error('pdf') 
+                                            <p class="small text-danger">{{ $message }}</p> 
+                                        @enderror
                                     </div>
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-sm btn-danger">Add New Catalogue</button>
@@ -146,6 +143,7 @@
 
 
 @endsection
+
 @section('script')
 <script>
     function htmlToCSV() {
@@ -204,11 +202,19 @@
     }
 
 
-</script>
  @if (request()->input('export_all') == true)
                 <script>
                     htmlToCSV();
                     window.location.href = "{{ route('catalogue.index') }}";
                 </script>
-            @endif
+@endif
+
+$(document).ready(function() {
+    $('#stateSelect').select2({
+        placeholder: "Select States",
+        allowClear: true
+    });
+});
+</script>
 @endsection
+

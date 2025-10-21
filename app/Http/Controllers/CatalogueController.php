@@ -108,6 +108,8 @@ class CatalogueController extends Controller
     {
         $data = ProductCatalogue::findOrFail($id);
         $states = State::where('is_deleted', 0)->where('status', 1)->get();
+
+        $data->state = $data->state;
         return view('catalogue.edit', compact('data', 'states'));
     }
 
@@ -132,9 +134,8 @@ class CatalogueController extends Controller
         $storeData->title = $collection['title'];
         $storeData->start_date = $collection['start_date'];
         $storeData->end_date = $collection['end_date'];
+        $storeData->state = $collection['state'];
 
-        $state = State::find($request->state);
-        $storeData->state = $state ? $state->id : $storeData->state;
         $storeData->vp = $collection['vp'];
         $storeData->brand =$request->brand;
 
@@ -171,13 +172,6 @@ class CatalogueController extends Controller
         return redirect('/catalogues');
     }
 
-    public function pdf(Request $request, $id)
-    {
-        $data = ProductCatalogue::findOrfail($id);
-		$image = DB::table('product_catalogues_images')->where('catalogue_id',$data->id)->get();
-        return view('catalogue.pdf', compact('data','image'));
-    }
-
      public function status(Request $request, $id)
     {
         $storeData = ProductCatalogue::findOrFail($id);
@@ -201,7 +195,6 @@ class CatalogueController extends Controller
             $query->where('title', 'LIKE', '%' . $request->keyword . '%');
         }
 
-        // Brand filter (JSON column)
         if (!empty($request->brand_selection)) {
             $brands = explode(',', $request->brand_selection);
             $query->where(function ($q) use ($brands) {
@@ -233,10 +226,11 @@ class CatalogueController extends Controller
         $count = 1;
 
         foreach ($data as $row) {
-            if ($row->state) {
-                $state = State::find($row->state);
-                $stateName = $state ? $state->name : '';
+            $stateNames = [];
+            if ($row->state && is_array($row->state)) {
+                $stateNames = State::whereIn('id', $row->state)->pluck('name')->toArray();
             }
+            $stateName = implode(', ', $stateNames);
 
             $lineData = [
                 $row->title ?? '',
