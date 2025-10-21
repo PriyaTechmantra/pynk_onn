@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class News extends Model
 {
     use HasFactory;
+
+    protected $casts = [
+        'brand' => 'array',
+        'user_type' => 'array',
+    ];
 }

@@ -18,8 +18,13 @@ class Store extends Model
      {
          return $this->belongsTo(State::class,'state_id');
      }
+     
       public function area()
      {
          return $this->belongsTo(Area::class,'area_id');
      }
+
+      public function ProductDetails() {
+        return $this->HasMany('App\Models\Product', 'store_id', 'id')->where('status', 1);
+    }
 }

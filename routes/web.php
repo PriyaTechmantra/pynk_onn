@@ -18,9 +18,13 @@ use App\Http\Controllers\Cave\CaveLocationController;
 use App\Http\Controllers\Cave\CaveCategoryController;
 use App\Http\Controllers\RetailerProductController;
 use App\Http\Controllers\TermsController;
-
+use App\Http\Controllers\RetailerOrderController;
+use App\Http\Controllers\CatalogueController;
+use App\Http\Controllers\SchemeController;
+use App\Http\Controllers\NewsController;
 
 use Illuminate\Support\Facades\Route;
+
 Route::get('/cache-clear', function() {
 	// \Artisan::call('route:cache');
 	\Artisan::call('config:cache');
@@ -158,25 +162,29 @@ Route::group(['middleware' => ['auth']], function() {
     
     //catalogues
      Route::resource('catalogues', CatalogueController::class);
-     Route::get('catalogues/{userId}/delete', [CatalogueController::class, 'destroy']);
-     Route::get('catalogues/{userId}/status/change', [CatalogueController::class, 'status']);
-     Route::get('catalogues/export/csv', [CatalogueController::class, 'csvExport']);
-     Route::post('catalogues/upload/csv', [CatalogueController::class, 'csvImport']);
-
+     Route::get('catalogues/{userId}/edit', [CatalogueController::class, 'edit'])->name('catalogues.edit');
+     Route::post('catalogues/{userId}/update', [CatalogueController::class, 'update'])->name('catalogues.update');
+     Route::get('catalogues/{userId}/view', [CatalogueController::class, 'show'])->name('catalogues.view');
+     Route::get('catalogues/{userId}/delete', [CatalogueController::class, 'destroy'])->name('catalogues.delete');
+     Route::get('catalogues/{userId}/status/change', [CatalogueController::class, 'status'])->name('catalogues.status');
+     Route::get('catalogues/export/csv', [CatalogueController::class, 'exportCSV'])->name('catalogues.exportCSV');
 
      //schemes
      Route::resource('schemes', SchemeController::class);
-     Route::get('schemes/{userId}/delete', [SchemeController::class, 'destroy']);
-     Route::get('schemes/{userId}/status/change', [SchemeController::class, 'status']);
-     Route::get('schemes/export/csv', [SchemeController::class, 'csvExport']);
-     Route::post('schemes/upload/csv', [SchemeController::class, 'csvImport']);
+     Route::get('schemes/{userId}/edit', [SchemeController::class, 'edit'])->name('schemes.edit');
+     Route::post('schemes/{userId}/update', [SchemeController::class, 'update'])->name('schemes.update');
+     Route::get('schemes/{userId}/view', [SchemeController::class, 'show'])->name('schemes.view');
+     Route::get('schemes/{userId}/delete', [SchemeController::class, 'destroy'])->name('schemes.delete');
+     Route::get('schemes/{userId}/status/change', [SchemeController::class, 'status'])->name('schemes.status');
 
       //news
      Route::resource('news', NewsController::class);
-     Route::get('news/{userId}/delete', [NewsController::class, 'destroy']);
-     Route::get('news/{userId}/status/change', [NewsController::class, 'status']);
-     Route::get('news/export/csv', [NewsController::class, 'csvExport']);
-     Route::post('news/upload/csv', [NewsController::class, 'csvImport']);
+     Route::get('news/{userId}/edit', [NewsController::class, 'edit'])->name('news.edit');
+     Route::post('news/{userId}/update', [NewsController::class, 'update'])->name('news.update');
+     Route::get('news/{userId}/view', [NewsController::class, 'show'])->name('news.view');
+     Route::get('news/{userId}/delete', [NewsController::class, 'destroy'])->name('news.delete');
+     Route::get('news/{userId}/status/change', [NewsController::class, 'status'])->name('news.status');
+
      
      //stores
     Route::resource('stores', StoreController::class);

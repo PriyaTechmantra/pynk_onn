@@ -50,7 +50,6 @@
                                                 </select>
                                             </div>
                                             <div class="col-6 text-end">
-                                                <!--<div class="btn-group books_btn_group">-->
                                                     <button type="submit" class="btn btn-sm btn-cta">
                                                         Filter
                                                     </button>
@@ -58,7 +57,6 @@
                                                     <a href="{{ url()->current() }}" class="btn btn-sm btn-cta" data-bs-toggle="tooltip" title="Clear Filter">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                                     </a>
-                                                <!--</div>-->
                                             </div>
                                         </div>
                                        
@@ -117,7 +115,7 @@
                 </div>
             </div>
         </div>
-    </div>
+</div>
                     
     <div class="modal action-modal fade" id="csvModal" data-backdrop="static">
         <div class="modal-dialog">

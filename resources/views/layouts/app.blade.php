@@ -219,7 +219,9 @@
                         <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
                             <a href="{{ route('reward.retailer.product.index') }}"><i class="fi fi-br-box"></i> <span>Product</span></a>
                         </li>
+                	<li class="{{ ( request()->is('reward/order*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.order.index') }}"><i class="fi fi-br-database"></i> <span>Order</span></a></li> 
                 	<li class="{{ ( request()->is('reward/terms*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.terms.index') }}"><i class="fi fi-br-database"></i> <span>Terms & Condition</span></a></li> 
+
                     </ul>
                 </li>
             </ul>
@@ -267,7 +269,6 @@
     <script src="{{ asset('backend/js/bootstrap.bundle.min.js') }}"></script>
     <script src="https://cdn.ckeditor.com/ckeditor5/30.0.0/classic/ckeditor.js"></script>
     <script type="text/javascript" src="{{ asset('backend/js/custom.js') }}"></script>
-
    
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
