@@ -26,30 +26,39 @@
                         <div class="row">
                             <div class="col-xl-6 col-lg-8 col-12">
                                 <div class="card-body">
-                                    <div class="col-md-12">
-                                            <h3>Type</h3>
-                                            <div class="btn {{ $data->status == '1' ? 'btn-success' : 'btn-danger'}}">{{ $data->status == '1' ? 'Active' : 'Inactive'}}</div>
-                                    </div>
+                                    
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h3>{{ $data->title }}</h3>
-                                            <p class="small">Start Date: {{ $data->start_date }}</p>
-                                            <p class="small">End Date : {{ $data->end_date }}</p>
-                                            <hr>
+                                            <h3 class="text-dark font-weight-bold">{{ $data->title }}</h3>
+                                            <p>Status:<span class="btn {{ $data->status == '1' ? 'btn-success' : 'btn-danger'}}">{{ $data->status == '1' ? 'Active' : 'Inactive'}}</span></p>
+                                            @php
+                                            $roles = [
+                                                1 => 'VP',
+                                                2 => 'RSM',
+                                                3 => 'ASM',
+                                                4 => 'ASE',
+                                            ];
+
+                                            $userTypes = is_array($data->user_type) ? $data->user_type : json_decode($data->user_type, true);
+                                            $roleNames = [];
+
+                                            if (is_array($userTypes)) {
+                                                foreach ($userTypes as $type) {
+                                                    $roleNames[] = $roles[$type] ?? $type;
+                                                }
+                                            }
+                                        @endphp
+
+                                        <p class="small">
+                                            Access For: {{ implode(', ', $roleNames) ?: 'N/A' }}
+                                        </p>
+                                            <img src="{{ asset($data->image) }}" alt="" style="height: 150px">
+                                            <br>
+                                            <a class="btn btn-primary" href="{{ asset($data->pdf) }}" target="_blank">View PDF</a>
+                                            <p class="small">Validity: {{ $data->start_date }} - {{ $data->end_date }}</p>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <p class="text-muted">Image</p>
-                                            <img src="{{ asset($data->image) }}" alt="" style="height: 50px">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <p class="text-muted">Pdf</p>
-                                            <a href="{{ asset($data->pdf) }}" target="_blank"><i class="app-menu__icon fa fa-download"></i>Pdf</a>
-                                            
-                                        </div>
-                                    </div>
-                                    <hr>
+                                    
                                 </div>
                             </div>
                     </div>
