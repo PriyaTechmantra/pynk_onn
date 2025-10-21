@@ -12,25 +12,42 @@ class SchemeController extends Controller
     {
         $query = Scheme::query();
 
-        if (!empty($request->term)) {
-            $query->where('name', 'LIKE', '%' . $request->term . '%');
+        if (!empty($request->type)) {
+            $query->where('type', 'LIKE', '%' . $request->type . '%');
         }
 
         if (!empty($request->brand_selection)) {
             $brands = explode(',', $request->brand_selection);
-
             $query->where(function ($q) use ($brands) {
                 foreach ($brands as $brand) {
                     $q->orWhereJsonContains('brand', (string) trim($brand));
                 }
-            });  
+            });
         }
 
-        $data = $query->orderBy('id')->paginate(25);
-       return view('scheme.index', compact('data', 'request'));
+        if (!empty($request->date_from) && !empty($request->date_to)) {
+            $from = $request->date_from;
+            $to = $request->date_to;
+
+            $query->where(function ($q) use ($from, $to) {
+                $q->whereBetween('start_date', [$from, $to])      
+                ->orWhereBetween('end_date', [$from, $to])      
+                ->orWhere(function ($q2) use ($from, $to) {   
+                    $q2->where('start_date', '<=', $from)
+                        ->where('end_date', '>=', $to);
+                });
+            });
+        } elseif (!empty($request->date_from)) {
+            $query->where('end_date', '>=', $request->date_from);
+        } elseif (!empty($request->date_to)) {
+            $query->where('start_date', '<=', $request->date_to);
+        }
+
+        $data = $query->orderBy('id', 'desc')->paginate(25);
+
+        return view('scheme.index', compact('data', 'request'));
     }
 
-   
     public function create()
     {
         return view('scheme.create');

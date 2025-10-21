@@ -12,22 +12,46 @@ class NewsController extends Controller
         $query = News::query();
 
         if (!empty($request->term)) {
-            $query->where('name', 'LIKE', '%' . $request->term . '%');
+            $query->where('title', 'LIKE', '%' . $request->term . '%');
         }
 
-        // if (!empty($request->brand_selection)) {
-        //     $brands = explode(',', $request->brand_selection);
+        if (!empty($request->brand_selection)) {
+            $brands = explode(',', $request->brand_selection);
 
-        //     $query->where(function ($q) use ($brands) {
-        //         foreach ($brands as $brand) {
-        //             $q->orWhereJsonContains('brand', (string) trim($brand));
-        //         }
-        //     });  
-        // }
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    $q->orWhereJsonContains('brand', (string) trim($brand));
+                }
+            });
+        }
 
-        $data = $query->orderBy('id')->paginate(25);
-       return view('news.index', compact('data', 'request'));
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if (!empty($request->date_from) && !empty($request->date_to)) {
+            $from = $request->date_from;
+            $to = $request->date_to;
+
+            $query->where(function ($q) use ($from, $to) {
+                $q->whereBetween('start_date', [$from, $to])    
+                ->orWhereBetween('end_date', [$from, $to])     
+                ->orWhere(function ($q2) use ($from, $to) {     
+                    $q2->where('start_date', '<=', $from)
+                        ->where('end_date', '>=', $to);
+                });
+            });
+        } elseif (!empty($request->date_from)) {
+            $query->where('end_date', '>=', $request->date_from);
+        } elseif (!empty($request->date_to)) {
+            $query->where('start_date', '<=', $request->date_to);
+        }
+
+        $data = $query->orderByDesc('id')->paginate(25);
+
+        return view('news.index', compact('data', 'request'));
     }
+
 
     public function create()
     {
@@ -54,7 +78,6 @@ class NewsController extends Controller
         $storeData->end_date = $request->end_date;
         $storeData->brand = $request->brand ?? [];
 
-        // Handle image upload
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
@@ -62,7 +85,6 @@ class NewsController extends Controller
             $storeData->image = $upload_path . $imageName;
         }
 
-        // Handle PDF upload
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
             $pdfName = time() . "." . $pdf->getClientOriginalName();
@@ -108,7 +130,6 @@ class NewsController extends Controller
         $news->end_date = $params['end_date'];
         $news->brand = $params['brand'] ?? $news->brand;
 
-        // Update image if uploaded
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
@@ -116,7 +137,6 @@ class NewsController extends Controller
             $news->image = $upload_path . $imageName;
         }
 
-        // Update PDF if uploaded
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
             $pdfName = time() . "." . $pdf->getClientOriginalName();

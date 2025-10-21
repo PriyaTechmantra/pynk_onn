@@ -25,31 +25,59 @@
                                         
                                 <div class="col-12">
                                     <form action="{{url('news/')}}">
-                                        <div class="row">
-                                            <div class="col-3">
-                                                <input type="search" name="term" id="term" class="form-control form-control-sm" placeholder="Search by keyword." value="{{app('request')->input('term')}}" autocomplete="off">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-2">
+                                                <input type="search" name="term" id="term" 
+                                                    class="form-control form-control-sm" 
+                                                    placeholder="Search by keyword." 
+                                                    value="{{ app('request')->input('term') }}" 
+                                                    autocomplete="off">
                                             </div>
-                                            
-                                            <div class="col-3">
-                                                 
+
+                                            <div class="col-3 d-flex align-items-center gap-2">
                                                 <select name="brand_selection" class="form-control form-control-sm">
                                                     <option value="">Select Brand</option>
                                                     <option value="1" {{ app('request')->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
                                                     <option value="2" {{ app('request')->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
                                                     <option value="3" {{ app('request')->input('brand_selection') == 3 ? 'selected' : '' }}>Both</option>
                                                 </select>
+
+                                                <select name="status" class="form-control form-control-sm">
+                                                    <option value="">Select Status</option>
+                                                    <option value="1" {{ app('request')->input('status') == '1' ? 'selected' : '' }}>Active</option>
+                                                    <option value="0" {{ app('request')->input('status') == '0' ? 'selected' : '' }}>Inactive</option>
+                                                </select>
+
                                             </div>
-                                            <div class="col-6 text-end">
-                                                    <button type="submit" class="btn btn-sm btn-cta">
-                                                        Filter
-                                                    </button>
-                    
-                                                    <a href="{{ url()->current() }}" class="btn btn-sm btn-cta" data-bs-toggle="tooltip" title="Clear Filter">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                                    </a>
+
+                                            <div class="col-5 d-flex align-items-center gap-2">
+                                                <label class="text-muted small mb-0">From</label>
+                                                <input type="date" name="date_from" 
+                                                    class="form-control form-control-sm" 
+                                                    value="{{ request()->input('date_from') ?? date('Y-m-01') }}">
+
+                                                <label class="text-muted small mb-0">To</label>
+                                                <input type="date" name="date_to" 
+                                                    class="form-control form-control-sm" 
+                                                    value="{{ request()->input('date_to') ?? date('Y-m-d') }}">
+                                            </div>
+
+                                            <div class="col-2 text-end">
+                                                <button type="submit" class="btn btn-sm btn-cta">Filter</button>
+                                                <a href="{{ url()->current() }}" 
+                                                class="btn btn-sm btn-cta" 
+                                                data-bs-toggle="tooltip" 
+                                                title="Clear Filter">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" 
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                                        class="feather feather-x">
+                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                    </svg>
+                                                </a>
                                             </div>
                                         </div>
-                                       
                                     </form>
                                 </div>
                                         
