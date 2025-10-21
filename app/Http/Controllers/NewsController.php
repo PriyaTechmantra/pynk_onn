@@ -74,6 +74,7 @@ class NewsController extends Controller
 
         $storeData = new News;
         $storeData->title = $request->title;
+        $storeData->user_type = $request->user_type;
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
         $storeData->brand = $request->brand ?? [];
@@ -110,41 +111,42 @@ class NewsController extends Controller
         return view('news.edit', compact('data'));
     }
 
-    public function update(Request $request, News $news)
+    public function update(Request $request, $id)
     {
         $request->validate([
             "title" => "required|string|max:255",
             "start_date" => "required|date",
             "end_date" => "required|date",
             "brand" => "nullable|array",
-            "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
+            "user_type" => "nullable|array",
         ]);
+        $storeData = News::findOrFail($id);
 
         $params = $request->except('_token');
 
-        $upload_path = "public/uploads/catalogue/";
+        $upload_path = "public/uploads/news/";
 
-        $news->title = $params['title'];
-        $news->start_date = $params['start_date'];
-        $news->end_date = $params['end_date'];
-        $news->brand = $params['brand'] ?? $news->brand;
+        $storeData->title = $params['title'];
+        $storeData->user_type = $params['user_type'];
+        $storeData->start_date = $params['start_date'];
+        $storeData->end_date = $params['end_date'];
+        $storeData->brand = $params['brand'] ?? $storeData->brand;
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
-            $news->image = $upload_path . $imageName;
+            $storeData->image = $upload_path . $imageName;
         }
 
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
             $pdfName = time() . "." . $pdf->getClientOriginalName();
             $pdf->move($upload_path, $pdfName);
-            $news->pdf = $upload_path . $pdfName;
+            $storeData->pdf = $upload_path . $pdfName;
         }
 
-        $news->save();
+        $storeData->save();
 
         return redirect('/news')->with('success', 'News updated successfully!');
     }

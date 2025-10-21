@@ -110,7 +110,7 @@ class SchemeController extends Controller
         return view('scheme.edit', compact('data'));
     }
 
-    public function update(Request $request, Scheme $scheme)
+    public function update(Request $request, $id)
     {
         $request->validate([
             "type" => "required|string|in:Current,Past",
@@ -118,26 +118,27 @@ class SchemeController extends Controller
             "start_date" => "required|date",
             "end_date" => "required|date",
             "brand" => "nullable|array",
-            "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
+            
         ]);
+
+        $storeData = Scheme::findOrFail($id);
 
         $params = $request->except('_token');
 
-        $upload_path = "public/uploads/catalogue/";
+        $upload_path = "public/uploads/scheme/";
 
-        $scheme->type = $params['type'];
-        $scheme->title = $params['title'];
-        $scheme->start_date = $params['start_date'];
-        $scheme->end_date = $params['end_date'];
-        $scheme->brand = $params['brand'] ?? $scheme->brand;
+        $storeData->type = $params['type'];
+        $storeData->name = $params['title'];
+        $storeData->start_date = $params['start_date'];
+        $storeData->end_date = $params['end_date'];
+        $storeData->brand = $params['brand'] ?? $storeData->brand;
 
         // Update image if uploaded
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
-            $scheme->image = $upload_path . $imageName;
+            $storeData->image = $upload_path . $imageName;
         }
 
         // Update PDF if uploaded
@@ -145,10 +146,10 @@ class SchemeController extends Controller
             $pdf = $request->file('pdf');
             $pdfName = time() . "." . $pdf->getClientOriginalName();
             $pdf->move($upload_path, $pdfName);
-            $scheme->pdf = $upload_path . $pdfName;
+            $storeData->pdf = $upload_path . $pdfName;
         }
 
-        $scheme->save();
+        $storeData->save();
 
         return redirect('/schemes')->with('success', 'Scheme updated successfully!');
     }

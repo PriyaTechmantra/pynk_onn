@@ -54,10 +54,20 @@
                                     </div>
 
                                     <div class="form-group mb-3">
-                                        <label class="label-control">VP </label>
-                                        <input type="text" name="vp" class="form-control" value="{{old('vp')}}">
-                                        @error('vp') <p class="small text-danger">{{ $message }}</p> @enderror
+                                        <label class="label-control">VP <span class="text-danger">*</span></label>
+                                        <select name="vp[]" id="vpSelect" class="form-control" multiple>
+                                            @foreach($vps as $vp)
+                                                <option value="{{ $vp->id }}"
+                                                    {{ in_array($vp->id, old('vp', $data->vp ?? [])) ? 'selected' : '' }}>
+                                                    {{ $vp->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('vp')
+                                            <p class="small text-danger">{{ $message }}</p>
+                                        @enderror
                                     </div>
+
                                     <div class="form-group mb-3">
                                         <label class="label-control">Brand Permission</label>
 
@@ -210,8 +220,8 @@
 @endif
 
 $(document).ready(function() {
-    $('#stateSelect').select2({
-        placeholder: "Select States",
+    $('#stateSelect, #vpSelect').select2({
+        placeholder: "Select options",
         allowClear: true
     });
 });

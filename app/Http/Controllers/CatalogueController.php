@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Catalogue;
 use Illuminate\Http\Request;
 use App\Models\State;
+use App\Models\Employee;
 use App\Interfaces\CatalogueInterface;
 use App\Models\ProductCatalogue;
 use DB;
@@ -45,7 +46,8 @@ class CatalogueController extends Controller
     public function create()
     {
         $states = State::where('is_deleted', 0)->where('status', 1)->get();
-        return view('catalogue.create', compact('states'));
+        $vps = Employee::where('type', 1)->where('status', 1)->get(); 
+        return view('catalogue.create', compact('states', 'vps'));
     }
 
     public function store(Request $request)
@@ -108,9 +110,9 @@ class CatalogueController extends Controller
     {
         $data = ProductCatalogue::findOrFail($id);
         $states = State::where('is_deleted', 0)->where('status', 1)->get();
+        $vps = Employee::where('type', 1)->where('status', 1)->get();
 
-        $data->state = $data->state;
-        return view('catalogue.edit', compact('data', 'states'));
+        return view('catalogue.edit', compact('data', 'states', 'vps'));
     }
 
     public function update(Request $request, $id)

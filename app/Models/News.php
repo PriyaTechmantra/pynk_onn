@@ -11,5 +11,6 @@ class News extends Model
 
     protected $casts = [
         'brand' => 'array',
+        'user_type' => 'array',
     ];
 }

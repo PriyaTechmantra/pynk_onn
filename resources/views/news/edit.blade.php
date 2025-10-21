@@ -16,25 +16,31 @@
 
                 <div class="card data-card">
                     <div class="card-header">
-                        <h4 class="d-flex">Edit Scheme
-                            <a href="{{ url('schemes') }}" class="btn btn-cta ms-auto">Back</a>
+                        <h4 class="d-flex">Edit News
+                            <a href="{{ url('news') }}" class="btn btn-cta ms-auto">Back</a>
                         </h4>
                     </div>
                     <div class="card-body">
                         <div class="row">
                          <div class="col-xl-3 col-lg-2 col-12"></div>
                             <div class="col-xl-6 col-lg-8 col-12">
-                                <form method="POST" action="{{route('schemes.update',$data->id)}}" enctype="multipart/form-data" class="data-form">
+                                <form method="POST" action="{{route('news.update',$data->id)}}" enctype="multipart/form-data" class="data-form">
                                 @csrf
                                     <h4 class="page__subtitle">Edit Collection</h4>
                                     <div class="form-group mb-3">
-                                        <label class="label-control">Type <span class="text-danger">*</span> </label>
-                                        <input type="text" name="type" placeholder="" class="form-control" value="{{ $data->type }}">
-                                        @error('type') <p class="small text-danger">{{ $message }}</p> @enderror
+                                        <label class="label-control">User Type <span class="text-danger">*</span></label>
+                                        <select name="user_type[]" id="userTypeSelect" class="form-control" multiple>
+                                            <option value="1" {{ in_array(1, $data->user_type ?? []) ? 'selected' : '' }}>VP</option>
+                                            <option value="2" {{ in_array(2, $data->user_type ?? []) ? 'selected' : '' }}>RSM</option>
+                                            <option value="3" {{ in_array(3, $data->user_type ?? []) ? 'selected' : '' }}>ASM</option>
+                                            <option value="4" {{ in_array(4, $data->user_type ?? []) ? 'selected' : '' }}>ASE</option>
+                                        </select>
+                                        @error('user_type') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
+
                                     <div class="form-group mb-3">
                                         <label class="label-control">Title <span class="text-danger">*</span> </label>
-                                        <input type="text" name="title" placeholder="" class="form-control" value="{{ $data->name }}">
+                                        <input type="text" name="title" placeholder="" class="form-control" value="{{ $data->title }}">
                                         @error('title') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
@@ -108,7 +114,7 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-sm btn-danger">Update Scheme</button>
+                                        <button type="submit" class="btn btn-sm btn-danger">Update News</button>
                                     </div>
                                 </form>
                             </div>
@@ -120,4 +126,15 @@
     </div>
 
 </section>
+@endsection
+@section('script')
+
+<script>
+$(document).ready(function() {
+    $('#userTypeSelect').select2({
+        placeholder: "Select User Types",
+        allowClear: true
+    });
+});
+</script>
 @endsection

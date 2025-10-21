@@ -30,6 +30,16 @@
                                         <input type="text" name="title" placeholder="" class="form-control" value="{{old('title')}}">
                                         @error('title') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
+                                    <div class="mb-3">
+                                        <label for="">User Type <span class="text-danger">*</span></label>
+                                        <select name="user_type[]" class="form-control" id="userTypeSelect" multiple>
+                                            <option value="1" {{ (collect(old('user_type'))->contains(1)) ? 'selected' : '' }}>VP</option>
+                                            <option value="2" {{ (collect(old('user_type'))->contains(2)) ? 'selected' : '' }}>RSM</option>
+                                            <option value="3" {{ (collect(old('user_type'))->contains(3)) ? 'selected' : '' }}>ASM</option>
+                                            <option value="4" {{ (collect(old('user_type'))->contains(4)) ? 'selected' : '' }}>ASE</option>
+                                        </select>
+                                        @error('user_type') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Validity From<span class="text-danger">*</span> </label>
                                         <input type="date" name="start_date" class="form-control">{{old('start_date')}}</textarea>
@@ -127,4 +137,16 @@
     </div>
 
 @endsection
+@section('script')
+
+<script>
+$(document).ready(function() {
+    $('#userTypeSelect').select2({
+        placeholder: "Select User Types",
+        allowClear: true
+    });
+});
+</script>
+@endsection
+
 
