@@ -18,9 +18,27 @@ class SchemeController extends Controller
 
         if (!empty($request->brand_selection)) {
             $brands = explode(',', $request->brand_selection);
+
             $query->where(function ($q) use ($brands) {
                 foreach ($brands as $brand) {
-                    $q->orWhereJsonContains('brand', (string) trim($brand));
+                    switch ($brand) {
+                        case '1': 
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3': 
+                            $q->orWhere(function ($q2) {
+                            $q2->whereJsonContains('brand', '1')
+                               ->whereJsonContains('brand', '2');
+                        })->orWhereJsonContains('brand', '3');
+                        break;
+                    }
                 }
             });
         }

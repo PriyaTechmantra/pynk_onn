@@ -9,27 +9,46 @@ use App\Models\Size;
 class SizeController extends Controller
 {
     
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $query = Size::query();
 
-        if(!empty($request->term)) {
+        if (!empty($request->term)) {
             $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
+
         if (!empty($request->brand_selection)) {
             $brands = explode(',', $request->brand_selection);
 
             $query->where(function ($q) use ($brands) {
                 foreach ($brands as $brand) {
-                    $q->orWhereJsonContains('brand', (string) trim($brand));
+                    switch ($brand) {
+                        case '1': 
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3': 
+                            $q->orWhere(function ($q2) {
+                            $q2->whereJsonContains('brand', '1')
+                               ->whereJsonContains('brand', '2');
+                        })->orWhereJsonContains('brand', '3');
+                        break;
+                    }
                 }
             });
         }
-        $query->latest(); 
-        $data = $query->paginate(25);
 
-        return view('size.index', compact('data','request'));
+        $data = $query->latest()->paginate(25);
+
+        return view('size.index', compact('data', 'request'));
     }
+
     public function create()
     {
         return view('size.create');
