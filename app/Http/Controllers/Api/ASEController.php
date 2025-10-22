@@ -1209,7 +1209,7 @@ public function aseSalesreport(Request $request)
 
         return response()->json([
             'error' => false,
-            'message' => 'Collection and Category wise product data',
+            'message' => 'product data fetched successfully',
             'data' => $data,
         ]);
     }
