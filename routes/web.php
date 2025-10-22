@@ -24,6 +24,7 @@ use App\Http\Controllers\SchemeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\ColorController;
+use App\Http\Controllers\CategoryController;
 
 use Illuminate\Support\Facades\Route;
 

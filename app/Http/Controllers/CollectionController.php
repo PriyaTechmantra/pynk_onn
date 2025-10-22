@@ -14,9 +14,7 @@ class CollectionController extends Controller
          $this->middleware('permission:update collection', ['only' => ['edit','update']]);
          $this->middleware('permission:delete collection', ['only' => ['destroy']]);
     }
-    /**
-     * Display a listing of the resource.
-     */
+   
     public function index(Request $request)
     {
         $query = Collection::query();
@@ -35,22 +33,16 @@ class CollectionController extends Controller
             });
         }
 
-        $data = $query->where('is_deleted',0)->orderBy('position')->paginate(25);
+        $data = $query->orderBy('position')->paginate(25);
 
         return view('collection.index', compact('data', 'request'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(Request $request)
     {
         return view('collection.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -120,27 +112,19 @@ class CollectionController extends Controller
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Collection $collection)
     {
         $data = Collection::where('id',$id)->first();
         return view('collection.view', compact('data'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+   
     public function edit(Collection $collection)
     {
         $data = Collection::findOrfail($id);
         return view('collection.edit', compact('data'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Collection $collection)
     {
         $request->validate([
@@ -205,9 +189,6 @@ class CollectionController extends Controller
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Collection $collection)
     {
         $isReferenced = DB::table('products')->where('collection_id', $id)->exists();
