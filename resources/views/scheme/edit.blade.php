@@ -26,7 +26,7 @@
                             <div class="col-xl-6 col-lg-8 col-12">
                                 <form method="POST" action="{{route('schemes.update',$data->id)}}" enctype="multipart/form-data" class="data-form">
                                 @csrf
-                                    <h4 class="page__subtitle">Edit Collection</h4>
+                                    <h4 class="page__subtitle">Edit Scheme</h4>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Type <span class="text-danger">*</span> </label>
                                         <input type="text" name="type" placeholder="" class="form-control" value="{{ $data->type }}">
