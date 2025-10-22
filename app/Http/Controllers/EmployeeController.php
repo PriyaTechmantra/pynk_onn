@@ -719,6 +719,331 @@ class EmployeeController extends Controller
         return redirect()->back()->with('success', 'Stores transferred successfully.');
     }
 
+    public function attendanceReport(Request $request) {
+         // === Filter parameters ===
+        $date_from = $request->date_from ?? date('Y-m-d');
+        $month = $request->month ?? date('Y-m');
+        $brand_id = $request->brand_id ?? '';
+        $vp_id = $request->vp_id ?? '';
+        $rsm_id = $request->rsm_id ?? '';
+        $asm_id = $request->asm_id ?? '';
+        $ase_id = $request->ase_id ?? '';
+        $state_id = $request->state_id ?? '';
+        $day = date('D', strtotime($month));
+        
+        // === Step 1: Get all ASEs (final-level employees) based on filters ===
+        $employees = Employee::query()
+            ->where('status', 1)
+            ->where('is_deleted', 0); // Assuming type=5 means ASE
+
+        if ($ase_id) {
+            $employees->where('id', $ase_id);
+        } elseif ($asm_id) {
+            $employees->where('id', $asm_id);
+        } elseif ($rsm_id) {
+            $employees->where('id', $rsm_id);
+        } elseif ($vp_id) {
+            $employees->where('id', $vp_id);
+        }
+
+        // Filter by brand via user_permission_categories
+        if ($brand_id && $brand_id != 'all') {
+            $userIds = \DB::table('user_permission_categories')
+                ->where('brand', $brand_id)
+                ->pluck('employee_id');
+            $employees->whereIn('id', $userIds);
+        }
+
+        $employees = $employees->get();
+        
+       
+        $vpDetails=Employee::where('type',1)->where('status',1)->where('is_deleted',0)->get();
+         $month = !empty($request->month)?$request->month:date('Y-m');
+        return view('attendance.index', compact('request', 'vpDetails', 'month'));
+    }
+
+public function attendanceReportExport(Request $request)
+{
+    // --- STEP 1: Get Filter Inputs ---
+    $brand_id = $request->brand_id ?? '';  // 1=ONN, 2=PYNK, 'all'=BOTH
+    $vp_id    = $request->vp_id ?? '';
+    $state_id = $request->state_id ?? '';
+    $rsm_id   = $request->rsm_id ?? '';
+    $asm_id   = $request->asm_id ?? '';
+    $ase_id   = $request->ase_id ?? '';
+    $month    = !empty($request->month) ? $request->month : date('Y-m');
+
+    // --- STEP 2: Prepare ID Arrays ---
+    $vpIds  = [];
+    $rsmIds = [];
+    $asmIds = [];
+    $aseIds = [];
+
+    // --- STEP 3: BRAND WISE VP FETCH ---
+    if ($brand_id && $brand_id != 'all') {
+        $brandIds = \DB::table('user_permission_categories')
+                ->where('brand', $brand_id)
+                ->pluck('employee_id')->toArray();
+        $vpIds = Employee::where('type',1)->whereIN('id',$brandIds)->pluck('id')->toArray();
+    } else {
+        // BOTH means ONN + PYNK VPs
+        $vpIds = Team::groupBy('vp_id')->pluck('vp_id')->toArray();
+    }
+
+    // --- STEP 4: VP WISE STATE & RSM ---
+    if ($vp_id) {
+        $stateIds = Team::where('vp_id', $vp_id)
+            ->groupBy('state_id')
+            ->pluck('state_id')
+            ->toArray();
+
+        if ($state_id) {
+            // VP + STATE wise RSM
+            $rsmIds = Team::where('vp_id', $vp_id)
+                ->where('state_id', $state_id)
+                ->groupBy('rsm_id')
+                ->pluck('rsm_id')
+                ->toArray();
+        } else {
+            // Only VP wise all RSM
+            $rsmIds = Team::where('vp_id', $vp_id)
+                ->groupBy('rsm_id')
+                ->pluck('rsm_id')
+                ->toArray();
+        }
+    }
+
+    // --- STEP 5: RSM WISE ASM ---
+    if ($rsm_id) {
+        $asmIds = Team::where('rsm_id', $rsm_id)
+            ->groupBy('asm_id')
+            ->pluck('asm_id')
+            ->toArray();
+    } elseif (!empty($rsmIds)) {
+        $asmIds = Team::whereIn('rsm_id', $rsmIds)
+            ->groupBy('asm_id')
+            ->pluck('asm_id')
+            ->toArray();
+    }
+
+    // --- STEP 6: ASM WISE ASE ---
+    if ($asm_id) {
+        $aseIds = RetailerListOfOcc::where('asm', $asm_id)
+            ->groupBy('ase')
+            ->pluck('ase')
+            ->toArray();
+    } elseif (!empty($asmIds)) {
+        $aseIds = RetailerListOfOcc::whereIn('asm', $asmIds)
+            ->groupBy('ase')
+            ->pluck('ase')
+            ->toArray();
+    }
+
+    // If ASE selected manually, use only that
+    if ($ase_id) {
+        $aseIds = [$ase_id];
+    }
+
+    // --- STEP 7: Merge all Hierarchy IDs ---
+    $allIds = array_merge($vpIds, $rsmIds, $asmIds, $aseIds);
+
+    // --- STEP 8: Get Employees matching any of these IDs ---
+    $employees = Employee::whereIn('name', $allIds)
+        ->where('status', 1)
+        ->where('is_deleted', 0)
+        ->get();
+
+    // --- STEP 9: Attendance Logic ---
+    $my_month = explode('-', $month);
+    $year_val = $my_month[0];
+    $month_val = $my_month[1];
+
+    $dates_month = dates_month($month_val, $year_val);
+    $month_names = $dates_month['month_names'];
+    $date_values = $dates_month['date_values'];
+
+    $tableHead = ['TEAM', 'EMPLOYEE', 'EMPLOYEE ID', 'STATUS', 'DESIGNATION', 'DOJ', 'HQ', 'CONTACT'];
+    foreach ($month_names as $months) {
+        array_push($tableHead, $months);
+    }
+
+    $tableBody = [];
+
+    foreach ($employees as $item) {
+        $monthlyDates = [];
+        foreach ($date_values as $date) {
+            $att = dates_attendance($item->id, $date);
+
+            if (empty($att[0][0]['date_wise_attendance'][0]['is_present'])) {
+                // --- Sunday = W, Missing date = '-'
+                $day = date('w', strtotime($date));
+                if ($day == 0) {
+                    $status = 'W';
+                } else {
+                    $status = '-';
+                }
+            } else {
+                $status = $att[0][0]['date_wise_attendance'][0]['is_present'];
+            }
+
+            // --- Add Colors ---
+            $color = match ($status) {
+                'P' => 'background-color: #018634; color:#fff;',
+                'A' => 'background-color: red; color:#fff;',
+                'L' => 'background-color: #FFA500; color:#fff;',
+                'W' => 'background-color: #F1E100; color:#000;',
+                default => 'background-color: #294fa1da; color:#fff;',
+            };
+
+            $monthlyDates[] = "<td style='{$color} text-align:center; border:1px solid #fff;'>{$status}</td>";
+        }
+
+        $tableBody[] = [
+            $item->team_name ?? '',
+            $item->name ?? '',
+            $item->employee_id ?? '',
+            $item->status == 1 ? 'Active' : 'Inactive',
+            $item->designation ?? '',
+            $item->date_of_joining ?? '',
+            $item->headquater ?? '',
+            $item->mobile ?? '',
+            $monthlyDates
+        ];
+    }
+
+    // --- STEP 10: Build HTML Table ---
+    $html = '<table class="table"><thead><tr>';
+    foreach ($tableHead as $th) {
+        $html .= "<th>{$th}</th>";
+    }
+    $html .= '</tr></thead><tbody>';
+
+    foreach ($tableBody as $row) {
+        $html .= '<tr>';
+        foreach (array_slice($row, 0, 8) as $col) {
+            $html .= "<td>{$col}</td>";
+        }
+        foreach ($row[8] as $att) {
+            $html .= $att;
+        }
+        $html .= '</tr>';
+    }
+    $html .= '</tbody></table>';
+
+    return response()->json([
+        'status' => 200,
+        'data' => $html
+    ]);
+}
+
+    public function vpBrandWise(Request $request, $brand_id)
+   {
+        // Base query for active VPs
+        $query = Employee::where('type', 1)
+            ->where('status', 1)
+            ->where('is_deleted', 0);
+
+        
+        if ($brand_id == 'all') {
+            // All brands → show all VPs
+            $data = $query->orderBy('name')->get();
+        } else {
+         // Get all user IDs from user_permission_categories table for that brand
+            $userIds = \DB::table('user_permission_categories')
+                ->where('brand', $brand_id)
+                ->pluck('user_id')
+                ->toArray();
+
+                if (empty($userIds)) {
+                    return response()->json(['error' => true, 'resp' => 'No users found for this brand']);
+                }
+
+            // Fetch employees matching those user IDs
+            $data = $query->whereIn('id', $userIds)
+                ->orderBy('name')
+                ->get();
+        }
+
+            // Response
+            if ($data->isEmpty()) {
+                return response()->json(['error' => true, 'resp' => 'No data found']);
+            }
+
+        return response()->json([
+            'error' => false,
+            'resp' => 'VP Brand Wise List',
+            'data' => $data,
+        ]);
+    }
+
+
+    public function stateVpWise(Request $request,$id)
+    {
+        
+        if($id=='all'){
+            $data=Team::select('state_id')->with('states:id,name')->groupby('vp_id')->get();
+        }else{
+           $data=Team::where('vp_id',$id)->with('states:id,name')->groupby('vp_id')->get();
+        }
+        
+       if (count($data)==0) {
+                return response()->json(['error'=>true, 'resp'=>'No data found']);
+       } else {
+                return response()->json(['error'=>false, 'resp'=>'State List','data'=>$data]);
+       } 
+        
+    }
+    //zsm wise state
+    public function rsmStateWise(Request $request,$id)
+    {
+        
+        if($id=='all'){
+            $data=Team::select('rsm_id')->with('rsm:id,name')->groupby('state_id')->get();
+        }else{
+           $data=Team::where('state_id',$id)->with('rsm:id,name')->groupby('state_id')->get();
+        }
+       // dd($data);
+       if (count($data)==0) {
+                return response()->json(['error'=>true, 'resp'=>'No data found']);
+       } else {
+                return response()->json(['error'=>false, 'resp'=>'RSM List','data'=>$data]);
+       } 
+        
+    }
+    
+     //state wise rsm
+    public function asmRsmWise(Request $request,$id)
+    {
+        if($id=='all'){
+            $data=Team::select('asm_id')->with('asm:id,name')->groupby('rsm_id')->get();
+        }else{
+           $data=Team::where('rsm_id',$id)->with('asm:id,name')->groupby('rsm_id')->get();
+        }
+       // dd($data);
+       if (count($data)==0) {
+                return response()->json(['error'=>true, 'resp'=>'No data found']);
+       } else {
+                return response()->json(['error'=>false, 'resp'=>'ASM List','data'=>$data]);
+       } 
+        
+    }
+    //rsm wise sm list
+    public function aseAsmWise(Request $request,$id)
+    {
+       if($id=='all'){
+            $data=Team::select('ase_id')->with('ase:id,name')->groupby('asm_id')->get();
+        }else{
+           $data=Team::where('asm_id',$id)->with('ase:id,name')->groupby('asm_id')->get();
+        }
+       if (count($data)==0) {
+                return response()->json(['error'=>true, 'resp'=>'No data found']);
+       } else {
+                return response()->json(['error'=>false, 'resp'=>'ASE List','data'=>$data]);
+       } 
+        
+    }
+    
+
      
 
 }
