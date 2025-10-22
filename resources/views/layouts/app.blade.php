@@ -194,26 +194,8 @@
                 </li>
                 @endcan
 
-                @can('view primary order report')
-                <li class="@if(request()->is('primary/order/report*')||request()->is('secondary/order/report*')||request()->is('attendance/report*')) { {{'active'}} }  @endif">
-                    <a href="#"><i class="fi fi-br-cube"></i> <span>Report</span></a>
-                    <ul>
-                        
-                        
-                        @can('view primary order report')
-                        <li class="{{ ( request()->is('primary/order/report*') ) ? 'active' : '' }}"><a href="{{ route('primary.order.report') }}"><i class="fi fi-br-box"></i> <span>Primary Order Report</span></a></li>
-                        @endcan
-                        @can('view secondary order report')
-                        <li class="{{ ( request()->is('secondary/order/report*') ) ? 'active' : '' }}"><a href="{{route('secondary.order.report')}}"><i class="fi fi-br-database"></i> <span>Secondary Order Report</span></a></li>
-                        @endcan
-                        @can('view attendance report')
-                        <li class="{{ ( request()->is('attendance/report*') ) ? 'active' : '' }}"><a href="{{route('attendance.report')}}"><i class="fi fi-br-database"></i> <span>Attendance Report</span></a></li>
-                        @endcan
-                        
-                    </ul>
-                </li>
-                @endcan
-                 <li class="{{ request()->is('reward*') ? 'active' : '' }}">
+               
+                 {{--<li class="{{ request()->is('reward*') ? 'active' : '' }}">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Reward App</span></a>
                     <ul>
                         <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
@@ -223,7 +205,7 @@
                 	<li class="{{ ( request()->is('reward/terms*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.terms.index') }}"><i class="fi fi-br-database"></i> <span>Terms & Condition</span></a></li> 
 
                     </ul>
-                </li>
+                </li>--}}
             </ul>
         </nav>
          <div class="nav__footer">

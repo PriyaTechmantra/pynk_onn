@@ -113,6 +113,17 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('employees/filter-by-brand', [EmployeeController::class, 'hierarchy'])->name('employees.filter-by-brand');
     Route::post('employee/area/save', [EmployeeController::class, 'addArea'])->name('employee.area.store');
     Route::get('employee/area/delete/{id}', [EmployeeController::class, 'deleteArea'])->name('employee.area.delete');
+
+    //team show
+    Route::get('vp/brand/wise/{id}', [EmployeeController::class, 'vpBrandWise'])->name('vp.brand.wise');
+    Route::get('state/vp/wise/{id}', [EmployeeController::class, 'stateVpWise'])->name('state.vp.wise');
+
+    Route::get('rsm/state/wise/{id}', [EmployeeController::class, 'rsmStateWise'])->name('rsm.state.wise');
+
+    Route::get('asm/rsm/wise/{id}', [EmployeeController::class, 'asmRsmWise'])->name('asm.rsm.wise');
+
+
+    Route::get('ase/asm/wise/{id}', [EmployeeController::class, 'aseAsmWise'])->name('ase.asm.wise');
     //activity
      Route::get('activity', [ActivityController::class, 'index'])->name('activities.index');
     
@@ -211,8 +222,8 @@ Route::group(['middleware' => ['auth']], function() {
 
 
     //attendance
-    Route::get('attendance/report', [OrderController::class, 'attendanceReport'])->name('attendance.report');
-    Route::get('attendance/report/csv/export', [OrderController::class, 'attendanceReportExport'])->name('attendance.report.export');
+    Route::get('attendance/report', [EmployeeController::class, 'attendanceReport'])->name('attendance.report');
+    Route::get('attendance/report/csv/export', [EmployeeController::class, 'attendanceReportExport'])->name('attendance.report.export');
 
 
 
