@@ -28,10 +28,12 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <h3>{{ $data->title }}</h3>
+                                            <h3 class="text-dark font-weight-bold">{{ $data->title }}</h3>
                                             <p class="small">Start Date: {{ $data->start_date }}</p>
                                             <p class="small">End Date : {{ $data->end_date }}</p>
-                                            <hr>
+                                            <p class="small">State: {{ implode(', ', $stateNames ?? []) }}</p>
+                                            <p class="small">VP: {{ implode(', ', $vpNames ?? []) }}</p>
+
                                         </div>
                                     </div>
                                     <div class="row">
@@ -44,7 +46,6 @@
                                             <a href="{{ asset($data->pdf) }}" target="_blank"><i class="app-menu__icon fa fa-download"></i>Pdf</a>
                                         </div>
                                     </div>
-                                    <hr>
                                 </div>
                             </div>
                     </div>

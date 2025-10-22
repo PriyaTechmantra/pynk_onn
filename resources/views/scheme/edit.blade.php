@@ -26,7 +26,7 @@
                             <div class="col-xl-6 col-lg-8 col-12">
                                 <form method="POST" action="{{route('schemes.update',$data->id)}}" enctype="multipart/form-data" class="data-form">
                                 @csrf
-                                    <h4 class="page__subtitle">Edit Collection</h4>
+                                    <h4 class="page__subtitle">Edit Scheme</h4>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Type <span class="text-danger">*</span> </label>
                                         <input type="text" name="type" placeholder="" class="form-control" value="{{ $data->type }}">
@@ -71,41 +71,45 @@
                                                     <label class="form-check-label" for="brandBoth">Both</label>
                                                 </div>
                                         </div>
-                                    <div class="row">
-                                        <div class="col-md-6 card">
-                                            <div class="card-header p-0 mb-3">Image <span class="text-danger">*</span></div>
-                                            <div class="card-body p-0">
-                                                <div class="w-100 product__thumb">
-                                                    <label for="icon"><img id="iconOutput" src="{{ asset($data->image) }}" /></label>
+                                    <div class="form-group mb-3">
+                                            <label class="label-control">Image <span class="text-danger">*</span></label>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="product__thumb">
+                                                    <label for="image">
+                                                        <img id="iconOutput" src="{{ asset($data->image) }}" width="200px" style="object-fit:cover; cursor:pointer;" />
+                                                    </label>
                                                 </div>
-                                                <input type="file" name="image" id="image" accept="image/*" onchange="loadIcon(event)" class="d-none">
-                                                <script>
-                                                    let loadIcon = function(event) {
-                                                        let iconOutput = document.getElementById('iconOutput');
-                                                        iconOutput.src = URL.createObjectURL(event.target.files[0]);
-                                                        iconOutput.onload = function() {
-                                                            URL.revokeObjectURL(iconOutput.src) // free memory
-                                                        }
-                                                    };
-                                                </script>
-                                            </div>
-                                            @error('image') <p class="small text-danger">{{ $message }}</p> @enderror
-                                        </div>
-                                        <div class="col-md-6 card">
-                                            <div class="card-header p-0 mb-3">Pdf <span class="text-danger">*</span></div>
-                                            <div class="card-body p-0">
 
-                                                <div class="col-sm-9">
-                                                    <input class="form-control" type="file" name="pdf" id="pdf" value="{{ asset($data->pdf) }}">
+                                                    <input type="file" name="image" id="image" accept="image/*" onchange="loadIcon(event)" class="d-none">
                                             </div>
 
-                                            </div>
-                                            @error('pdf') <p class="small text-danger">{{ $message }}</p> @enderror
-                                            <a class="btn btn-sm btn-primary" href="{{ asset($data->pdf) }}" target="_blank">
-                                                    View
-                                                </a>
+                                            @error('image') 
+                                                <p class="small text-danger">{{ $message }}</p> 
+                                            @enderror
                                         </div>
-                                    </div>
+
+                                        <script>
+                                        let loadIcon = function(event) {
+                                            let iconOutput = document.getElementById('iconOutput');
+                                            iconOutput.src = URL.createObjectURL(event.target.files[0]);
+                                            iconOutput.onload = function() {
+                                                URL.revokeObjectURL(iconOutput.src)
+                                            }
+                                        };
+                                        </script>
+
+                                        <div class="form-group mb-3">
+                                            <label class="label-control me-3">Pdf <span class="text-danger">*</span></label>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input class="form-control" type="file" name="pdf" id="pdf" value="{{ old('pdf', $data->pdf) }}">
+                                            </div>
+                                            @error('pdf') 
+                                                <p class="small text-danger">{{ $message }}</p> 
+                                            @enderror
+                                             <a class="btn btn-sm btn-primary" href="{{ asset($data->pdf) }}" target="_blank">
+                                                    View PDF
+                                            </a>
+                                        </div>
 
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-sm btn-danger">Update Scheme</button>

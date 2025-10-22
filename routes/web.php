@@ -22,6 +22,7 @@ use App\Http\Controllers\RetailerOrderController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\SchemeController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\SizeController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -151,10 +152,11 @@ Route::group(['middleware' => ['auth']], function() {
 
      //size
      Route::resource('sizes', SizeController::class);
-     Route::get('sizes/{userId}/delete', [SizeController::class, 'destroy']);
-     Route::get('sizes/{userId}/status/change', [SizeController::class, 'status']);
-     Route::get('sizes/export/csv', [SizeController::class, 'csvExport']);
-     Route::post('sizes/upload/csv', [SizeController::class, 'csvImport']);
+     Route::get('sizes/{userId}/edit', [SizeController::class, 'edit'])->name('sizes.edit');
+     Route::post('sizes/{userId}/update', [SizeController::class, 'update'])->name('sizes.update');
+     Route::get('sizes/{userId}/view', [SizeController::class, 'show'])->name('sizes.view');
+     Route::get('sizes/{userId}/delete', [SizeController::class, 'destroy'])->name('sizes.delete');
+     Route::get('sizes/{userId}/status/change', [SizeController::class, 'status'])->name('sizes.status');
     
     //categories
     Route::resource('categories', CategoryController::class);

@@ -103,8 +103,20 @@ class CatalogueController extends Controller
     public function show($id)
     {
         $data = ProductCatalogue::findOrFail($id);
-        return view('catalogue.view', compact('data'));
+
+        $stateNames = [];
+        if (is_array($data->state)) {
+            $stateNames = State::whereIn('id', $data->state)->pluck('name')->toArray();
+        }
+
+        $vpNames = [];
+        if (is_array($data->vp)) {
+            $vpNames = Employee::whereIn('id', $data->vp)->pluck('name')->toArray();
+        }
+
+        return view('catalogue.view', compact('data', 'stateNames', 'vpNames'));
     }
+
 
     public function edit($id)
     {

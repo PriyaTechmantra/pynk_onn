@@ -126,6 +126,9 @@
                                             @error('pdf') 
                                                 <p class="small text-danger">{{ $message }}</p> 
                                             @enderror
+                                            <a class="btn btn-sm btn-primary" href="{{ asset($data->pdf) }}" target="_blank">
+                                                    View PDF
+                                            </a>
                                         </div>
 
                                     <div class="form-group">
