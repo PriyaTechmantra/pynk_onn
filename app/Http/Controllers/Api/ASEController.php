@@ -1171,7 +1171,7 @@ public function aseSalesreport(Request $request)
 
         return response()->json([
             'error' => false,
-            'resp' => 'Collection and Category wise product data',
+            'message' => 'Collection and Category wise product data',
             'data' => $data,
         ]);
     }
