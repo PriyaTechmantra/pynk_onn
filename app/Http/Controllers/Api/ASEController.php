@@ -1050,7 +1050,7 @@ public function aseSalesreport(Request $request)
         ]);
 }
 
-    public function categorywiseProduct($categoryId): JsonResponse
+    public function categorywiseProduct($categoryId)
 {
     $brandMap = [
         1 => 'ONN',
