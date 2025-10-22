@@ -13,20 +13,20 @@ class SizeController extends Controller
     {
         $query = Size::query();
 
-        if (!empty($request->term)) {
+        if(!empty($request->term)) {
             $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
-
         if (!empty($request->brand_selection)) {
             $brands = explode(',', $request->brand_selection);
+
             $query->where(function ($q) use ($brands) {
                 foreach ($brands as $brand) {
                     $q->orWhereJsonContains('brand', (string) trim($brand));
                 }
             });
         }
-
-        $data = $query->orderBy('id', 'desc')->paginate(25);
+        $query->latest(); 
+        $data = $query->paginate(25);
 
         return view('size.index', compact('data','request'));
     }
