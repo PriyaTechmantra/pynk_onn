@@ -828,14 +828,14 @@ public function attendanceReportExport(Request $request)
 
     // --- STEP 6: ASM WISE ASE ---
     if ($asm_id) {
-        $aseIds = RetailerListOfOcc::where('asm', $asm_id)
-            ->groupBy('ase')
-            ->pluck('ase')
+        $aseIds = Team::where('asm_id', $asm_id)
+            ->groupBy('ase_id')
+            ->pluck('ase_id')
             ->toArray();
     } elseif (!empty($asmIds)) {
-        $aseIds = RetailerListOfOcc::whereIn('asm', $asmIds)
-            ->groupBy('ase')
-            ->pluck('ase')
+        $aseIds = Team::whereIn('asm_id', $asmIds)
+            ->groupBy('ase_id')
+            ->pluck('ase_id')
             ->toArray();
     }
 
@@ -848,7 +848,7 @@ public function attendanceReportExport(Request $request)
     $allIds = array_merge($vpIds, $rsmIds, $asmIds, $aseIds);
 
     // --- STEP 8: Get Employees matching any of these IDs ---
-    $employees = Employee::whereIn('name', $allIds)
+    $employees = Employee::whereIn('id', $allIds)
         ->where('status', 1)
         ->where('is_deleted', 0)
         ->get();
