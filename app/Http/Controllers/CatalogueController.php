@@ -25,7 +25,24 @@ class CatalogueController extends Controller
 
             $query->where(function ($q) use ($brands) {
                 foreach ($brands as $brand) {
-                    $q->orWhereJsonContains('brand', (string) trim($brand));
+                    switch ($brand) {
+                        case '1': 
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3': 
+                            $q->orWhere(function ($q2) {
+                            $q2->whereJsonContains('brand', '1')
+                               ->whereJsonContains('brand', '2');
+                        })->orWhereJsonContains('brand', '3');
+                        break;
+                    }
                 }
             });
         }
@@ -56,40 +73,37 @@ class CatalogueController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "nullable|date",
             "end_date" => "nullable|date",
-            "state" => 'nullable|exists:states,id',
+            "state" => "required|array",
+            "vp" => "required|array",
             "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
             "brand" => "nullable|array",
         ]);
 
-        $params = $request->except('_token');
-         
         $upload_path = "public/uploads/catalogue/";
-        $collection = collect($params);
 
         $storeData = new ProductCatalogue;
-        $storeData->title = $collection['title'];
-        $storeData->start_date = $collection['start_date'];
-        $storeData->end_date = $collection['end_date'];
-        $storeData->state = $collection['state'];
+        $storeData->title = $request->title;
+        $storeData->start_date = $request->start_date;
+        $storeData->end_date = $request->end_date;
+        $storeData->state = $request->state;
         
-        $storeData->vp = $collection['vp'];
+        $storeData->vp = $request->vp;
         $storeData->brand = $request->brand;
 
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
+            $image->move($upload_path, $imageName);
+            $storeData->image = $upload_path . $imageName;
+        }
 
-        // image image
-        $image = $collection['image'];
-        $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
-        $image->move($upload_path, $imageName);
-        $uploadedImage = $imageName;
-        $storeData->image = $upload_path . $uploadedImage;
-
-        // pdf icon
-        $pdf = $collection['pdf'];
-        $pdfName = time().".".$pdf->getClientOriginalName();
-        $pdf->move($upload_path, $pdfName);
-        $uploadedPdf = $pdfName;
-        $storeData->pdf= $upload_path.$uploadedPdf;
+        if ($request->hasFile('pdf')) {
+            $pdf = $request->file('pdf');
+            $pdfName = time() . "." . mt_rand() . "." . $pdf->getClientOriginalName();
+            $pdf->move($upload_path, $pdfName);
+            $storeData->pdf = $upload_path . $pdfName;
+        }
 
         $storeData->save();
 
@@ -133,41 +147,36 @@ class CatalogueController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "nullable|date",
             "end_date" => "nullable|date",
-            "state" => 'nullable|exists:states,id',
+            "state" => "required|array",
+            "vp" => "required|array",
             "image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
             "brand" => "nullable|array",
         ]);
 
-        $params = $request->except('_token');
-
         $upload_path = "public/uploads/catalogue/";
         $storeData = ProductCatalogue::findOrFail($id);
-        $collection = collect($params);
 
-        $storeData->title = $collection['title'];
-        $storeData->start_date = $collection['start_date'];
-        $storeData->end_date = $collection['end_date'];
-        $storeData->state = $collection['state'];
+        $storeData->title = $request->title;
+        $storeData->start_date = $request->start_date;
+        $storeData->end_date = $request->end_date;
+        $storeData->state = $request->state;
 
-        $storeData->vp = $collection['vp'];
+        $storeData->vp = $request->vp;
         $storeData->brand =$request->brand;
 
-
-        if (isset($params['image'])) {
-            $image = $collection['image'];
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
             $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
-            $uploadedImage = $imageName;
-            $storeData->image = $upload_path . $uploadedImage;
+            $storeData->image = $upload_path . $imageName;
         }
 
-        if (isset($params['pdf'])) {
-            $image = $collection['pdf'];
-            $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
-            $image->move($upload_path, $imageName);
-            $uploadedImage = $imageName;
-            $storeData->pdf = $upload_path . $uploadedImage;
+        if ($request->hasFile('pdf')) {
+            $pdf = $request->file('pdf');
+            $pdfName = time() . "." . mt_rand() . "." . $pdf->getClientOriginalName();
+            $pdf->move($upload_path, $pdfName);
+            $storeData->pdf = $upload_path . $pdfName;
         }
         $storeData->save();
 

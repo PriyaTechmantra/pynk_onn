@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Size;
 class SizeController extends Controller
 {
     
-    public function index(Request $request)
+   public function index(Request $request)
     {
         $query = Size::query();
 
@@ -19,17 +18,36 @@ class SizeController extends Controller
 
         if (!empty($request->brand_selection)) {
             $brands = explode(',', $request->brand_selection);
+
             $query->where(function ($q) use ($brands) {
                 foreach ($brands as $brand) {
-                    $q->orWhereJsonContains('brand', (string) trim($brand));
+                    switch ($brand) {
+                        case '1': 
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3': 
+                            $q->orWhere(function ($q2) {
+                            $q2->whereJsonContains('brand', '1')
+                               ->whereJsonContains('brand', '2');
+                        })->orWhereJsonContains('brand', '3');
+                        break;
+                    }
                 }
             });
         }
 
-        $data = $query->orderBy('id', 'desc')->paginate(25);
+        $data = $query->latest()->paginate(25);
 
-        return view('size.index', compact('data','request'));
+        return view('size.index', compact('data', 'request'));
     }
+
     public function create()
     {
         return view('size.create');

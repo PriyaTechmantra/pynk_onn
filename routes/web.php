@@ -23,6 +23,8 @@ use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\SchemeController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\SizeController;
+use App\Http\Controllers\ColorController;
+use App\Http\Controllers\CategoryController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -145,10 +147,11 @@ Route::group(['middleware' => ['auth']], function() {
      
      //colors
      Route::resource('colors', ColorController::class);
-     Route::get('colors/{userId}/delete', [ColorController::class, 'destroy']);
-     Route::get('colors/{userId}/status/change', [ColorController::class, 'status']);
-     Route::get('colors/export/csv', [ColorController::class, 'csvExport']);
-     Route::post('colors/upload/csv', [ColorController::class, 'csvImport']);
+     Route::get('colors/{userId}/edit', [ColorController::class, 'edit'])->name('colors.edit');
+     Route::post('colors/{userId}/update', [ColorController::class, 'update'])->name('colors.update');
+     Route::get('colors/{userId}/view', [ColorController::class, 'show'])->name('colors.view');
+     Route::get('colors/{userId}/delete', [ColorController::class, 'destroy'])->name('colors.delete');
+     Route::get('colors/{userId}/status/change', [ColorController::class, 'status'])->name('colors.status');
 
      //size
      Route::resource('sizes', SizeController::class);

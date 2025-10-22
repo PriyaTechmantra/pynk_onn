@@ -44,10 +44,23 @@
                                     </div>
                                    <div class="form-group mb-3">
                                         <label class="label-control">States <span class="text-danger">*</span></label>
+                                        @php
+                                            $selectedStates = [];
+
+                                            if (!empty($data->state)) {
+                                                if (is_array($data->state)) {
+                                                    $selectedStates = $data->state;
+                                                } elseif (is_string($data->state)) {
+                                                    $selectedStates = explode(',', $data->state);
+                                                } else {
+                                                    $selectedStates = [$data->state];
+                                                }
+                                            }
+                                        @endphp
+
                                         <select name="state[]" id="stateSelect" class="form-control" multiple>
                                             @foreach($states as $state)
-                                                <option value="{{ $state->id }}" 
-                                                    {{ in_array($state->id, old('state', $data->state)) ? 'selected' : '' }}>
+                                                <option value="{{ $state->id }}" {{ in_array($state->id, $selectedStates) ? 'selected' : '' }}>
                                                     {{ $state->name }}
                                                 </option>
                                             @endforeach
@@ -56,14 +69,28 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">VP <span class="text-danger">*</span></label>
-                                        <select name="vp[]" id="vpSelect" class="form-control" multiple>
-                                            @foreach($vps as $vp)
-                                                <option value="{{ $vp->id }}"
-                                                    {{ in_array($vp->id, old('vp', $data->vp ?? [])) ? 'selected' : '' }}>
-                                                    {{ $vp->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                            @php
+                                    $selectedVps = [];
+
+                                    if (!empty($data->vp)) {
+                                        if (is_array($data->vp)) {
+                                            $selectedVps = $data->vp;
+                                        } elseif (is_string($data->vp)) {
+                                            $selectedVps = explode(',', $data->vp);
+                                        } else {
+                                            $selectedVps = [$data->vp];
+                                        }
+                                    }
+                                @endphp
+
+                                <select name="vp[]" id="vpSelect" class="form-control" multiple>
+                                    @foreach($vps as $vp)
+                                        <option value="{{ $vp->id }}" {{ in_array($vp->id, $selectedVps) ? 'selected' : '' }}>
+                                            {{ $vp->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
                                         @error('vp')
                                             <p class="small text-danger">{{ $message }}</p>
                                         @enderror

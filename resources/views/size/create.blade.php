@@ -26,7 +26,7 @@
                                 @csrf
                                     <h4 class="page__subtitle">Add New Size</h4>
                                 
-                                    <div class="mb-3">
+                                    <div class="form-group mb-3">
                                         <label class="label-control">Name<span class="text-danger">*</span> </label>
                                         <input type="text" name="title" placeholder="" class="form-control" value="{{old('title')}}">
                                         @error('title') <p class="small text-danger">{{ $message }}</p> @enderror
