@@ -96,7 +96,7 @@ class SchemeController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
+            $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
             $storeData->image = $upload_path . $imageName;
         }
@@ -113,8 +113,6 @@ class SchemeController extends Controller
 
         return redirect('/schemes')->with('success', 'Scheme saved successfully!');
     }
-
-
 
    public function show($id)
     {
@@ -141,20 +139,18 @@ class SchemeController extends Controller
 
         $storeData = Scheme::findOrFail($id);
 
-        $params = $request->except('_token');
-
         $upload_path = "public/uploads/scheme/";
 
-        $storeData->type = $params['type'];
-        $storeData->name = $params['title'];
-        $storeData->start_date = $params['start_date'];
-        $storeData->end_date = $params['end_date'];
-        $storeData->brand = $params['brand'] ?? $storeData->brand;
+        $storeData->type = $request->type;
+        $storeData->name = $request->title;
+        $storeData->start_date = $request->start_date;
+        $storeData->end_date = $request->end_date;
+        $storeData->brand = $request->brand ?? [];
 
         // Update image if uploaded
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
+            $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
             $storeData->image = $upload_path . $imageName;
         }

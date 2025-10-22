@@ -28,8 +28,11 @@
                                 @csrf
                                     <h4 class="page__subtitle">Edit Scheme</h4>
                                     <div class="form-group mb-3">
-                                        <label class="label-control">Type <span class="text-danger">*</span> </label>
-                                        <input type="text" name="type" placeholder="" class="form-control" value="{{ $data->type }}">
+                                        <label class="label-control">Type<span class="text-danger">*</span> </label>
+                                        <select name="type" class="form-control">
+                                            <option value="Current" {{ ($data->type == 'Current') ? 'selected' : '' }}>Current</option>
+                                            <option value="Past" {{ ($data->type == 'Past') ? 'selected' : '' }}>Past</option>
+                                        </select>
                                         @error('type') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">

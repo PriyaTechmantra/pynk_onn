@@ -98,7 +98,7 @@ class NewsController extends Controller
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
+            $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
             $storeData->image = $upload_path . $imageName;
         }
@@ -138,20 +138,17 @@ class NewsController extends Controller
             "user_type" => "nullable|array",
         ]);
         $storeData = News::findOrFail($id);
-
-        $params = $request->except('_token');
-
         $upload_path = "public/uploads/news/";
 
-        $storeData->title = $params['title'];
-        $storeData->user_type = $params['user_type'];
-        $storeData->start_date = $params['start_date'];
-        $storeData->end_date = $params['end_date'];
-        $storeData->brand = $params['brand'] ?? $storeData->brand;
+        $storeData->title = $request->title;
+        $storeData->user_type = $request->user_type;
+        $storeData->start_date = $request->start_date;
+        $storeData->end_date = $request->end_date;
+        $storeData->brand = $request->brand ?? [];
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . "." . mt_rand() . "." . $image->getClientOriginalName();
+            $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
             $storeData->image = $upload_path . $imageName;
         }
