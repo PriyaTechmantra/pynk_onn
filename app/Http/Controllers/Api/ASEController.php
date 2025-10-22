@@ -1154,6 +1154,44 @@ public function aseSalesreport(Request $request)
             ->where('collection_id', $collectionId)
             ->where('cat_id', $categoryId)
             ->where('status', 1)
+             ->where('is_deleted', 0)
+            ->orderBy('style_no')
+            ->get()
+            ->map(function ($product) use ($brandMap) {
+                return [
+                    'id' => $product->id,
+                    'style_no' => $product->style_no,
+                    'name' => $product->name,
+                    'master_pack' => $product->master_pack,
+                    'master_pack_count' => $product->master_pack_count,
+                    'position' => $product->position,
+                    'image' => $product->image,
+                    'brand' => $brandMap[$product->brand] ?? 'Unknown',
+                ];
+            });
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Collection and Category wise product data',
+            'data' => $data,
+        ]);
+    }
+
+
+     public function show(Request $request, $id)
+    {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $data = DB::table('products')
+            
+            ->where('id', $id)
+            
+            ->where('status', 1)
+             ->where('is_deleted', 0)
             ->orderBy('style_no')
             ->get()
             ->map(function ($product) use ($brandMap) {
