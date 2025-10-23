@@ -90,11 +90,23 @@ class UserController extends Controller
 
         $user->update($data);
         $user->syncRoles($request->roles);
-        DB::table('user_permission_categories')->updateOrInsert(
-                    ['user_id' => $user->id, 'brand' => $request->brand],
-                    
-                    ['created_at' => now(), 'updated_at' => now()]
-                    );
+        $existing = DB::table('user_permission_categories')->where('user_id', $user->id)->first();
+
+        if ($existing) {
+            DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->update([
+                    'brand' => $request->brand,
+                    'updated_at' => now()
+                ]);
+        } else {
+            DB::table('user_permission_categories')->insert([
+                'user_id' => $user->id,
+                'brand' => $request->brand,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
         return redirect('/users')->with('success','User Updated Successfully with roles');
     }
 

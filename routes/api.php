@@ -65,38 +65,33 @@ Route::get('no-order-history/{id}', [ASEController::class, 'noorderhistory']);
 Route::get('category', [ASEController::class, 'categoryList']);
 Route::get('collection', [ASEController::class, 'collectionList']);
 
-Route::post('/issue-books', [IssueBookController::class, 'store']);
-Route::post('/issue-bulk-books-with-qr', [IssueBookController::class, 'bulkBookIssueWithQR']);
-Route::post('/issue-books-with-qr', [IssueBookController::class, 'singleBookIssueWithQR']);
-Route::post('/issue-books-for-other', [IssueBookController::class, 'issueBookForAnotherUser']);
 
 
+Route::get('category/product/collection/{id}', [ASEController::class, 'collectionWiseCategoryProduct']);
+Route::get('category/{id}/products', [ASEController::class, 'categorywiseProduct']);
+Route::get('products', [ASEController::class, 'productList']);
 
-Route::get('/issue-books/list-by-user', [IssueBookController::class, 'listByUser']);
-Route::get('/issue-books/issued-list-by-user', [IssueBookController::class, 'issuedBookListByUser']);
-Route::get('/issue-books/request-list-by-user', [IssueBookController::class, 'requestedBookListByUser']);
+Route::get('collection/{collectionId}/category/{categoryId}', [ASEController::class, 'collectionCategoryWiseProducts']);
+Route::get('products/show/{id}', [ASEController::class, 'show']);
 
-Route::patch('/return-book', [IssueBookController::class, 'returnBook']);
-Route::post('/transfer-book', [BookTransferController::class, 'transferBook']);
+Route::get('product/images/{id}', [ASEController::class, 'productImages']);
+Route::get('products-color-size/show/{productid}', [ASEController::class, 'colorsize']);
+Route::get('search/product', [ASEController::class, 'searchProduct']);
+Route::get('multicolor/size', [ASEController::class, 'multicolorsize']);
 
-Route::get('/books-shelve/search-by-qrcode', [BookShelveController::class, 'searchByQrCode']);
-Route::post('/bookmark', [BookmarkController::class, 'store']);
-Route::get('/bookmark/list', [BookmarkController::class, 'index']);
-Route::get('/bookmark/remove', [BookmarkController::class, 'destroy']);
+Route::get('products-color/view/{productid}', [ASEController::class, 'productcolor']);
+Route::get('product/color/details/{id}', [ASEController::class, 'productcolorDetails']);
+Route::get('product/color/images', [ASEController::class, 'productcolorImages']);
+Route::post('bulkAddTocart', [ASEController::class, 'bulkAddTocart']);
+Route::get('cart/qty/{cartId}/{q}', [ASEController::class, 'qtyUpdate']);
 
-Route::post('/share', [BookmarkController::class, 'share']);
-Route::get('/books/detail-by-book-shelves-qrcode', [BookController::class, 'showBooksByBookShelveQRCode']);
-Route::get('/books/detail-by-book-shelves', [BookController::class, 'showBooksByBookShelve']);
-Route::get('/my/request/books/{id}', [BookController::class, 'myrequestedbookList']);
-Route::get('/requested/books/by/user/{id}', [BookController::class, 'requestedbookList']);
-
-Route::get('/completed/history/{id}', [BookController::class, 'completedbookList']);
-Route::get('/scanned-books/list-by-authorized-user', [BookController::class, 'scannedlistByUser']);
-Route::post('/status/change/for/requested/books', [BookController::class, 'statuschangeforRequestedbooks']);
+Route::get('cart/preview/pdf/view/{userId}', [ASEController::class, 'cartPreviewPDF_view']);
+Route::get('cart/clear/{id}', [ASEController::class, 'clearCart']);
+Route::get('cart/delete/{id}', [ASEController::class, 'cartDelete']);
 //return book
-Route::post('/return-request-send', [BookController::class, 'returnRequestSend']);
+Route::get('cart/user/{id}', [ASEController::class, 'showByUser']);
 
-Route::get('/return-request-list/{id}', [BookController::class, 'returnRequestList']);
+Route::post('place-order-update', [BookController::class, 'placeOrderUpdate']);
 
 Route::post('/return-bulk-book', [BookController::class, 'returnBook']);
 

@@ -14,6 +14,8 @@ use App\Models\SecondaryOrder;
 use App\Models\NoOrderReason;
 use App\Models\Category;
 use App\Models\Collection;
+use App\Models\Product;
+use App\Models\ProductColorSize;
 use App\Models\UserNoOrderReason;
 use Str;
 use Illuminate\Support\Facades\Validator;
@@ -945,50 +947,274 @@ public function aseSalesreport(Request $request)
 
 
     // collection wise category & products
-	public function collectionWiseCategoryProduct($id="")
+	public function collectionWiseCategoryProduct($id = "")
     {
-        // 10000 means all - coming from app
-       if ($id != "10000") {
-            $collection = Collection::where('id',$id)->first();
+    // If 10000 means all - coming from app
+        if ($id != "10000") {
+            $collection = Collection::find($id);
+
+            if (!$collection) {
+                return response()->json(['error' => true, 'message' => 'Collection not found']);
+            }
 
             $collection_name = $collection->name;
 
-            //$categories = DB::select("SELECT DISTINCT p.cat_id AS category_id, c.name AS category_name FROM products AS p INNER JOIN categories AS c ON c.id = p.cat_id WHERE p.collection_id = ".$id." ORDER BY c.position ASC");
-            //$categories = DB::select("SELECT DISTINCT c.id AS category_id, c.name AS category_name FROM categories  AS c ORDER BY c.position ASC");
-            $categories = Category::select('id','name')->orderby('position','ASC')->get();
-            $products = DB::select("SELECT id, style_no AS product_style_no, name AS product_name FROM `products` WHERE collection_id = ".$id." ORDER BY position ASC");
+            $brandMap = [
+                1 => 'ONN',
+                2 => 'PYNK',
+                3 => 'Both',
+            ];
+
+            // Fetch all categories for the given collection
+            $categories = DB::select("
+                SELECT DISTINCT 
+                    c.id AS category_id, 
+                    c.name AS category_name,
+                    p.brand AS brand_id
+                FROM products AS p
+                INNER JOIN categories AS c ON c.id = p.cat_id
+                WHERE p.collection_id = ?
+                ORDER BY c.position ASC
+            ", [$id]);
+
+            // Fetch products for the given collection
+            $products = DB::select("
+                SELECT 
+                    p.id, 
+                    p.style_no AS product_style_no, 
+                    p.name AS product_name,
+                    p.brand AS brand_id
+                FROM products AS p
+                WHERE p.collection_id = ?
+                ORDER BY p.position ASC
+            ", [$id]);
         } else {
-            $collection_name = 'all';
+            $collection_name = 'All';
 
-            $categories = DB::select("SELECT DISTINCT p.cat_id AS category_id, c.name AS category_name FROM products AS p INNER JOIN categories AS c ON c.id = p.cat_id ORDER BY c.position ASC");
+            $categories = DB::select("
+                SELECT DISTINCT 
+                    c.id AS category_id, 
+                    c.name AS category_name,
+                    p.brand AS brand_id
+                FROM products AS p
+                INNER JOIN categories AS c ON c.id = p.cat_id
+                ORDER BY c.position ASC
+            ");
 
-            $products = DB::select("SELECT p.id, p.style_no AS product_style_no, p.name AS product_name FROM `products` AS p INNER JOIN collections AS c ON p.collection_id = c.id ORDER BY c.position ASC, p.position ASC;");
+            $products = DB::select("
+                SELECT 
+                    p.id, 
+                    p.style_no AS product_style_no, 
+                    p.name AS product_name,
+                    p.brand AS brand_id
+                FROM products AS p
+                INNER JOIN collections AS c ON p.collection_id = c.id
+                ORDER BY c.position ASC, p.position ASC
+            ");
         }
 
-		$resp = [
+        // Map brand IDs to names
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $resp = [
             'collection_name' => $collection_name,
             'category' => [],
             'product' => [],
         ];
 
-        foreach($categories as $category) {
+        foreach ($categories as $category) {
             $resp['category'][] = [
                 'cat_id' => $category->category_id,
                 'cat_name' => $category->category_name,
-                
+                'brand' => $brandMap[$category->brand_id] ?? 'Unknown',
             ];
         }
 
-        foreach($products as $product) {
+        foreach ($products as $product) {
             $resp['product'][] = [
-                //'cat_id' =>$product->cat_id,
                 'product_id' => $product->id,
                 'product_style_no' => $product->product_style_no,
                 'product_name' => $product->product_name,
+                'brand' => $brandMap[$product->brand_id] ?? 'Unknown',
             ];
         }
-        return response()->json(['error' => false, 'message' => 'Collection wise Category and Product list', 'data' => $resp]);
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Collection wise Category and Product list',
+            'data' => $resp
+        ]);
+}
+
+    public function categorywiseProduct($categoryId)
+{
+    $brandMap = [
+        1 => 'ONN',
+        2 => 'PYNK',
+        3 => 'Both',
+    ];
+
+    $products = Product::where('cat_id', $categoryId)
+        ->where('status', 1)
+        ->where('is_deleted', 0)
+        ->with(['colorSize', 'category'])
+        ->orderBy('position_collection', 'asc')
+        ->get()
+        ->map(function ($product) use ($brandMap) {
+            return [
+                'product_id' => $product->id,
+                'product_style_no' => $product->style_no,
+                'product_name' => $product->name,
+                'brand' => $brandMap[$product->brand] ?? 'Unknown',
+                'category' => $product->category ? $product->category->name : null,
+                'color_size' => $product->colorSize,
+            ];
+        });
+
+    return response()->json([
+        'error' => false,
+        'resp' => 'Product data fetched successfully',
+        'data' => $products,
+    ]);
+}
+    public function productList(Request $request)
+    {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $data = Product::where('status', 1)
+            ->where('is_deleted', 0)
+            ->with(['category', 'colorSize']) // optional: if you want category/color-size too
+            ->orderBy('position_collection', 'asc')
+            ->get()
+            ->map(function ($product) use ($brandMap) {
+                return [
+                    'product_id' => $product->id,
+                    'product_style_no' => $product->style_no,
+                    'product_name' => $product->name,
+                    'brand' => $brandMap[$product->brand] ?? 'Unknown',
+                    'category' => $product->category ? $product->category->name : null,
+                    'color_size' => $product->colorSize ?? [],
+                ];
+            });
+
+        return response()->json([
+            'error' => false,
+            'resp' => 'Product data fetched successfully',
+            'data' => $data,
+        ]);
     }
+
+
+    public function detail(Request $request, $id)
+    {
+        $productDetail = Product::findOrFail($id);
+        $productColors = ProductColorSize::selectRaw('color_id AS color_id, color_name')->where('product_id', $id)->groupBy('color_id')->orderBy('position')->get();
+
+        $productColorsResp = [];
+        foreach($productColors as $productColor) {
+            $productColorsSizes = ProductColorSize::selectRaw('size_id AS size_id, offer_price')->where('product_id', $id)->where('color_ids', $productColor->color_id)->orderBy('position')->get();
+
+            $productColorsResp[] = [
+                "color_id" => $productColor->color_id,
+                "color_name" => $productColor->color_name,
+                "size_details" => $productColorsSizes,
+            ];
+        }
+
+        $resp = [
+            'productDetail' => $productDetail,
+            'variationDetail' => $productColorsResp,
+            'categoryDetail' => $productDetail->category,
+            'collectionDetail' => $productDetail->collection,
+        ];
+
+        return response()->json(['error' => false, 'resp' => 'Product detail fetch successfull', 'data' => $resp]);
+    }
+	
+
+
+    public function collectionCategoryWiseProducts(Request $request, $collectionId, $categoryId)
+    {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $data = DB::table('products')
+            ->select('id', 'style_no', 'name', 'master_pack', 'master_pack_count', 'position', 'image', 'brand')
+            ->where('collection_id', $collectionId)
+            ->where('cat_id', $categoryId)
+            ->where('status', 1)
+             ->where('is_deleted', 0)
+            ->orderBy('style_no')
+            ->get()
+            ->map(function ($product) use ($brandMap) {
+                return [
+                    'id' => $product->id,
+                    'style_no' => $product->style_no,
+                    'name' => $product->name,
+                    'master_pack' => $product->master_pack,
+                    'master_pack_count' => $product->master_pack_count,
+                    'position' => $product->position,
+                    'image' => $product->image,
+                    'brand' => $brandMap[$product->brand] ?? 'Unknown',
+                ];
+            });
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Collection and Category wise product data',
+            'data' => $data,
+        ]);
+    }
+
+
+     public function show(Request $request, $id)
+    {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $data = DB::table('products')
+            
+            ->where('id', $id)
+            
+            ->where('status', 1)
+             ->where('is_deleted', 0)
+            ->orderBy('style_no')
+            ->get()
+            ->map(function ($product) use ($brandMap) {
+                return [
+                    'id' => $product->id,
+                    'style_no' => $product->style_no,
+                    'name' => $product->name,
+                    'master_pack' => $product->master_pack,
+                    'master_pack_count' => $product->master_pack_count,
+                    'position' => $product->position,
+                    'image' => $product->image,
+                    'brand' => $brandMap[$product->brand] ?? 'Unknown',
+                ];
+            });
+
+        return response()->json([
+            'error' => false,
+            'message' => 'product data fetched successfully',
+            'data' => $data,
+        ]);
+    }
+
+
 
 
 

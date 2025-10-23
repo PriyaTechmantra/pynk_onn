@@ -13,7 +13,7 @@ use App\Http\Controllers\Facility\TrainBookingController;
 use App\Http\Controllers\Facility\FlightBookingController;
 use App\Http\Controllers\Facility\HotelBookingController;
 use App\Http\Controllers\Facility\PropertyController;
-use App\Http\Controllers\Cave\CaveFormController;
+use App\Http\Controllers\StoreController;
 use App\Http\Controllers\Cave\CaveLocationController;
 use App\Http\Controllers\Cave\CaveCategoryController;
 use App\Http\Controllers\RetailerProductController;
@@ -210,7 +210,7 @@ Route::group(['middleware' => ['auth']], function() {
     Route::resource('stores', StoreController::class);
     Route::get('stores/{userId}/delete', [StoreController::class, 'destroy']);
     Route::get('stores/{userId}/status/change', [StoreController::class, 'status']);
-    Route::get('stores/csv/export', [StoreController::class, 'employeeExport']);
+    Route::get('stores/csv/export', [StoreController::class, 'storesExport']);
     Route::post('stores/bulk/upload', [StoreController::class, 'bulkUpload']);
     Route::get('stores/noorderreason', [StoreController::class, 'noorderreason'])->name('stores.noorderreason');
     Route::post('/stores/transfer/to/ase', [StoreController::class, 'bulkASEDistributorransfer'])->name('stores.transfer');
