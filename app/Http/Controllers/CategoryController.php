@@ -234,47 +234,65 @@ class CategoryController extends Controller
     
     public function csvExport(Request $request)
     {
-        if (!empty($request->term)) 
-        {
-            $data=Category::where('name',$request->term)->orderBy('position')->paginate(30);
-        }else{
-            $data=Category::orderBy('position')->paginate(30);
+        $query = Category::query();
+
+        if (!empty($request->term)) {
+            $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
-        if (count($data) > 0) {
-            $delimiter = ",";
-            $filename = "Lux-Product-Category-".date('Y-m-d').".csv";
 
-            $f = fopen('php://memory', 'w');
+        if (!empty($request->brand_selection)) {
+            $brands = explode(',', $request->brand_selection);
 
-            $fields = array('SR', 'Name', 'Description',  'STATUS', 'DATETIME');
-            fputcsv($f, $fields, $delimiter);
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    switch ($brand) {
+                        case '1':
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3':
+                            $q->orWhere(function ($q2) {
+                                $q2->whereJsonContains('brand', '1')
+                                ->whereJsonContains('brand', '2');
+                            })->orWhereJsonContains('brand', '3');
+                            break;
+                    }
+                }
+            });
+        }
+
+        $data = $query->orderBy('position', 'desc')->get();
+
+        $filename = "Product-Category-" . date('Y-m-d') . ".csv";
+
+        return response()->stream(function() use ($data) {
+            $f = fopen('php://output', 'w');
+
+            // CSV headers
+            fputcsv($f, ['SR', 'Title', 'DATE', 'STATUS']);
 
             $count = 1;
-
-            foreach($data as $row) {
-                $datetime = date('j F, Y', strtotime($row['created_at']));
-                $lineData = array(
-                    $count,
-                    ucwords($row->name),
-                    $row->description,
-                    ($row->status == 1) ? 'Active' : 'Inactive',
-                    $datetime
-                );
-
-                fputcsv($f, $lineData, $delimiter);
-
-                $count++;
+            foreach ($data as $row) {
+                fputcsv($f, [
+                    $count++,
+                    ucwords($row->name) . ' | ' . $row->parent, 
+                    'Published: ' . $row->created_at->format('j F, Y'),
+                    $row->status == 1 ? 'Active' : 'Inactive',
+                ]);
             }
 
-            fseek($f, 0);
-
-            header('Content-Type: text/csv');
-            header('Content-Disposition: attachment; filename="' . $filename . '";');
-
-            fpassthru($f);
-        }
+            fclose($f);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
-
 
 }
 

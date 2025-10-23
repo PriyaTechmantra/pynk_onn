@@ -236,4 +236,65 @@ class CollectionController extends Controller
             return redirect()->route('collections.index')->with('error', 'Failed to delete collection.');
         }
     }
+    public function csvExport(Request $request)
+    {
+        $query = Collection::query();
+
+        if (!empty($request->term)) {
+            $query->where('name', 'LIKE', '%' . $request->term . '%');
+        }
+
+        if (!empty($request->brand_selection)) {
+            $brands = explode(',', $request->brand_selection);
+
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    switch ($brand) {
+                        case '1':
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3':
+                            $q->orWhere(function ($q2) {
+                                $q2->whereJsonContains('brand', '1')
+                                ->whereJsonContains('brand', '2');
+                            })->orWhereJsonContains('brand', '3');
+                            break;
+                    }
+                }
+            });
+        }
+
+        $data = $query->orderBy('position', 'desc')->get();
+
+        $filename = "Product-Collection-" . date('Y-m-d') . ".csv";
+
+        return response()->stream(function() use ($data) {
+            $f = fopen('php://output', 'w');
+
+            // CSV headers
+            fputcsv($f, ['SR', 'Title', 'DATE', 'STATUS']);
+
+            $count = 1;
+            foreach ($data as $row) {
+                fputcsv($f, [
+                    $count++,
+                    ucwords($row->name), 
+                    'Published: ' . $row->created_at->format('j F, Y'),
+                    $row->status == 1 ? 'Active' : 'Inactive',
+                ]);
+            }
+
+            fclose($f);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
 }

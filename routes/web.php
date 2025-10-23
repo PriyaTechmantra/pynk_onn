@@ -146,8 +146,7 @@ Route::group(['middleware' => ['auth']], function() {
      Route::get('collections/{userId}/delete', [CollectionController::class, 'destroy'])->name('collections.delete');
      Route::get('collections/{userId}/status/change', [CollectionController::class, 'status'])->name('collections.status');
     
-     Route::get('collections/export/csv', [CollectionController::class, 'csvExport']);
-     Route::post('collections/upload/csv', [CollectionController::class, 'csvImport']);
+     Route::get('collections/export/csv', [CollectionController::class, 'csvExport'])->name('collections.exportCSV');
      
      //colors
      Route::resource('colors', ColorController::class);
@@ -168,13 +167,11 @@ Route::group(['middleware' => ['auth']], function() {
     //categories
      Route::resource('categories', CategoryController::class);
      Route::get('categories/{userId}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
-    Route::post('categories/{userId}/update', [CategoryController::class, 'update'])->name('categories.update');
+     Route::post('categories/{userId}/update', [CategoryController::class, 'update'])->name('categories.update');
      Route::get('categories/{userId}/view', [CategoryController::class, 'show'])->name('categories.view');
      Route::get('categories/{userId}/delete', [CategoryController::class, 'destroy'])->name('categories.delete');
      Route::get('categories/{userId}/status/change', [CategoryController::class, 'status'])->name('categories.status');
-    
-    Route::get('categories/export/csv', [CategoryController::class, 'csvExport']);
-    Route::post('categories/upload/csv', [CategoryController::class, 'csvImport']);
+     Route::get('categories/export/csv', [CategoryController::class, 'csvExport'])->name('categories.exportCSV');
 
     //products
     Route::resource('products', ProductController::class);
