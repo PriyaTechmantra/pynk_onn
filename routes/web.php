@@ -145,7 +145,6 @@ Route::group(['middleware' => ['auth']], function() {
      Route::get('collections/{userId}/view', [CollectionController::class, 'show'])->name('collections.view');
      Route::get('collections/{userId}/delete', [CollectionController::class, 'destroy'])->name('collections.delete');
      Route::get('collections/{userId}/status/change', [CollectionController::class, 'status'])->name('collections.status');
-    
      Route::get('collections/export/csv', [CollectionController::class, 'csvExport'])->name('collections.exportCSV');
      
      //colors
