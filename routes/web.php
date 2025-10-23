@@ -162,9 +162,13 @@ Route::group(['middleware' => ['auth']], function() {
      Route::get('sizes/{userId}/status/change', [SizeController::class, 'status'])->name('sizes.status');
     
     //categories
-    Route::resource('categories', CategoryController::class);
-    Route::get('categories/{userId}/delete', [CategoryController::class, 'destroy']);
-    Route::get('categories/{userId}/status/change', [CategoryController::class, 'status']);
+     Route::resource('categories', CategoryController::class);
+     Route::get('categories/{userId}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
+    Route::post('categories/{userId}/update', [CategoryController::class, 'update'])->name('categories.update');
+     Route::get('categories/{userId}/view', [CategoryController::class, 'show'])->name('categories.view');
+     Route::get('categories/{userId}/delete', [CategoryController::class, 'destroy'])->name('categories.delete');
+     Route::get('categories/{userId}/status/change', [CategoryController::class, 'status'])->name('categories.status');
+    
     Route::get('categories/export/csv', [CategoryController::class, 'csvExport']);
     Route::post('categories/upload/csv', [CategoryController::class, 'csvImport']);
 

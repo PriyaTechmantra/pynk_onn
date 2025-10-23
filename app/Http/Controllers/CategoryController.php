@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 class CategoryController extends Controller
 {
     public function index(Request $request)
@@ -25,13 +27,20 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            "name" => "required|string|max:255"
+            "title" => "required|string|max:255",
+            "description" => "nullable|string",
+            "icon_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000"
         ]);
-        $upload_path = "uploads/category/";
+        $upload_path = "public/uploads/category/";
         $data = new Category;
-        $data->name = $request->name;
-        $data->description = $request->description ?? '';
-        $data->slug = slugGenerate($request->name,'categories');
+        $data->name = $request->title;
+        $data->parent = $request->parent;
+        $data->description = $request->description;
+
+        $slug = \Str::slug($request->title, '-');
+        $slugExistCount = Category::where('slug', $slug)->count();
+        if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
+        $data->slug = $slug;
        
             if ($request->hasFile('icon_path')) {
                 $image = $request->file('icon_path');
@@ -66,7 +75,7 @@ class CategoryController extends Controller
             }
             $data->save();
         if ($data) {
-            return redirect()->route('categories.index');
+            return redirect()->route('categories.index')->with('success', 'Category added successfully.');
         } else {
             return redirect()->route('categories.create')->withInput($request->all());
         }
@@ -76,7 +85,7 @@ class CategoryController extends Controller
     public function show($id)
     {
         $data=Category::where('id',$id)->first();
-        return view('category.details',compact('data'));
+        return view('category.view',compact('data'));
     }
 
     public function edit($id)
@@ -88,16 +97,20 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            "name" => "required|string|max:255",
+            "title" => "required|string|max:255",
             "description" => "nullable|string",
             "icon_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000"
         ]);
-        $upload_path = "uploads/category/";
+        $upload_path = "public/uploads/category/";
         $data = Category::findOrfail($id);
-        $data->name = $request->name;
+        $data->name = $request->title;
+        $data->parent = $request->parent;
         $data->description = $request->description;
-        if($data->name != $request->name){
-            $data->slug = slugGenerate($request->name,'categories');
+        if ($data->name != $request->title) {
+            $slug = \Str::slug($request['title'], '-');
+            $slugExistCount = Category::where('slug', $slug)->count();
+            if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
+            $data->slug = $slug;
         }
         // icon image
         if($request->hasFile('icon_path')){
@@ -134,7 +147,7 @@ class CategoryController extends Controller
         $data->save();
         
         if ($data) {
-            return redirect()->route('categories.index');
+            return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
         } else {
             return redirect()->route('categories.create')->withInput($request->all());
         }
@@ -142,11 +155,11 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
-        $isReferenced = DB::table('products')->where('cat_id', $id)->exists();
+        // $isReferenced = DB::table('products')->where('cat_id', $id)->exists();
     
-        if ($isReferenced) {
-            return redirect()->route('categories.index')->with('error', 'Category cannot be deleted because it is referenced in another table.');
-        }
+        // if ($isReferenced) {
+        //     return redirect()->route('categories.index')->with('error', 'Category cannot be deleted because it is referenced in another table.');
+        // }
         $data=Category::destroy($id);
         if ($data) {
             return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
@@ -162,7 +175,7 @@ class CategoryController extends Controller
         $category->status = $status;
         $category->save();
         if ($category) {
-            return redirect()->route('categories.index');
+            return redirect()->route('categories.index')->with('success', 'Status changed successfully.');
         } else {
             return redirect()->route('categories.create')->withInput($request->all());
         }
