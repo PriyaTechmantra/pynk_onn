@@ -71,6 +71,7 @@
                                         <th class="index-col">#</th>
                                         <th class="text-center"><i class="fi fi-br-picture"></i></th>
                                         <th>Title</th>
+                                        <th>Products</th>
                                         <th>Date</th>
                                         <th>Status</th>
                                         <th width="20%">Action</th>
@@ -95,7 +96,9 @@
                                         <td>
                                             <h3 class="text-dark">{{$item->name}}</h3>
                                             <div class="text-muted">{{$item->parent}}</div>
+                                            
                                         </td>
+                                        <td><a href="{{ route('collections.view', $item->id) }}"class="text-primary text-underline text-decoration-underline">{{$item->ProductDetails->count()}} products total</a></td>
                                         <td><div class="text-muted">Published</div> <div class="text-muted">{{date('d M Y', strtotime($item->created_at))}}</div></td>
                                         
                                         <td><a href="{{ route('collections.status',$item->id) }}" ><span class="badge badge-status bg-{{($item->status == 1) ? 'success' : 'danger'}}">{{($item->status == 1) ? 'Active' : 'Inactive'}}</span></a></td>
