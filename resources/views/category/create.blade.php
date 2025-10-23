@@ -40,6 +40,45 @@
                                             <textarea name="description" class="form-control" rows="4">{{old('description')}}</textarea>
                                             @error('description') <p class="small text-danger">{{ $message }}</p> @enderror
                                         </div>
+
+                                        <div class="form-group mb-3">
+                                            <label class="label-control">Brand Permission</label>
+
+                                                    <div class="form-check">
+                                                        <input 
+                                                            class="form-check-input medium-checkbox" 
+                                                            type="checkbox" 
+                                                            name="brand[]" 
+                                                            value="1" 
+                                                            id="mediumOnn"
+                                                            onchange="toggleSelectBox()"
+                                                        >
+                                                            <label class="form-check-label" for="mediumLMS">Onn</label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input 
+                                                            class="form-check-input medium-checkbox" 
+                                                            type="checkbox" 
+                                                            name="brand[]" 
+                                                            value="2" 
+                                                            id="mediumPynk"
+                                                            onchange="toggleSelectBox()"
+                                                        >
+                                                        <label class="form-check-label" for="mediumFMS">Pynk</label>
+                                                    </div>
+                                                                        
+                                                    <div class="form-check">
+                                                        <input 
+                                                            class="form-check-input medium-checkbox" 
+                                                            type="checkbox" 
+                                                            name="brand[]" 
+                                                            value="3" 
+                                                            id="mediumBoth"
+                                                            onchange="toggleSelectBox()"
+                                                        >
+                                                        <label class="form-check-label" for="mediumCave">Both</label>
+                                                    </div>
+                                        </div>
                                         <div class="form-group mb-3">
                                              <div class="card-header p-0 mb-3">Icon <span class="text-danger">*</span> </div>
                                     

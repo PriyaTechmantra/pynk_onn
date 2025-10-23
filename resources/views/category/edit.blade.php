@@ -44,6 +44,27 @@
                                         @error('description') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
+                                       <label class="label-control">
+                                           Brand Permission:
+                                       </label>
+
+                                       <div class="form-check">
+                                           <input class="form-check-input" type="checkbox" name="brand[]" value="1" id="brandOnn"
+                                               {{ in_array(1, $data->brand ?? []) ? 'checked' : '' }}>
+                                           <label class="form-check-label" for="brandOnn">Onn</label>
+                                       </div>
+                                       <div class="form-check">
+                                           <input class="form-check-input" type="checkbox" name="brand[]" value="2" id="brandPynk"
+                                               {{ in_array(2, $data->brand ?? []) ? 'checked' : '' }}>
+                                           <label class="form-check-label" for="brandPynk">Pynk</label>
+                                       </div>
+                                       <div class="form-check">
+                                           <input class="form-check-input" type="checkbox" name="brand[]" value="3" id="brandBoth"
+                                               {{ in_array(3, $data->brand ?? []) ? 'checked' : '' }}>
+                                           <label class="form-check-label" for="brandBoth">Both</label>
+                                       </div>
+                                    </div>
+                                    <div class="form-group mb-3">
                                         <div class="card-header p-0 mb-3">Icon </div>
                                         <div class="product__thumb text-start">
                                             <label for="icon"><img id="iconOutput" src="{{ asset($data->icon_path) }}" 

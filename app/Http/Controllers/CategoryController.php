@@ -10,12 +10,41 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        if (!empty($request->term)) 
-        {
-            $data=Category::where('name',$request->term)->orderBy('position')->paginate(30);
-        }else{
-            $data=Category::orderBy('position')->paginate(30);
+        $query = Category::query();
+
+        if (!empty($request->term)) {
+            $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
+
+        if (!empty($request->brand_selection)) {
+            $brands = explode(',', $request->brand_selection);
+
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    switch ($brand) {
+                        case '1': 
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3': 
+                            $q->orWhere(function ($q2) {
+                            $q2->whereJsonContains('brand', '1')
+                               ->whereJsonContains('brand', '2');
+                        })->orWhereJsonContains('brand', '3');
+                        break;
+                    }
+                }
+            });
+        }
+
+        $data = $query->orderBy('position','desc')->paginate(25);
+
         return view('category.index', compact('data','request'));
     }
 
@@ -29,13 +58,26 @@ class CategoryController extends Controller
         $request->validate([
             "title" => "required|string|max:255",
             "description" => "nullable|string",
-            "icon_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000"
+            "icon_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "sketch_icon" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "image_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "banner_image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "brand" => "nullable|array"
         ]);
         $upload_path = "public/uploads/category/";
         $data = new Category;
         $data->name = $request->title;
         $data->parent = $request->parent;
         $data->description = $request->description;
+        $data->brand = $request->brand;
+
+        $colData = Category::select('position')->latest('id')->first();
+            if (!empty($colData->position)) {
+                $new_position = (int) $colData->position + 1;
+            } else {
+                $new_position = 1;
+            }
+        $data->position =$new_position;
 
         $slug = \Str::slug($request->title, '-');
         $slugExistCount = Category::where('slug', $slug)->count();
@@ -99,19 +141,28 @@ class CategoryController extends Controller
         $request->validate([
             "title" => "required|string|max:255",
             "description" => "nullable|string",
-            "icon_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000"
+            "icon_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "sketch_icon" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "image_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "banner_image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "brand" => "nullable|array"
         ]);
-        $upload_path = "public/uploads/category/";
+
         $data = Category::findOrfail($id);
         $data->name = $request->title;
         $data->parent = $request->parent;
         $data->description = $request->description;
+        $data->brand = $request->brand;
+
         if ($data->name != $request->title) {
             $slug = \Str::slug($request['title'], '-');
             $slugExistCount = Category::where('slug', $slug)->count();
             if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
             $data->slug = $slug;
         }
+
+        $upload_path = "public/uploads/category/";
+
         // icon image
         if($request->hasFile('icon_path')){
             $image = $request->file('icon_path');

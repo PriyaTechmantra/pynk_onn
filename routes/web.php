@@ -140,8 +140,12 @@ Route::group(['middleware' => ['auth']], function() {
     
     //collections
      Route::resource('collections', CollectionController::class);
-     Route::get('collections/{userId}/delete', [CollectionController::class, 'destroy']);
-     Route::get('collections/{userId}/status/change', [CollectionController::class, 'status']);
+     Route::get('collections/{userId}/edit', [CollectionController::class, 'edit'])->name('collections.edit');
+     Route::post('collections/{userId}/update', [CollectionController::class, 'update'])->name('collections.update');
+     Route::get('collections/{userId}/view', [CollectionController::class, 'show'])->name('collections.view');
+     Route::get('collections/{userId}/delete', [CollectionController::class, 'destroy'])->name('collections.delete');
+     Route::get('collections/{userId}/status/change', [CollectionController::class, 'status'])->name('collections.status');
+    
      Route::get('collections/export/csv', [CollectionController::class, 'csvExport']);
      Route::post('collections/upload/csv', [CollectionController::class, 'csvImport']);
      

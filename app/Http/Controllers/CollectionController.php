@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Collection;
 use Illuminate\Http\Request;
+use App\Models\Category;
+use Illuminate\Support\Facades\DB;
 
 class CollectionController extends Controller
 {
@@ -28,12 +30,29 @@ class CollectionController extends Controller
 
             $query->where(function ($q) use ($brands) {
                 foreach ($brands as $brand) {
-                    $q->orWhereJsonContains('brand', (string) trim($brand));
+                    switch ($brand) {
+                        case '1': 
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3': 
+                            $q->orWhere(function ($q2) {
+                            $q2->whereJsonContains('brand', '1')
+                               ->whereJsonContains('brand', '2');
+                        })->orWhereJsonContains('brand', '3');
+                        break;
+                    }
                 }
             });
         }
 
-        $data = $query->orderBy('position')->paginate(25);
+        $data = $query->orderBy('position','desc')->paginate(25);
 
         return view('collection.index', compact('data', 'request'));
     }
@@ -46,15 +65,17 @@ class CollectionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            "name" => "required|string|max:255",
+            "title" => "required|string|max:255",
             "description" => "nullable|string",
             "icon_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "sketch_icon" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "image_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "banner_image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000"
+            "banner_image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "brand" => "nullable|array"
         ]);
+
         $storeData=new Collection();
-        $storeData->name=$request->name;
+        $storeData->name=$request->title;
         $storeData->description=$request->description;
         $colData = Collection::select('position')->latest('id')->first();
         
@@ -67,12 +88,14 @@ class CollectionController extends Controller
         $storeData->brand =$request->brand;
         
         // slug generate
-        $slug = \Str::slug($request['name'], '-');
-        $slugExistCount = RetailerProduct::where('slug', $slug)->count();
+        $slug = \Str::slug($request['title'], '-');
+        $slugExistCount = Collection::where('slug', $slug)->count();
         if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
         $storeData->slug = $slug;
+
+        $upload_path = "public/uploads/collection/";
+
         if (isset($request['icon_path'])) {
-            $upload_path = "public/uploads/collection/";
             $image = $request['icon_path'];
             $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
@@ -80,7 +103,6 @@ class CollectionController extends Controller
             $storeData->icon_path = $upload_path . $uploadedImage;
         }
         if (isset($request['sketch_icon'])) {
-            $upload_path = "public/uploads/collection/";
             $image = $request['sketch_icon'];
             $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
@@ -88,7 +110,6 @@ class CollectionController extends Controller
             $storeData->sketch_icon = $upload_path . $uploadedImage;
         }
         if (isset($request['image_path'])) {
-            $upload_path = "public/uploads/collection/";
             $image = $request['image_path'];
             $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
@@ -96,7 +117,6 @@ class CollectionController extends Controller
             $storeData->image_path = $upload_path . $uploadedImage;
         }
         if (isset($request['banner_image'])) {
-            $upload_path = "public/uploads/collection/";
             $image = $request['banner_image'];
             $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
@@ -106,50 +126,52 @@ class CollectionController extends Controller
         $storeData->save();
 		
         if ($storeData) {
-            return redirect()->route('collection.index');
+            return redirect()->route('collections.index')->with('success', 'Collection added successfully.');
         } else {
-            return redirect()->route('collection.create')->withInput($request->all());
+            return redirect()->route('collections.create')->withInput($request->all());
         }
     }
 
-    public function show(Collection $collection)
+    public function show($id)
     {
         $data = Collection::where('id',$id)->first();
         return view('collection.view', compact('data'));
     }
 
    
-    public function edit(Collection $collection)
+    public function edit($id)
     {
         $data = Collection::findOrfail($id);
         return view('collection.edit', compact('data'));
     }
 
-    public function update(Request $request, Collection $collection)
+    public function update(Request $request, $id)
     {
         $request->validate([
-            "name" => "required|string|max:255",
+            "title" => "required|string|max:255",
             "description" => "nullable|string",
-            "icon_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "sketch_icon" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "image_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "banner_image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000"
+            "brand" => "nullable|array",
+            "icon_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "sketch_icon" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "image_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "banner_image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000"
         ]);
         $storeData=Collection::findOrfail($id);
-        $storeData->name=$request->name;
+        $storeData->name=$request->title;
         $storeData->description=$request->description;
-        
         $storeData->brand =$request->brand;
         
         // slug generate
-        if($storeData->name != $request['name']){
-            $slug = \Str::slug($request['name'], '-');
+        if($storeData->name != $request['title']){
+            $slug = \Str::slug($request['title'], '-');
             $slugExistCount = RetailerProduct::where('slug', $slug)->count();
             if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
             $storeData->slug = $slug;
         }
+
+        $upload_path = "public/uploads/collection/";
+
         if (isset($request['icon_path'])) {
-            $upload_path = "public/uploads/collection/";
             $image = $request['icon_path'];
             $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
@@ -157,7 +179,6 @@ class CollectionController extends Controller
             $storeData->icon_path = $upload_path . $uploadedImage;
         }
         if (isset($request['sketch_icon'])) {
-            $upload_path = "public/uploads/collection/";
             $image = $request['sketch_icon'];
             $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
@@ -165,7 +186,6 @@ class CollectionController extends Controller
             $storeData->sketch_icon = $upload_path . $uploadedImage;
         }
         if (isset($request['image_path'])) {
-            $upload_path = "public/uploads/collection/";
             $image = $request['image_path'];
             $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
@@ -173,7 +193,6 @@ class CollectionController extends Controller
             $storeData->image_path = $upload_path . $uploadedImage;
         }
         if (isset($request['banner_image'])) {
-            $upload_path = "public/uploads/collection/";
             $image = $request['banner_image'];
             $imageName = time() . "." . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
@@ -183,22 +202,34 @@ class CollectionController extends Controller
         $storeData->save();
 		
         if ($storeData) {
-            return redirect()->route('collection.index');
+            return redirect()->route('collections.index')->with('success', 'Collection updated successfully.');
         } else {
-            return redirect()->route('collection.create')->withInput($request->all());
+            return redirect()->route('collections.create')->withInput($request->all());
         }
     }
 
-    public function destroy(Collection $collection)
+    public function status(Request $request, $id)
     {
-        $isReferenced = DB::table('products')->where('collection_id', $id)->exists();
-    
-        if ($isReferenced) {
-            return redirect()->route('collections.index')->with('error', 'Collection cannot be deleted because it is referenced in another table.');
+        $category = Collection::findOrFail($id);
+        $status = ( $category->status == 1 ) ? 0 : 1;
+        $category->status = $status;
+        $category->save();
+        if ($category) {
+            return redirect()->route('collections.index')->with('success', 'Status changed successfully.');
+        } else {
+            return redirect()->route('collections.create')->withInput($request->all());
         }
-        $data=Collection::findOrfail($id);
-        $data->is_deleted=1;
-        $data->save();
+    }
+
+    public function destroy($id)
+    {
+        // $isReferenced = DB::table('products')->where('collection_id', $id)->exists();
+    
+        // if ($isReferenced) {
+        //     return redirect()->route('collections.index')->with('error', 'Collection cannot be deleted because it is referenced in another table.');
+        // }
+
+        $data=Collection::destroy($id);
         if ($data) {
             return redirect()->route('collections.index')->with('success', 'Collection deleted successfully.');
         } else {
