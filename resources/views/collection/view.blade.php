@@ -10,8 +10,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
-							 <h3>Category : {{ $data->cat->name }}</h3>
-                            <h3>{{ $data->name }}</h3>
+                            <h2 class="fw-bold">{{ $data->name }}</h2>
                             <p class="small">{{ $data->description }}</p>
                             <hr>
                         </div>
@@ -21,15 +20,12 @@
                             <p class="text-muted">Icon</p>
                             <img src="{{ asset($data->icon_path) }}" alt="" style="height: 50px">
                         </div>
-                        
                     </div>
                     <hr>
                     <div class="row">
                         <div class="col-md-12">
-                            <h3 class="">Products</h3>
+                            <h3 class="text-muted fw-bold">Products</h3>
                             <p>{{$data->ProductDetails->count()}} products total</p>
-
-							
 
                             <table class="table admin-table">
                                 <thead>

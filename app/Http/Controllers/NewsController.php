@@ -136,6 +136,9 @@ class NewsController extends Controller
             "end_date" => "required|date",
             "brand" => "nullable|array",
             "user_type" => "nullable|array",
+            "image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
+        
         ]);
         $storeData = News::findOrFail($id);
         $upload_path = "public/uploads/news/";

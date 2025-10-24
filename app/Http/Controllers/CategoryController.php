@@ -4,16 +4,47 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 class CategoryController extends Controller
 {
     public function index(Request $request)
     {
-        if (!empty($request->term)) 
-        {
-            $data=Category::where('name',$request->term)->orderBy('position')->paginate(30);
-        }else{
-            $data=Category::orderBy('position')->paginate(30);
+        $query = Category::query();
+
+        if (!empty($request->term)) {
+            $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
+
+        if (!empty($request->brand_selection)) {
+            $brands = explode(',', $request->brand_selection);
+
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    switch ($brand) {
+                        case '1': 
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3': 
+                            $q->orWhere(function ($q2) {
+                            $q2->whereJsonContains('brand', '1')
+                               ->whereJsonContains('brand', '2');
+                        })->orWhereJsonContains('brand', '3');
+                        break;
+                    }
+                }
+            });
+        }
+
+        $data = $query->orderBy('position','desc')->paginate(25);
+
         return view('category.index', compact('data','request'));
     }
 
@@ -25,13 +56,33 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            "name" => "required|string|max:255"
+            "title" => "required|string|max:255",
+            "description" => "nullable|string",
+            "icon_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "sketch_icon" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "image_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "banner_image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "brand" => "nullable|array"
         ]);
-        $upload_path = "uploads/category/";
+        $upload_path = "public/uploads/category/";
         $data = new Category;
-        $data->name = $request->name;
-        $data->description = $request->description ?? '';
-        $data->slug = slugGenerate($request->name,'categories');
+        $data->name = $request->title;
+        $data->parent = $request->parent;
+        $data->description = $request->description;
+        $data->brand = $request->brand;
+
+        $colData = Category::select('position')->latest('id')->first();
+            if (!empty($colData->position)) {
+                $new_position = (int) $colData->position + 1;
+            } else {
+                $new_position = 1;
+            }
+        $data->position =$new_position;
+
+        $slug = \Str::slug($request->title, '-');
+        $slugExistCount = Category::where('slug', $slug)->count();
+        if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
+        $data->slug = $slug;
        
             if ($request->hasFile('icon_path')) {
                 $image = $request->file('icon_path');
@@ -66,7 +117,7 @@ class CategoryController extends Controller
             }
             $data->save();
         if ($data) {
-            return redirect()->route('categories.index');
+            return redirect()->route('categories.index')->with('success', 'Category added successfully.');
         } else {
             return redirect()->route('categories.create')->withInput($request->all());
         }
@@ -76,7 +127,7 @@ class CategoryController extends Controller
     public function show($id)
     {
         $data=Category::where('id',$id)->first();
-        return view('category.details',compact('data'));
+        return view('category.view',compact('data'));
     }
 
     public function edit($id)
@@ -88,17 +139,30 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            "name" => "required|string|max:255",
+            "title" => "required|string|max:255",
             "description" => "nullable|string",
-            "icon_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000"
+            "icon_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "sketch_icon" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "image_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "banner_image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
+            "brand" => "nullable|array"
         ]);
-        $upload_path = "uploads/category/";
+
         $data = Category::findOrfail($id);
-        $data->name = $request->name;
+        $data->name = $request->title;
+        $data->parent = $request->parent;
         $data->description = $request->description;
-        if($data->name != $request->name){
-            $data->slug = slugGenerate($request->name,'categories');
+        $data->brand = $request->brand;
+
+        if ($data->name != $request->title) {
+            $slug = \Str::slug($request['title'], '-');
+            $slugExistCount = Category::where('slug', $slug)->count();
+            if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
+            $data->slug = $slug;
         }
+
+        $upload_path = "public/uploads/category/";
+
         // icon image
         if($request->hasFile('icon_path')){
             $image = $request->file('icon_path');
@@ -134,7 +198,7 @@ class CategoryController extends Controller
         $data->save();
         
         if ($data) {
-            return redirect()->route('categories.index');
+            return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
         } else {
             return redirect()->route('categories.create')->withInput($request->all());
         }
@@ -142,11 +206,11 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
-        $isReferenced = DB::table('products')->where('cat_id', $id)->exists();
+        // $isReferenced = DB::table('products')->where('cat_id', $id)->exists();
     
-        if ($isReferenced) {
-            return redirect()->route('categories.index')->with('error', 'Category cannot be deleted because it is referenced in another table.');
-        }
+        // if ($isReferenced) {
+        //     return redirect()->route('categories.index')->with('error', 'Category cannot be deleted because it is referenced in another table.');
+        // }
         $data=Category::destroy($id);
         if ($data) {
             return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
@@ -162,7 +226,7 @@ class CategoryController extends Controller
         $category->status = $status;
         $category->save();
         if ($category) {
-            return redirect()->route('categories.index');
+            return redirect()->route('categories.index')->with('success', 'Status changed successfully.');
         } else {
             return redirect()->route('categories.create')->withInput($request->all());
         }
@@ -170,47 +234,65 @@ class CategoryController extends Controller
     
     public function csvExport(Request $request)
     {
-        if (!empty($request->term)) 
-        {
-            $data=Category::where('name',$request->term)->orderBy('position')->paginate(30);
-        }else{
-            $data=Category::orderBy('position')->paginate(30);
+        $query = Category::query();
+
+        if (!empty($request->term)) {
+            $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
-        if (count($data) > 0) {
-            $delimiter = ",";
-            $filename = "Lux-Product-Category-".date('Y-m-d').".csv";
 
-            $f = fopen('php://memory', 'w');
+        if (!empty($request->brand_selection)) {
+            $brands = explode(',', $request->brand_selection);
 
-            $fields = array('SR', 'Name', 'Description',  'STATUS', 'DATETIME');
-            fputcsv($f, $fields, $delimiter);
+            $query->where(function ($q) use ($brands) {
+                foreach ($brands as $brand) {
+                    switch ($brand) {
+                        case '1':
+                            $q->orWhereJsonContains('brand', '1')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '2':
+                            $q->orWhereJsonContains('brand', '2')
+                            ->orWhereJsonContains('brand', '3');
+                            break;
+
+                        case '3':
+                            $q->orWhere(function ($q2) {
+                                $q2->whereJsonContains('brand', '1')
+                                ->whereJsonContains('brand', '2');
+                            })->orWhereJsonContains('brand', '3');
+                            break;
+                    }
+                }
+            });
+        }
+
+        $data = $query->orderBy('position', 'desc')->get();
+
+        $filename = "Product-Category-" . date('Y-m-d') . ".csv";
+
+        return response()->stream(function() use ($data) {
+            $f = fopen('php://output', 'w');
+
+            // CSV headers
+            fputcsv($f, ['SR', 'Title', 'DATE', 'STATUS']);
 
             $count = 1;
-
-            foreach($data as $row) {
-                $datetime = date('j F, Y', strtotime($row['created_at']));
-                $lineData = array(
-                    $count,
-                    ucwords($row->name),
-                    $row->description,
-                    ($row->status == 1) ? 'Active' : 'Inactive',
-                    $datetime
-                );
-
-                fputcsv($f, $lineData, $delimiter);
-
-                $count++;
+            foreach ($data as $row) {
+                fputcsv($f, [
+                    $count++,
+                    ucwords($row->name) . ' | ' . $row->parent, 
+                    'Published: ' . $row->created_at->format('j F, Y'),
+                    $row->status == 1 ? 'Active' : 'Inactive',
+                ]);
             }
 
-            fseek($f, 0);
-
-            header('Content-Type: text/csv');
-            header('Content-Disposition: attachment; filename="' . $filename . '";');
-
-            fpassthru($f);
-        }
+            fclose($f);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
-
 
 }
 

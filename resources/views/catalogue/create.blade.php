@@ -111,7 +111,7 @@
                                         <div class="d-flex align-items-center gap-3">
                                             <div class="product__thumb">
                                                 <label for="icon">
-                                                    <img id="iconOutput" src="{{ asset('admin/images/placeholder-image.jpg') }}" style="width:100px; height:100px; object-fit:cover; cursor:pointer;" />
+                                                    <img id="iconOutput" src="{{ asset('images/placeholder-image.jpg') }}" style="width:100px; height:100px; object-fit:cover; cursor:pointer;" />
                                                 </label>
                                             </div>
                                                 <input type="file" name="image" id="icon" accept="image/*" onchange="loadIcon(event)" class="d-none">
