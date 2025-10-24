@@ -42,11 +42,7 @@ class AuthController extends Controller
 				
                 if ($user->status == 1) {
                     
-                    $assignedPermissions = DB::table('user_permission_categories')
-                                                ->select('user_permission_categories.*')
-                                                ->join('employees','employees.id','=','user_permission_categories.employee_id')
-                                                ->where('user_permission_categories.employee_id', $user->id)
-                                                ->get();
+                   
 
                                             $brandMap = [
                                                 1 => 'ONN',
@@ -54,7 +50,7 @@ class AuthController extends Controller
                                                 3 => 'Both',
                                             ];
 
-                                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+                                            $brands = [$user->brand];
 
                                     // Check conditions
                                         if (in_array(3, $brands)) {

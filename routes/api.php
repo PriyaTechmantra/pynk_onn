@@ -72,7 +72,7 @@ Route::get('category/{id}/products', [ASEController::class, 'categorywiseProduct
 Route::get('products', [ASEController::class, 'productList']);
 
 Route::get('collection/{collectionId}/category/{categoryId}', [ASEController::class, 'collectionCategoryWiseProducts']);
-Route::get('products/show/{id}', [ASEController::class, 'show']);
+Route::get('products/show/{id}', [ASEController::class, 'productShow']);
 
 Route::get('product/images/{id}', [ASEController::class, 'productImages']);
 Route::get('products-color-size/show/{productid}', [ASEController::class, 'colorsize']);
