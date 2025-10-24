@@ -14,6 +14,10 @@ class UserNoOrderReason extends Model
         return $this->belongsTo(Employee::class, 'user_id');
     }
 
+    public function distributor()
+    {
+        return $this->belongsTo(Distributor::class, 'distributor_id'); 
+    }
       public function store()
      {
          return $this->belongsTo(Store::class);

@@ -92,14 +92,12 @@
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Distributor</span></a>
                     <ul>
                         
-                        
                         @can('view distributor')
-                        <li class="{{ ( request()->is('distributors*') ) ? 'active' : '' }}"><a href="{{ route('distributors.index') }}"><i class="fi fi-br-user"></i> <span>Distributor Management</span></a></li>
+                        <li class="{{ ( request()->is('distributors/index') ) ? 'active' : '' }}"><a href="{{ route('distributors.index') }}"><i class="fi fi-br-user"></i> <span>Distributor Management</span></a></li>
                         @endcan
                         @can('view distributor')
                         <li class="{{ ( request()->is('distributors/note*') ) ? 'active' : '' }}"><a href="{{route('distributors.note')}}"><i class="fi fi-br-database"></i> <span>Note</span></a></li>
                         @endcan
-                        
                         
                     </ul>
                 </li>

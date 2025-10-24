@@ -13,7 +13,7 @@
                     <div class="card-header">
                         <h4>Distributor Note
 
-                            <a href="{{ route('collections.exportCSV', request()->only('term', 'brand_selection')) }}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
+                            <a href="{{ route('collections.exportCSV', request()->only('brand_selection')) }}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 CSV
                             </a>
@@ -29,13 +29,40 @@
                             <div class="row">
                                         
                                 <div class="col-12">
-                                    <form action="{{url('collections/')}}">
+                                    <form action="{{url('distributors/note')}}">
                                         <div class="row">
-                                            <div class="col-3">
-                                                <input type="search" name="term" id="term" class="form-control form-control-sm" placeholder="Search by keyword." value="{{app('request')->input('term')}}" autocomplete="off">
+                                            <div class="col-2">
+                                                    <select name="user_type" class="form-control form-control-sm">
+                                                        <option value="">User Type</option>
+                                                        <option value="1" {{ app('request')->input('user_type') == 1 ? 'selected' : '' }}>VP</option>
+                                                        <option value="2" {{ app('request')->input('user_type') == 2 ? 'selected' : '' }}>RSM</option>
+                                                        <option value="3" {{ app('request')->input('user_type') == 3 ? 'selected' : '' }}>ASM</option>
+                                                        <option value="4" {{ app('request')->input('user_type') == 3 ? 'selected' : '' }}>ASE</option>
+                                                    </select>
+                                            </div>
+                                            <div class="col-2">
+                                                <select name="user_name" class="form-control form-control-sm">
+                                                    <option value="">User Name</option>
+                                                    @foreach($users as $user)
+                                                        <option value="{{ $user->id }}" {{ request('user_name') == $user->id ? 'selected' : '' }}>
+                                                            {{ $user->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            <div class="col-2">
+                                                <select name="distributor_name" class="form-control form-control-sm">
+                                                    <option value="">Distributor</option>
+                                                    @foreach($distributors as $distributor)
+                                                        <option value="{{ $distributor->id }}" {{ request('distributor_name') == $distributor->id ? 'selected' : '' }}>
+                                                            {{ $distributor->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
                                             </div>
                                             
-                                            <div class="col-3">
+                                            <div class="col-2">
                                                  
                                                 <select name="brand_selection" class="form-control form-control-sm">
                                                     <option value="">Select Brand</option>
@@ -44,7 +71,11 @@
                                                     <option value="3" {{ app('request')->input('brand_selection') == 3 ? 'selected' : '' }}>Both</option>
                                                 </select>
                                             </div>
-                                            <div class="col-6 text-end">
+                                            <div class="col-2">
+                                                <input type="search" name="term" id="term" class="form-control form-control-sm" placeholder="Comment" value="{{app('request')->input('term')}}" autocomplete="off">
+                                            </div>
+
+                                            <div class="col-2 text-end">
                                                     <button type="submit" class="btn btn-sm btn-cta">
                                                         Filter
                                                     </button>
@@ -87,12 +118,12 @@
                                     <tr>
                                         <td>{{ $index+1 }}</td>
                                         <td> {{ optional($item->user)->name ?? '' }}</td>
-                                        <td></td>
+                                        <td>{{ optional($item->distributor)->name ?? '' }}</td>
                                         <td>{{$item->comment}}</td>
-                                        <td><div class="text-muted">{{ date('d M Y H:i:s', strtotime($item->created_at)) }}</div></td>
-                                        
+                                        <td><div class="text-muted">{{ date('d M Y', strtotime($item->date)) }}&nbsp;{{$item->time}}</div></td>
+                                    
                                     </tr>
-                                    @empty
+                                    @empty  
                                     <tr><td colspan="100%" class="small text-muted">No data found</td></tr>
                                     @endforelse
                                 </tbody>
