@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Area;
 use App\Models\UserArea;
 use App\Models\Store;
+use App\Models\Visit;
 use App\Models\Team;
 use App\Models\PrimaryOrder;
 use App\Models\SecondaryOrder;
@@ -52,12 +53,12 @@ class ASEController extends Controller
     
     //check visit
     public function checkVisit(Request $request,$id){
-		$area=DB::table('visits')->where('user_id',$id)->where('start_date',date('Y-m-d'))->where('visit_id',NULL)->orderby('id','desc')->take(1)->get();
+		$area=Visit::where('user_id',$id)->where('start_date',date('Y-m-d'))->where('visit_id',NULL)->orderby('id','desc')->take(1)->get();
 		$user=Employee::where('id',$id)->first();
         if (count($area)==0) {
             return response()->json(['status'=>false, 'message'=>'Start Your Visit']);
         } else {
-            return response()->json(['status'=>true, 'message'=>'Visit already started','area'=>$area[0]->area->name,'visit_id'=>$area[0]->id,'data'=>$user],200);
+            return response()->json(['status'=>true, 'message'=>'Visit already started','area'=>$area->area->name,'visit_id'=>$area->id,'data'=>$user],200);
         } 
 		
 	}
