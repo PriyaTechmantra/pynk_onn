@@ -53,8 +53,8 @@ class ASEController extends Controller
     
     //check visit
     public function checkVisit(Request $request,$id){
-		$area=Visit::where('user_id',$id)->where('start_date',date('Y-m-d'))->where('visit_id',NULL)->orderby('id','desc')->with('areas')->take(1)->get();
-        dd($area->areas->name);
+		$area=Visit::where('user_id',$id)->where('start_date',date('Y-m-d'))->where('visit_id',NULL)->orderby('id','desc')->with('areas')->first();
+        
 		$user=Employee::where('id',$id)->first();
         if (count($area)==0) {
             return response()->json(['status'=>false, 'message'=>'Start Your Visit']);
