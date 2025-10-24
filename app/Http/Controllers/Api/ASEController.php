@@ -138,6 +138,7 @@ class ASEController extends Controller
     {
         $validator = Validator::make($request->all(), [
             "user_id" => "required",
+            "area_id" => "required",
             "date" => "required",
             "time" => "required",
             "type" => "required",
@@ -178,6 +179,7 @@ class ASEController extends Controller
     {
         $validator = Validator::make($request->all(), [
             "user_id" => "required",
+            "area_id" => "required",
             "date" => "required",
             "time" => "required",
             "type" => "required",
@@ -338,7 +340,7 @@ public function aseSalesreport(Request $request)
     $validator = Validator::make($request->all(), [
         "ase_id" => "required",
     ]);
-
+    
     if ($validator->fails()) {
         return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
     }
@@ -373,30 +375,32 @@ public function aseSalesreport(Request $request)
         })
         ->with('distributor')
         ->get();
-
+     
     foreach ($distributors as $item) {
         // Get brands permitted for this distributor
-        $brandPermissions = DB::table('user_permission_categories')
-            ->where('distributor_id', $item->distributor_id)
-            ->value('brand');
-        $brandName = $brandMap[$brandPermissions] ?? '';
-
+        // $brandPermissions = DB::table('user_permission_categories')
+        //     ->where('distributor_id', $item->distributor_id)
+        //     ->value('brand');
+        $brandCode = $item->distributor->brand;
+        $brandName = $brandMap[$brandCode] ?? '';
+        
         // Handle "Both" case
-        $brandsToCheck = ($brandName == 'Both') ? ['ONN', 'PYNK'] : [$brandName];
-        foreach ($brandsToCheck  as $brand) {
+        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+        
+        //foreach ($brandsToCheck  as $brand) {
             $qty = PrimaryOrder::where('distributor_id', $item->distributor_id)
-                ->where('brand', $brand)
+                ->whereIN('brand', $brandsToCheck)
                 ->whereBetween('order_date', [$from, $to])
                 ->sum('qty');
-
+            
             $respArrd[] = [
                 'distributor_id'   => $item->distributor_id ?? 0,
                 'distributor_name' => $item->distributor->name ?? '',
-                'brand'            => $brand ?? '',
+                'brand'            => $brandName ?? '',
                 'amount'           => 0,
                 'qty'              => $qty ?? 0,
             ];
-        }
+        //}
     }
 
     /**
@@ -420,21 +424,21 @@ public function aseSalesreport(Request $request)
         $brandName = $brandMap[$brandCode] ?? null;
 
         // Handle "Both" case
-         $brandsToCheck = ($brandCode == 3) ? ['ONN', 'PYNK'] : [$brandName];
-            foreach ($brandsToCheck as $brand) {
+         $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+            //foreach ($brandsToCheck as $brand) {
                 $qty = SecondaryOrder::where('retailer_id', $value->id)
-                    ->where('brand', $brand)
+                    ->whereIN('brand', $brandsToCheck)
                     ->whereBetween('order_date', [$from, $to])
                     ->sum('qty');
 
                 $respArr[] = [
                     'retailer_id' => $value->id,
                     'store_name'  => $value->name,
-                    'brand'       => $brand,
+                    'brand'       => $brandName,
                     'amount'      => 0,
                     'qty'         => $qty ?? 0,
                 ];
-            }
+            //}
     }
 
     return response()->json([
@@ -589,15 +593,13 @@ public function aseSalesreport(Request $request)
             ->get();
 
         if ($distributors->isNotEmpty()) {
-            foreach ($distributors as $item) {
-                // Fetch brand permission for distributor
-                $brandPermission = DB::table('user_permission_categories')
-                    ->where('distributor_id', $item->distributor_id)
-                    ->value('brand'); // Assuming column name is brand_permission
+           
 
-                // Add readable brand name
-                $item->brand_name = $brandMap[$brandPermission] ?? null;
-            }
+            $distributors = $distributors->map(function ($distributor) use ($brandMap) {
+                $distributor->brand_name = $brandMap[$distributor->brand] ?? null; // readable brand name
+                return $distributor;
+            });
+
 
             return response()->json([
                 'status'  => true,
@@ -1180,7 +1182,7 @@ public function aseSalesreport(Request $request)
     }
 
 
-     public function show(Request $request, $id)
+     public function productShow(Request $request, $id)
     {
         $brandMap = [
             1 => 'ONN',
@@ -1215,6 +1217,8 @@ public function aseSalesreport(Request $request)
             'data' => $data,
         ]);
     }
+    
+
 
 
 
