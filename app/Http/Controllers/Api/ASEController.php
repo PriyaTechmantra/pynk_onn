@@ -56,7 +56,7 @@ class ASEController extends Controller
 		$area=Visit::where('user_id',$id)->where('start_date',date('Y-m-d'))->where('visit_id',NULL)->orderby('id','desc')->with('areas')->first();
         
 		$user=Employee::where('id',$id)->first();
-        if (count($area)==0) {
+        if (empty($area)) {
             return response()->json(['status'=>false, 'message'=>'Start Your Visit']);
         } else {
             return response()->json(['status'=>true, 'message'=>'Visit already started','area'=>$area->areas->name,'visit_id'=>$area->id,'data'=>$user],200);
