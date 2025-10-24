@@ -1235,7 +1235,7 @@ public function aseSalesreport(Request $request)
         $updatedEntry = Store::findOrFail($request->id);
         $updatedEntry->image=$request->image;
         $updatedEntry->save();
-        if( $resp){
+        if( $updatedEntry){
             return response()->json(['status' => true,'message' => 'updated successfully','store' => $updatedEntry], 200);
         }else{
             return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
