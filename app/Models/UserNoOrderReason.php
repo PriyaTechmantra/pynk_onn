@@ -10,9 +10,9 @@ class UserNoOrderReason extends Model
     use HasFactory;
 
     public function user()
-     {
-         return $this->belongsTo(Employee::class);
-     }
+    {
+        return $this->belongsTo(Employee::class, 'user_id');
+    }
 
       public function store()
      {
