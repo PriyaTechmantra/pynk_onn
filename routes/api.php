@@ -57,6 +57,7 @@ Route::get('serach/store', [ASEController::class, 'searchStore']);
 
 Route::get('distributor/list', [ASEController::class, 'distributorList']);
 Route::post('add/store', [ASEController::class, 'addStore']);
+Route::post('edit/store/{id}', [ASEController::class, 'editStore']);
 
 Route::post('store/image/update', [ASEController::class, 'storeimageUpdate']);
 Route::post('no-order-reason/update', [ASEController::class, 'noorder']);

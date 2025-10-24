@@ -79,7 +79,7 @@
                                                         <label class="small text-muted">Brand</label>
                                                         <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
                                                             <option value="" selected disabled>Select</option>
-                                                                 <option value="All" {{ (request()->input('brand') == "All") ? 'selected' : '' }}>All</option>
+                                                                 <option value="3" {{ (request()->input('brand') == 3) ? 'selected' : '' }}>All</option>
                                                             
                                                                 <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
                                                                 <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
@@ -106,7 +106,7 @@
                                                         <label for="state" class="text-muted small">State</label>
                                                         <select name="state" id="state" class="form-control form-control-sm select2">
                                                             <option value="" selected disabled>Select</option>
-                                                            
+                                                            <option value="" selected>All</option>
                                                             @foreach ($state as $state)
                                                                 <option value="{{$state->id}}" {{ request()->input('state') == $state->id ? 'selected' : '' }}>{{$state->name}}</option>
                                                             @endforeach
@@ -115,7 +115,7 @@
                                               
                                                     <div class="col">
                                                     <label class="small text-muted">Area</label>
-                                                        <select class="form-control form-control-sm select2" name="area" disabled>
+                                                        <select class="form-control form-control-sm select2" id="area" name="area" disabled>
                                                         <option value="{{ $request->area }}">Select state first</option>
                                                         </select>
                                                     </div>
@@ -181,11 +181,7 @@
                                         <td class="index-col">{{ $index + 1 }}</td>
                                         <td>
                                             @php
-                                                $assignedPermissions = DB::table('user_permission_categories')
-                                                ->select('user_permission_categories.*')
-                                                ->join('employees','employees.id','=','user_permission_categories.employee_id')
-                                                ->where('user_permission_categories.employee_id', $item->id)
-                                                ->get();
+                                               
 
                                             $brandMap = [
                                                 1 => 'ONN',
@@ -193,7 +189,7 @@
                                                 3 => 'Both',
                                             ];
 
-                                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+                                            $brands = [$item->brand];
 
                                     // Check conditions
                                         if (in_array(3, $brands)) {
@@ -221,7 +217,7 @@
                                              @if($item->type == 4)
                                             <p class="small text-dark">{{$area}}</p>
                         				    @endif
-                                          {{$item->stateDetail->name ??''}}
+                                          {{$item->area->name}},{{$item->stateDetail->name ??''}}
                                          
                                           
                                         </td>
@@ -302,25 +298,40 @@
 
 
 <script>
-    $('select[name="state"]').on('change', (event) => {
-        var value = $('select[name="state"]').val();
-      
+$(document).ready(function() {
+    var selectedState = "{{ request()->input('state') ?? '' }}";
+    var selectedArea = "{{ request()->input('area') ?? '' }}";
+
+    // Trigger change if state is already selected (for edit/filter persistence)
+    if (selectedState) {
+        loadAreas(selectedState, selectedArea);
+    }
+
+    // When state changes manually
+    $('#state').on('change', function() {
+        var stateId = $(this).val();
+        loadAreas(stateId, selectedArea);
+    });
+
+    // Function to load areas
+    function loadAreas(stateId, selectedArea = '') {
+        if (!stateId) return;
+
         $.ajax({
-            url: '{{url("/")}}/employees/state/'+value,
+            url: '{{ url("/") }}/employees/state/' + stateId,
             method: 'GET',
             success: function(result) {
-                var content = '';
-                var slectTag = 'select[name="area"]';
-                var displayCollection =  "All";
-
-                content += '<option value="" selected>'+displayCollection+'</option>';
-                $.each(result.data.area, (key, value) => {
-                    content += '<option value="'+value.area_id+'">'+value.area+'</option>';
+                var content = '<option value="">All</option>';
+                $.each(result.data.area, function(key, val) {
+                    var selected = (val.area_id == selectedArea) ? 'selected' : '';
+                    content += '<option value="' + val.area_id + '" ' + selected + '>' + val.area + '</option>';
                 });
-                $(slectTag).html(content).attr('disabled', false);
+
+                $('#area').html(content).prop('disabled', false);
             }
         });
-    });
+    }
+});
 </script>
 <script>
 
