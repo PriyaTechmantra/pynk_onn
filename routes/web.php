@@ -131,7 +131,9 @@ Route::group(['middleware' => ['auth']], function() {
      Route::get('activity', [ActivityController::class, 'index'])->name('activities.index');
     
     //distributor
+    
     Route::get('distributors/note', [DistributorController::class, 'note'])->name('distributors.note');
+    Route::get('distributors/note/exportCSV', [DistributorController::class, 'noteCSV'])->name('distributors.note.exportCSV');
 
     Route::resource('distributors', DistributorController::class);
     Route::get('distributors/{userId}/delete', [DistributorController::class, 'destroy']);
