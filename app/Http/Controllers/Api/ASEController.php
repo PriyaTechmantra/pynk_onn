@@ -1219,9 +1219,10 @@ public function aseSalesreport(Request $request)
     }
 
 
-    public function editStore(Request $request,$id)
+    public function editStore(Request $request)
     {
          $validator = Validator::make($request->all(), [
+            'id' => 'required',
             'image' => 'required',
         ]);
     
@@ -1231,7 +1232,7 @@ public function aseSalesreport(Request $request)
                 'error' => $validator->errors()
             ], 400);
         }
-        $updatedEntry = Store::findOrFail($id);
+        $updatedEntry = Store::findOrFail($request->id);
         $updatedEntry->image=$request->image;
         $updatedEntry->save();
         if( $resp){
