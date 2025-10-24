@@ -120,7 +120,7 @@ class DistributorController extends Controller
             "Expires"             => "0"
         ];
 
-        $columns = ['User Name', 'Distributor Name', 'Comment', 'Date'];
+        $columns = ['User', 'Distributor', 'Comment', 'Date'];
 
         $callback = function() use ($data, $columns) {
             $file = fopen('php://output', 'w');
