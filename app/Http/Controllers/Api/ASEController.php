@@ -1217,8 +1217,30 @@ public function aseSalesreport(Request $request)
             'data' => $data,
         ]);
     }
-    
 
+
+    public function editStore(Request $request)
+    {
+         $validator = Validator::make($request->all(), [
+            'id' => 'required',
+            'image' => 'required',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'error' => $validator->errors()
+            ], 400);
+        }
+        $updatedEntry = Store::findOrFail($request->id);
+        $updatedEntry->image=$request->image;
+        $updatedEntry->save();
+        if( $updatedEntry){
+            return response()->json(['status' => true,'message' => 'updated successfully','store' => $updatedEntry], 200);
+        }else{
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+    }
 
 
 

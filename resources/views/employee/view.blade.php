@@ -143,11 +143,7 @@
                                             <td>{{ $data->date_of_joining ??''}}</td>
                                         </tr>
                                         @php
-                                         $assignedPermissions = DB::table('user_permission_categories')
-                                            ->select('user_permission_categories.*')
-                                            ->join('employees','employees.id','=','user_permission_categories.employee_id')
-                                            ->where('user_permission_categories.employee_id', $data->id)
-                                            ->get();
+                                        
 
                                             $brandMap = [
                                                 1 => 'ONN',
@@ -155,12 +151,18 @@
                                                 3 => 'Both',
                                             ];
 
-                                            $brandPermissions = $assignedPermissions->pluck('brand')
-                                                ->map(function ($brand) use ($brandMap) {
-                                                    return $brandMap[$brand] ?? $brand; // fallback if unknown
-                                                })
-                                                ->unique() // avoid duplicates
-                                                ->implode(', '); // comma separated string
+                                            $brands = [$data->brand];
+
+                                            // Check conditions
+                                                if (in_array(3, $brands)) {
+                                                    $brandPermissions = 'Both';
+                                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                                    $brandPermissions = 'Both';
+                                                } else {
+                                                    $brandPermissions = collect($brands)
+                                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                                        ->implode(', ');
+                                                }
                                         @endphp
                                         <tr>
                                             <td class="text-muted">Brand Permission : </td>
