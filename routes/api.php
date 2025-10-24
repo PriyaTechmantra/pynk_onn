@@ -75,77 +75,39 @@ Route::get('products', [ASEController::class, 'productList']);
 Route::get('collection/{collectionId}/category/{categoryId}', [ASEController::class, 'collectionCategoryWiseProducts']);
 Route::get('products/show/{id}', [ASEController::class, 'productShow']);
 
-Route::get('product/images/{id}', [ASEController::class, 'productImages']);
-Route::get('products-color-size/show/{productid}', [ASEController::class, 'colorsize']);
-Route::get('search/product', [ASEController::class, 'searchProduct']);
-Route::get('multicolor/size', [ASEController::class, 'multicolorsize']);
-
+Route::get('product/images/{id}/{colorId}', [ASEController::class, 'productImages']);
 Route::get('products-color/view/{productid}', [ASEController::class, 'productcolor']);
-Route::get('product/color/details/{id}', [ASEController::class, 'productcolorDetails']);
-Route::get('product/color/images', [ASEController::class, 'productcolorImages']);
+Route::get('multicolor/size', [ASEController::class, 'multicolorsize']);
+Route::get('search/product', [ASEController::class, 'searchProduct']);
+
+
 Route::post('bulkAddTocart', [ASEController::class, 'bulkAddTocart']);
 Route::get('cart/qty/{cartId}/{q}', [ASEController::class, 'qtyUpdate']);
-
+Route::get('cart/preview/pdf/url/{userId}', [ASEController::class, 'cartPreviewPDF_URL']);
 Route::get('cart/preview/pdf/view/{userId}', [ASEController::class, 'cartPreviewPDF_view']);
 Route::get('cart/clear/{id}', [ASEController::class, 'clearCart']);
 Route::get('cart/delete/{id}', [ASEController::class, 'cartDelete']);
 //return book
 Route::get('cart/user/{id}', [ASEController::class, 'showByUser']);
 
-Route::post('place-order-update', [BookController::class, 'placeOrderUpdate']);
+Route::post('place-order-update', [ASEController::class, 'placeOrderUpdate']);
 
-Route::post('/return-bulk-book', [BookController::class, 'returnBook']);
+Route::post('order/list/{id}/{user_id}', [ASEController::class, 'orderList']);
 
-Route::post('/return-bulk-book-for-captain', [BookController::class, 'returnBookForCaptain']);
+Route::post('order/details/{id}', [ASEController::class, 'orderDetails']);
 
-Route::post('/save-fcm-token', [NotificationController::class, 'saveToken']);
-
-
-Route::post('/save-notification', [NotificationController::class, 'Notification']);
-Route::get('/notification-list-by-user', [NotificationController::class, 'notificationListByUser']);
-Route::post('/notification-read', [NotificationController::class, 'markAsRead']);
+Route::post('order/pdf/url/{id}', [ASEController::class, 'orderPDF_URL']);
 
 
-Route::prefix('cab_bookings')->group(function () {
-    // Route::get('/', [BookingController::class, 'index']);            
-    // Route::get('/{id}', [BookingController::class, 'show']);         
-    Route::post('/store', [CabBookingController::class, 'store']);  
-    Route::post('/edit', [CabBookingController::class, 'edit']);  
-    // Route::put('/{id}', [CabBookingController::class, 'update']);      
-    // Route::delete('/{id}', [CabBookingController::class, 'destroy']);  
-});
+Route::post('order/pdf/view/{id}', [ASEController::class, 'orderPDF_view']);
+Route::get('my-orders', [ASEController::class, 'myOrdersFilter']);
+Route::post('store-wise-report-ase', [ASEController::class, 'storeReportASE']);
 
-Route::prefix('flight_bookings')->group(function () {
-    Route::post('/store', [FlightBookingController::class, 'store']); 
-    Route::post('/edit', [FlightBookingController::class, 'edit']); 
-});
+Route::get('product-wise-report-ase', [ASEController::class, 'productReportASE']);
+Route::get('catalogue', [ASEController::class, 'catalogueList']);
+Route::get('scheme', [ASEController::class, 'schemeList']);
+Route::get('news', [ASEController::class, 'newsList']);
 
-Route::prefix('train_bookings')->group(function () {
-    Route::post('/store', [TrainBookingController::class, 'store']);    
-    Route::post('/edit', [TrainBookingController::class, 'edit']);    
-});
-
-
-Route::prefix('hotel_bookings')->group(function () {
-    Route::post('/store', [HotelBookingController::class, 'store']);
-    Route::post('/edit', [HotelBookingController::class, 'edit']);
-});
-
-Route::get('/room_list', [HotelBookingController::class, 'roomList']);
-Route::get('/property_list', [HotelBookingController::class, 'propertyList']);
-Route::get('/booked_hotel_list', [HotelBookingController::class, 'userRoomBookings']);
-
-
-
-Route::get('bookings_history', [BookingHistoryController::class, 'getBookingHistory']);
-
-
-Route::prefix('cancel_bookings')->group(function () {
-    Route::post('/train', [TrainBookingController::class, 'cancelTrainBooking']);
-    Route::post('/flight', [FlightBookingController::class, 'cancelFlightBooking']);
-    Route::post('/cab', [CabBookingController::class, 'cancelCabBooking']);
-    Route::post('/hotel', [HotelBookingController::class, 'cancelHotelBooking']);
-});
 
 //cave
 Route::get('cave-search', [CaveController::class, 'search']);
