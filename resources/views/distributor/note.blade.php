@@ -32,13 +32,27 @@
                                     <form action="{{url('distributors/note')}}">
                                         <div class="row">
                                             <div class="col-2">
-                                                    <select name="user_type" class="form-control form-control-sm">
-                                                        <option value="">User Type</option>
-                                                        <option value="1" {{ app('request')->input('user_type') == 1 ? 'selected' : '' }}>VP</option>
-                                                        <option value="2" {{ app('request')->input('user_type') == 2 ? 'selected' : '' }}>RSM</option>
-                                                        <option value="3" {{ app('request')->input('user_type') == 3 ? 'selected' : '' }}>ASM</option>
-                                                        <option value="4" {{ app('request')->input('user_type') == 4 ? 'selected' : '' }}>ASE</option>
-                                                    </select>
+                                                 <select name="user_type" class="form-control form-control-sm">
+                                                    <option value="">User Type</option>
+
+                                                    @php
+                                                        $types = [
+                                                            1 => 'VP',
+                                                            2 => 'RSM',
+                                                            3 => 'ASM',
+                                                            4 => 'ASE',
+                                                        ];
+                                                    @endphp
+
+                                                    @foreach ($types as $key => $label)
+                                                        @if (in_array($key, $availableUserTypes))
+                                                            <option value="{{ $key }}" {{ request('user_type') == $key ? 'selected' : '' }}>
+                                                                {{ $label }}
+                                                            </option>
+                                                        @endif
+                                                    @endforeach
+                                                </select>
+
                                             </div>
                                             <div class="col-2">
                                                 <select name="user_name" class="form-control form-control-sm">
