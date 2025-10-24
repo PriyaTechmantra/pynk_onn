@@ -57,7 +57,7 @@ class ASEController extends Controller
         if (count($area)==0) {
             return response()->json(['status'=>false, 'message'=>'Start Your Visit']);
         } else {
-            return response()->json(['status'=>true, 'message'=>'Visit already started','area'=>$area[0]->area,'visit_id'=>$area[0]->id,'data'=>$user],200);
+            return response()->json(['status'=>true, 'message'=>'Visit already started','area'=>$area[0]->area->name,'visit_id'=>$area[0]->id,'data'=>$user],200);
         } 
 		
 	}
