@@ -9,7 +9,7 @@ class Visit extends Model
 {
     use HasFactory;
 
-    public function area() {
+    public function areas() {
         return $this->belongsTo('App\Models\Area', 'area_id', 'id');
     }
 }
