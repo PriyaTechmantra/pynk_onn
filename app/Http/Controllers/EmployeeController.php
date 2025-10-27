@@ -1634,7 +1634,6 @@ public function attendanceReportExport(Request $request)
 		return response()->json(['error' => false, 'message' => 'Type wise name list', 'data' => $resp]);
     }
 
-     //notification list
     public function notificationList(Request $request)
     {
         $date_from = $request->date_from ?? '';
@@ -1662,9 +1661,6 @@ public function attendanceReportExport(Request $request)
 
         return view('notification.index', compact('data', 'request'));
     }
-
-
-    
 
     public function notificationExportCSV(Request $request)
     {
@@ -1729,8 +1725,6 @@ public function attendanceReportExport(Request $request)
 
         return Response::stream($callback, 200, $headers);
     }
-
-    
         
 }
     
