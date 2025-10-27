@@ -16,7 +16,5 @@ class RetailerProduct extends Model
         'amount',
         'status',
     ];
-    protected $casts = [
-        'brand' => 'array',
-    ];
+
 }

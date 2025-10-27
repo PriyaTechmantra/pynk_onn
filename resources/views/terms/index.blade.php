@@ -37,22 +37,23 @@
                                     <div class="card-body">
 
                                         <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="brand[]" value="1" id="brandOnn"
-                                                {{ in_array(1, $data->brand ?? []) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="brandOnn">Onn</label>
-                                        </div>
+                                                    <input type="checkbox" id="brandOnn" value="1" onchange="updateBrandValue()" 
+                                                        @checked(old('brand', $data->brand ?? '') == 1 )>
+                                                    <label class="form-check-label" for="brandOnn">Onn</label>
+                                                </div>
 
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="brand[]" value="2" id="brandPynk"
-                                                {{ in_array(2, $data->brand ?? []) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="brandPynk">Pynk</label>
-                                        </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" id="brandPynk" value="2" onchange="updateBrandValue()" 
+                                                        @checked(old('brand', $data->brand ?? '') == 2)>
+                                                    <label class="form-check-label" for="brandPynk">Pynk</label>
+                                                </div>
 
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="brand[]" value="3" id="brandBoth"
-                                                {{ in_array(3, $data->brand ?? []) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="brandBoth">Both</label>
-                                        </div>
+                                                <div class="form-check">
+                                                    <input type="checkbox" id="brandBoth" value="3" onchange="updateBrandValue()" 
+                                                        @checked(old('brand', $data->brand ?? '') == 3)>
+                                                    <label class="form-check-label" for="brandBoth">Both</label>
+                                                </div>
+                                            <input type="hidden" name="brand" id="brandValue" value="{{$data->brand}}">
                                     </div>
                                 </div>
                         </div>
@@ -83,36 +84,33 @@
                                             <input 
                                                 class="form-check-input medium-checkbox" 
                                                 type="checkbox" 
-                                                name="brand[]" 
-                                                value="1" 
-                                                id="mediumOnn"
-                                                onchange="toggleSelectBox()"
+                                                id="brandOnn" 
+                                                value="1"
+                                                onchange="updateBrandValue()"
                                             >
-                                                <label class="form-check-label" for="mediumLMS">Onn</label>
+                                            <label class="form-check-label" for="brandOnn">Onn</label>
                                         </div>
                                         <div class="form-check">
                                             <input 
                                                 class="form-check-input medium-checkbox" 
                                                 type="checkbox" 
-                                                name="brand[]" 
-                                                value="2" 
-                                                id="mediumPynk"
-                                                onchange="toggleSelectBox()"
+                                                id="brandPynk" 
+                                                value="2"
+                                                onchange="updateBrandValue()"
                                             >
-                                            <label class="form-check-label" for="mediumFMS">Pynk</label>
+                                            <label class="form-check-label" for="brandPynk">Pynk</label>
                                         </div>
-                                                            
                                         <div class="form-check">
                                             <input 
                                                 class="form-check-input medium-checkbox" 
                                                 type="checkbox" 
-                                                name="brand[]" 
-                                                value="3" 
-                                                id="mediumBoth"
-                                                onchange="toggleSelectBox()"
+                                                id="brandBoth" 
+                                                value="3"
+                                                onchange="updateBrandValue()"
                                             >
-                                            <label class="form-check-label" for="mediumCave">Both</label>
+                                            <label class="form-check-label" for="brandBoth">Both</label>
                                         </div>
+                                        <input type="hidden" name="brand" id="brandValue">
                                     </div>
                                 </div>
                                 </div>
@@ -144,5 +142,31 @@
         .catch( error => {
             console.error( error );
         });
+
+         function updateBrandValue() {
+        let brandOnn = document.getElementById('brandOnn');
+        let brandPynk = document.getElementById('brandPynk');
+        let brandBoth = document.getElementById('brandBoth');
+        let brandValueInput = document.getElementById('brandValue');
+
+        if (brandBoth.checked) {
+            // brandOnn.checked = false;
+            // brandPynk.checked = false;
+            brandValueInput.value = 3;
+            return;
+        }
+
+        if (!brandBoth.checked) {
+            if (brandOnn.checked && brandPynk.checked) {
+                brandValueInput.value = 3;
+            } else if (brandOnn.checked) {
+                brandValueInput.value = 1;
+            } else if (brandPynk.checked) {
+                brandValueInput.value = 2;
+            } else {
+                brandValueInput.value = '';
+            }
+        }
+    }
 </script>
 @endsection

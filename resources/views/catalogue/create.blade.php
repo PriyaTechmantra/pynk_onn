@@ -70,41 +70,37 @@
 
                                     <div class="form-group mb-3">
                                         <label class="label-control">Brand Permission</label>
-
-                                                <div class="form-check">
-                                                    <input 
-                                                        class="form-check-input medium-checkbox" 
-                                                        type="checkbox" 
-                                                        name="brand[]" 
-                                                        value="1" 
-                                                        id="mediumOnn"
-                                                        onchange="toggleSelectBox()"
-                                                    >
-                                                        <label class="form-check-label" for="mediumLMS">Onn</label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input 
-                                                        class="form-check-input medium-checkbox" 
-                                                        type="checkbox" 
-                                                        name="brand[]" 
-                                                        value="2" 
-                                                        id="mediumPynk"
-                                                        onchange="toggleSelectBox()"
-                                                    >
-                                                    <label class="form-check-label" for="mediumFMS">Pynk</label>
-                                                </div>
-                                                                    
-                                                <div class="form-check">
-                                                    <input 
-                                                        class="form-check-input medium-checkbox" 
-                                                        type="checkbox" 
-                                                        name="brand[]" 
-                                                        value="3" 
-                                                        id="mediumBoth"
-                                                        onchange="toggleSelectBox()"
-                                                    >
-                                                    <label class="form-check-label" for="mediumCave">Both</label>
-                                                </div>
+                                        <div class="form-check">
+                                            <input 
+                                                class="form-check-input medium-checkbox" 
+                                                type="checkbox" 
+                                                id="brandOnn" 
+                                                value="1"
+                                                onchange="updateBrandValue()"
+                                            >
+                                            <label class="form-check-label" for="brandOnn">Onn</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input 
+                                                class="form-check-input medium-checkbox" 
+                                                type="checkbox" 
+                                                id="brandPynk" 
+                                                value="2"
+                                                onchange="updateBrandValue()"
+                                            >
+                                            <label class="form-check-label" for="brandPynk">Pynk</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input 
+                                                class="form-check-input medium-checkbox" 
+                                                type="checkbox" 
+                                                id="brandBoth" 
+                                                value="3"
+                                                onchange="updateBrandValue()"
+                                            >
+                                            <label class="form-check-label" for="brandBoth">Both</label>
+                                        </div>
+                                        <input type="hidden" name="brand" id="brandValue">
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Image <span class="text-danger">*</span></label>
@@ -156,75 +152,39 @@
 
 @section('script')
 <script>
-    function htmlToCSV() {
-        var data = [];
-        var rows = document.querySelectorAll("#example5 tbody tr");
-        @php
-            if (!request()->input('page')) {
-                $page = '1';
-            } else {
-                $page = request()->input('page');
-            }
-        @endphp
 
-        var page = "{{ $page }}";
+    $(document).ready(function() {
+        $('#stateSelect, #vpSelect').select2({
+            placeholder: "Select options",
+            allowClear: true
+        });
+    });
 
-        data.push("SRNO,Image,Pdf,Title,Date,Status");
+    function updateBrandValue() {
+        let brandOnn = document.getElementById('brandOnn');
+        let brandPynk = document.getElementById('brandPynk');
+        let brandBoth = document.getElementById('brandBoth');
+        let brandValueInput = document.getElementById('brandValue');
 
-        for (var i = 0; i < rows.length; i++) {
-            var row = [],
-                cols = rows[i].querySelectorAll("td");
-
-            for (var j = 0; j < cols.length; j++) {
-                var text = cols[j].innerText.split(' ');
-                var new_text = text.join('-');
-                if (j == 3||j==4)
-                    var comtext = new_text.replace(/\n/g, "-");
-                else
-                    var comtext = new_text.replace(/\n/g, ";");
-                row.push(comtext);
-
-            }
-            data.push(row.join(","));
+        if (brandBoth.checked) {
+            // brandOnn.checked = false;
+            // brandPynk.checked = false;
+            brandValueInput.value = 3;
+            return;
         }
 
-        downloadCSVFile(data.join("\n"), 'Catalogue.csv');
+        if (!brandBoth.checked) {
+            if (brandOnn.checked && brandPynk.checked) {
+                brandValueInput.value = 3;
+            } else if (brandOnn.checked) {
+                brandValueInput.value = 1;
+            } else if (brandPynk.checked) {
+                brandValueInput.value = 2;
+            } else {
+                brandValueInput.value = '';
+            }
+        }
     }
-
-    function downloadCSVFile(csv, filename) {
-        var csv_file, download_link;
-
-        csv_file = new Blob([csv], {
-            type: "text/csv"
-        });
-
-        download_link = document.createElement("a");
-
-        download_link.download = filename;
-
-        download_link.href = window.URL.createObjectURL(csv_file);
-
-        download_link.style.display = "none";
-
-        document.body.appendChild(download_link);
-
-        download_link.click();
-    }
-
-
- @if (request()->input('export_all') == true)
-                <script>
-                    htmlToCSV();
-                    window.location.href = "{{ route('catalogue.index') }}";
-                </script>
-@endif
-
-$(document).ready(function() {
-    $('#stateSelect, #vpSelect').select2({
-        placeholder: "Select options",
-        allowClear: true
-    });
-});
 </script>
 @endsection
 

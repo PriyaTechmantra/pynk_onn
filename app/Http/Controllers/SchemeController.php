@@ -17,30 +17,15 @@ class SchemeController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1': 
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '3': 
-                            $q->orWhere(function ($q2) {
-                            $q2->whereJsonContains('brand', '1')
-                               ->whereJsonContains('brand', '2');
-                        })->orWhereJsonContains('brand', '3');
-                        break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
 
         if (!empty($request->date_from) && !empty($request->date_to)) {
@@ -79,7 +64,6 @@ class SchemeController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "required|date",
             "end_date" => "required|date",
-            "brand" => "nullable|array",
             "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
         ]);
@@ -91,7 +75,7 @@ class SchemeController extends Controller
         $storeData->name = $request->title;
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
-        $storeData->brand = $request->brand ?? [];
+        $storeData->brand = $request->brand;
 
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -133,7 +117,6 @@ class SchemeController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "required|date",
             "end_date" => "required|date",
-            "brand" => "nullable|array",
             
         ]);
 
@@ -145,7 +128,7 @@ class SchemeController extends Controller
         $storeData->name = $request->title;
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
-        $storeData->brand = $request->brand ?? [];
+        $storeData->brand = $request->brand;
 
         // Update image if uploaded
         if ($request->hasFile('image')) {

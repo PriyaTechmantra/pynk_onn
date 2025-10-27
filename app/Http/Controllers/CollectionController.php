@@ -26,30 +26,15 @@ class CollectionController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1': 
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '3': 
-                            $q->orWhere(function ($q2) {
-                            $q2->whereJsonContains('brand', '1')
-                               ->whereJsonContains('brand', '2');
-                        })->orWhereJsonContains('brand', '3');
-                        break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
 
         $data = $query->orderBy('position','desc')->paginate(25);
@@ -71,7 +56,6 @@ class CollectionController extends Controller
             "sketch_icon" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "image_path" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "banner_image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "brand" => "nullable|array"
         ]);
 
         $storeData=new Collection();
@@ -150,7 +134,6 @@ class CollectionController extends Controller
         $request->validate([
             "title" => "required|string|max:255",
             "description" => "nullable|string",
-            "brand" => "nullable|array",
             "icon_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "sketch_icon" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "image_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
@@ -245,32 +228,16 @@ class CollectionController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1':
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '3':
-                            $q->orWhere(function ($q2) {
-                                $q2->whereJsonContains('brand', '1')
-                                ->whereJsonContains('brand', '2');
-                            })->orWhereJsonContains('brand', '3');
-                            break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
-
         $data = $query->orderBy('position', 'desc')->get();
 
         $filename = "Product-Collection-" . date('Y-m-d') . ".csv";

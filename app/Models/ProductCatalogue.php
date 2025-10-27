@@ -28,7 +28,6 @@ class ProductCatalogue extends Model
         return $this->belongsTo(\App\Models\State::class, 'state', 'id');
     }
     protected $casts = [
-        'brand' => 'array',
         'state' => 'array',
         'vp' => 'array',  
     ];
