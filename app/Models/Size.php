@@ -9,7 +9,4 @@ class Size extends Model
 {
     use HasFactory;
     
-    protected $casts = [
-        'brand' => 'array',
-    ];
 }

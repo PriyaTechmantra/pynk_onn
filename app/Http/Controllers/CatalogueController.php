@@ -21,30 +21,15 @@ class CatalogueController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1': 
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '3': 
-                            $q->orWhere(function ($q2) {
-                            $q2->whereJsonContains('brand', '1')
-                               ->whereJsonContains('brand', '2');
-                        })->orWhereJsonContains('brand', '3');
-                        break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
 
         $query->latest(); 
@@ -77,7 +62,6 @@ class CatalogueController extends Controller
             "vp" => "required|array",
             "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
-            "brand" => "nullable|array",
         ]);
 
         $upload_path = "public/uploads/catalogue/";
@@ -151,7 +135,7 @@ class CatalogueController extends Controller
             "vp" => "required|array",
             "image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
-            "brand" => "nullable|array",
+            // "brand" => "nullable|array",
         ]);
 
         $upload_path = "public/uploads/catalogue/";
@@ -219,12 +203,15 @@ class CatalogueController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    $q->orWhereJsonContains('brand', trim($brand));
-                }
-            });
+            $brand = $request->brand_selection;
+
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
 
         $data = $query->orderBy('id', 'desc')->get();
@@ -240,7 +227,7 @@ class CatalogueController extends Controller
         $f = fopen('php://memory', 'w');
 
         // CSV headers
-        $headers = ['TITLE', 'START DATE', 'END DATE', 'STATE', 'VP','STATUS'];
+        $headers = ['TITLE', 'START DATE', 'END DATE', 'STATUS'];
         fputcsv($f, $headers, $delimiter);
 
          $stateName = '';
@@ -249,20 +236,23 @@ class CatalogueController extends Controller
         $count = 1;
 
         foreach ($data as $row) {
-            $stateNames = [];
-            if ($row->state && is_array($row->state)) {
-                $stateNames = State::whereIn('id', $row->state)->pluck('name')->toArray();
-            }
-            $stateName = implode(', ', $stateNames);
+            // $stateNames = [];
+            // if ($row->state && is_array($row->state)) {
+            //     $stateNames = State::whereIn('id', $row->state)->pluck('name')->toArray();
+            // }
+            // $stateName = implode(', ', $stateNames);
+
+            // $vpNames = [];
+            // if ($row->vp && is_array($row->vp)) {
+            //     $vpNames = Employee::whereIn('id', $row->vp)->pluck('name')->toArray();
+            // }
+            // $vpName = implode(', ', $vpNames);
 
             $lineData = [
                 $row->title ?? '',
                 $row->start_date ? date('d M Y', strtotime($row->start_date)) : '',
                 $row->end_date ? date('d M Y', strtotime($row->end_date)) : '',
-                $stateName,
-                $row->vp ?? '',
                 ($row->status == 1) ? 'Active' : 'Inactive',
-
             ];
 
             fputcsv($f, $lineData, $delimiter);

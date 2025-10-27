@@ -11,8 +11,5 @@ class Collection extends Model
     public function ProductDetails(string $orderBy = 'style_no', string $order = 'asc') {
         return $this->hasMany('App\Models\Product', 'collection_id', 'id')->where('status', 1)->orderBy($orderBy, $order);
     }
-    
-    protected $casts = [
-        'brand' => 'array',
-    ];
+   
 }

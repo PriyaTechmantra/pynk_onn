@@ -15,31 +15,16 @@ class NewsController extends Controller
             $query->where('title', 'LIKE', '%' . $request->term . '%');
         }
 
-        if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+         if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1': 
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '3': 
-                            $q->orWhere(function ($q2) {
-                            $q2->whereJsonContains('brand', '1')
-                               ->whereJsonContains('brand', '2');
-                        })->orWhereJsonContains('brand', '3');
-                        break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
 
         if ($request->filled('status')) {
@@ -82,7 +67,6 @@ class NewsController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "required|date",
             "end_date" => "required|date",
-            "brand" => "nullable|array",
             "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
         ]);
@@ -94,7 +78,7 @@ class NewsController extends Controller
         $storeData->user_type = $request->user_type;
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
-        $storeData->brand = $request->brand ?? [];
+        $storeData->brand = $request->brand ;
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
@@ -134,7 +118,6 @@ class NewsController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "required|date",
             "end_date" => "required|date",
-            "brand" => "nullable|array",
             "user_type" => "nullable|array",
             "image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
@@ -147,7 +130,7 @@ class NewsController extends Controller
         $storeData->user_type = $request->user_type;
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
-        $storeData->brand = $request->brand ?? [];
+        $storeData->brand = $request->brand;
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');

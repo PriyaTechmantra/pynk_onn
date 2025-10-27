@@ -25,30 +25,15 @@ class RetailerProductController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1': 
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '3': 
-                            $q->orWhere(function ($q2) {
-                            $q2->whereJsonContains('brand', '1')
-                               ->whereJsonContains('brand', '2');
-                        })->orWhereJsonContains('brand', '3');
-                        break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
 
         $data = $query->orderBy('id', 'desc')->paginate(25);
@@ -70,7 +55,6 @@ class RetailerProductController extends Controller
             "desc" => "nullable",
             "image" => "required",
 			"amount" => "required",
-            "brand" => "nullable|array",
         ]);
         $storeData=new RetailerProduct();
         $storeData->title=$request->title;
@@ -80,7 +64,6 @@ class RetailerProductController extends Controller
         $storeData->status=1;
         $storeData->position =$storeData->position+1;
         $storeData->brand =$request->brand;
-        // $storeData->brand = !empty($request->brand) ? implode(',', $request->brand) : null;
 
         // slug generate
         $slug = \Str::slug($request['title'], '-');
@@ -151,7 +134,6 @@ class RetailerProductController extends Controller
             "short_desc" => "nullable",
             "desc" => "nullable",
             "amount" => "nullable",
-            "brand" => "nullable|array",
         ]);
 
         $storeData=RetailerProduct::findOrFail($id);

@@ -9,7 +9,5 @@ class Scheme extends Model
 {
     use HasFactory;
 
-    protected $casts = [
-        'brand' => 'array',
-    ];
+   
 }

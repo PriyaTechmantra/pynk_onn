@@ -17,30 +17,15 @@ class CategoryController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1': 
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '3': 
-                            $q->orWhere(function ($q2) {
-                            $q2->whereJsonContains('brand', '1')
-                               ->whereJsonContains('brand', '2');
-                        })->orWhereJsonContains('brand', '3');
-                        break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
 
         $data = $query->orderBy('position','desc')->paginate(25);
@@ -62,7 +47,6 @@ class CategoryController extends Controller
             "sketch_icon" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "image_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "banner_image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "brand" => "nullable|array"
         ]);
         $upload_path = "public/uploads/category/";
         $data = new Category;
@@ -145,7 +129,6 @@ class CategoryController extends Controller
             "sketch_icon" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "image_path" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
             "banner_image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "brand" => "nullable|array"
         ]);
 
         $data = Category::findOrfail($id);
@@ -241,30 +224,15 @@ class CategoryController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1':
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-
-                        case '3':
-                            $q->orWhere(function ($q2) {
-                                $q2->whereJsonContains('brand', '1')
-                                ->whereJsonContains('brand', '2');
-                            })->orWhereJsonContains('brand', '3');
-                            break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
 
         $data = $query->orderBy('position', 'desc')->get();
