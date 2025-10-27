@@ -11,7 +11,7 @@ class Employee extends Model
 
     protected $fillable = [
         'name','designation', 'type', 'email', 'mobile', 'whatsapp_no',
-        'password', 'employee_id', 'address', 'state', 'city', 'pin',
+        'password', 'employee_id', 'address', 'state', 'city', 'pin','brand','personal_mail','alt_number1','alt_number2','alt_number3'
     ];
      
     public function stateDetail()
