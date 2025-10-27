@@ -17,7 +17,7 @@
 
                 <div class="card data-card">
                     <div class="card-header">
-                        <h4 class="d-flex">Edit Employee
+                        <h4 class="d-flex">Update Employee
                             <a href="{{ url('employees') }}" class="btn btn-cta ms-auto">Back</a>
                         </h4>
                     </div>
@@ -28,40 +28,46 @@
                                 <form action="{{ url('employees/'.$data->id) }}" method="POST" class="data-form">
                                     @csrf
                                     @method('PUT')
-        
+                                    <h4 class="page__subtitle">Add New</h4>
+                        
                                     <div class="mb-3">
-                                        <label for="">User Type</label>
+                                        <label for="">User Type <span class="text-danger">*</span></label>
                                         <select id="user_type" name="type" class="form-control">
-                                            <option value="" selected disabled>--Select--</option>
-                                            <option value="1" {{$data->type == 1 ? 'selected' : ''}}>VP</option>
-                                            <option value="2" {{$data->type == 2 ? 'selected' : ''}}>RSM</option>
-                                            <option value="3" {{$data->type == 3 ? 'selected' : ''}}>ASM</option>
-                                            <option value="4" {{$data->type == 4 ? 'selected' : ''}} >ASE</option>
+                                            <option value="" selected disabled>Select</option>
+                                            <option value="1" {{ ($data->type == 1 )? 'selected' : ''}}>VP</option>
+                                            <option value="2" {{ ($data->type == 2 )? 'selected' : ''}}>RSM</option>
+                                            <option value="3" {{ ($data->type == 3 )? 'selected' : ''}}>ASM</option>
+                                            <option value="4" {{ ($data->type == 4 )? 'selected' : ''}}>ASE</option>
                                         </select>
                                         
                                         @error('type') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="mb-3">
                                         <label for="designation">Designation <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="designation" name="designation" placeholder="" value="{{ old('designation',$data->designation)}}">
+                                        <input type="text" class="form-control" id="designation" name="designation" placeholder="" value="{{ old('designation',$data->designation) }}">
                                         @error('designation') <p class="small text-danger">{{$message}}</p> @enderror
                                     </div>
                                     <div class="mb-3">
                                         <label for="employee_id">Employee ID<span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="employee_id" name="employee_id" placeholder="" value="{{ old('employee_id',$data->employee_id)}}">
+                                        <input type="text" class="form-control" id="employee_id" name="employee_id" placeholder="" value="{{ old('employee_id',$data->employee_id)  }}">
                                         @error('employee_id') <p class="small text-danger">{{$message}}</p> @enderror
                                     </div>
+                                    
                                     <div class="mb-3">
                                         <label class="label-control">Full Name <span class="text-danger">*</span> </label>
                                         <input type="text" name="name" placeholder="" class="form-control" value=" {{old('name',$data->name)}}">
                                         @error('name') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="mb-3">
-                                        <label class="label-control">Email  </label>
-                                        <input type="email" name="email" placeholder="" class="form-control" value="{{old('email',$data->email)}}">
+                                        <label class="label-control">Official Email  </label>
+                                        <input type="email" name="email" placeholder="" class="form-control" value="{{old('email' ,$data->email)}}">
                                         @error('email') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    
+                                    <div class="mb-3">
+                                        <label class="label-control">Personal Email  </label>
+                                        <input type="email" name="personal_mail" placeholder="" class="form-control" value="{{old('personal_mail' ,$data->personal_mail)}}">
+                                        @error('personal_mail') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
                                     <div class="mb-3">
                                         <label class="label-control">Contact <span class="text-danger">*</span> </label>
                                         <input type="number" name="mobile" placeholder="" class="form-control" value="{{old('mobile',$data->mobile)}}">
@@ -73,23 +79,38 @@
                                         @error('whatsapp_no') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="mb-3">
+                                        <label class="label-control">Alt. Mobile 1 </label>
+                                        <input type="number" name="alt_number1" placeholder="" class="form-control" value="{{old('alt_number1',$data->alt_number1)}}">
+                                        @error('alt_number1') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="label-control">Alt. Mobile 2 </label>
+                                        <input type="number" name="alt_number2" placeholder="" class="form-control" value="{{old('alt_number2',$data->alt_number2)}}">
+                                        @error('alt_number2') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="label-control">Alt. Mobile 3 </label>
+                                        <input type="number" name="alt_number3" placeholder="" class="form-control" value="{{old('alt_number3',$data->alt_number3)}}">
+                                        @error('alt_number3') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="mb-3">
                                         <label for="state">State <span class="text-danger">*</span></label>
                                         <select class="form-select select2" id="state" name="state" aria-label="Floating label select example">
-                                            <option value="" selected >--Select State--</option>
+                                            <option value="" selected >Select</option>
                                             @foreach ($state as $index => $item)
-                                                <option value="{{ $item->id }}" {{$data->state == $item->id ? 'selected' : ''}}>{{ $item->name }}</option>
+                                                <option value="{{ $item->id }}" {{ ($data->state == $item->id) ? 'selected' : '' }}>{{ $item->name }}</option>
                                             @endforeach
                                         </select>
                                         @error('state') <p class="small text-danger">{{$message}}</p> @enderror
                                     </div>
                                     <div class="mb-3">
                                         <label for="area">City/ Area</label>
-                                        <select class="form-select select2" id="area" name="city" aria-label="Floating label select example" disabled>
+                                        <select class="form-select select2" id="city" name="city" aria-label="Floating label select example" disabled>
                                             <option value="">Select State first</option>
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="label-control">Date of Joining <span class="text-danger">*</span> </label>
+                                        <label class="label-control">Date of Joining  </label>
                                         <input type="date" name="date_of_joining" placeholder="" class="form-control" value="{{old('date_of_joining',$data->date_of_joining)}}">
                                         @error('date_of_joining') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
@@ -98,14 +119,10 @@
                                         <input type="password" name="password" placeholder="" class="form-control" value="{{old('password',$data->password)}}">
                                         @error('password') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    @php
-                                         $assignedPermissions = DB::table('user_permission_categories')->select('user_permission_categories.*')->join('employees','employees.id','=','user_permission_categories.employee_id')->where('user_permission_categories.employee_id', $data->id)->get()->toArray();
-                                         $brand = collect($assignedPermissions)->pluck('brand')->toArray();
-                                    @endphp
                                     <div class="mb-3">
                                             <!-- Communication Medium -->
-                                            <h6>Brand Permission:</h6>
-                                            
+                                            <h6>Brand Permission:  <span class="text-danger">*</span></h6>
+                                            @error('brand') <p class="small text-danger">{{ $message }}</p> @enderror
                                             <div class="form-check">
                                                 <input 
                                                     class="form-check-input medium-checkbox" 
@@ -113,8 +130,8 @@
                                                     name="brand" 
                                                     value="1" 
                                                     id="mediumOnn"
-                                                    {{ isset($assignedPermissions) && in_array('1', $brand) ? 'checked' : '' }}
-                                                    onchange="toggleSelectBox()"
+                                                     {{ $data->brand == 1 ? 'checked' : '' }}
+                                                    onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumLMS">Onn</label>
                                             </div>
@@ -125,8 +142,8 @@
                                                     name="brand" 
                                                     value="2" 
                                                     id="mediumPynk"
-                                                    {{ isset($assignedPermissions) && in_array('2', $brand) ? 'checked' : '' }}
-                                                    onchange="toggleSelectBox()"
+                                                    {{ $data->brand == 2 ? 'checked' : '' }}
+                                                    onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumFMS">Pynk</label>
                                             </div>
@@ -138,12 +155,13 @@
                                                     name="brand" 
                                                     value="3" 
                                                     id="mediumBoth"
-                                                    {{ isset($assignedPermissions) && in_array('3', $brand) ? 'checked' : '' }}
-                                                    onchange="toggleSelectBox()"
+                                                    {{ $data->brand == 3 ? 'checked' : '' }}
+                                                    onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumCave">Both</label>
                                             </div>
                                         </div>
+                                    
                                     <div class="text-end mb-3">
                                         <button type="submit" class="btn btn-submit">Save</button>
                                     </div>
@@ -162,30 +180,40 @@
 @section('script')
 
 <script>
-    $('select[name="state"]').on('change', (event) => {
-        var stateId = $(event.target).val();
-        var selectedCityId = "{{ $data->city ?? '' }}"; // from backend
+    $(document).ready(function() {
+    var selectedState = "{{ request()->input('state') ?? $data->state }}";
+    var selectedArea = "{{ request()->input('city') ?? $data->city }}";
 
-        $.ajax({
-            url: '{{url("/")}}/areas/state/wise/' + stateId,
-            method: 'GET',
-            success: function(result) {
-                var content = '';
-                var slectTag = 'select[name="city"]';
-                var displayCollection = "All";
+    // Trigger change if state is already selected (for edit/filter persistence)
+    if (selectedState) {
+        loadAreas(selectedState, selectedArea);
+    }
 
-                content += '<option value="" disabled>--Select City--</option>';
-                $.each(result.data.area, (key, value) => {
-                    let selected = (value.area_id == selectedCityId) ? 'selected' : '';
-                    content += '<option value="' + value.area_id + '" ' + selected + '>' + value.area + '</option>';
-                });
-                $(slectTag).html(content).attr('disabled', false);
-            }
-        });
+    // When state changes manually
+    $('#state').on('change', function() {
+        var stateId = $(this).val();
+        loadAreas(stateId, selectedArea);
     });
 
-    // 🔹 Trigger change once to pre-fill cities in edit form
-    $('select[name="state"]').trigger('change');
-</script>
+    // Function to load areas
+    function loadAreas(stateId, selectedArea = '') {
+        if (!stateId) return;
 
+        $.ajax({
+            url: '{{ url("/") }}/employees/state/' + stateId,
+            method: 'GET',
+            success: function(result) {
+                var content = '<option value="" disabled>Select</option>';
+                $.each(result.data.area, function(key, val) {
+                    var selected = (val.area_id == selectedArea) ? 'selected' : '';
+                    content += '<option value="' + val.area_id + '" ' + selected + '>' + val.area + '</option>';
+                });
+
+                $('#city').html(content).prop('disabled', false);
+            }
+        });
+    }
+});
+</script>
 @endsection
+

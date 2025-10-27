@@ -9,6 +9,7 @@ use App\Models\Area;
 use App\Models\UserArea;
 use App\Models\Team;
 use App\Models\Store;
+use App\Models\Distributor;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -171,29 +172,52 @@ class EmployeeController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        dd($request->all());
         request()->validate([
             'name' => 'required',
+            'type' => 'required',
             'employee_id' => 'required|unique:employees',
+            'designation' => 'required',
+            'mobile' => 'required|unique:employees',
+            'email' =>  'nullable|email',
+            'personal_mail' =>  'nullable|email',
+            'state' => 'required',
+            'password' => 'required',
+            'brand' => 'required',
         ]);
-    
+        if (is_array($request->brand)) {
+            // If multiple brands selected
+            if (in_array(1, $request->brand) && in_array(2, $request->brand)) {
+                $brand = 3; // both
+            } elseif (in_array(1, $request->brand)) {
+                $brand = 1; // onn
+            } elseif (in_array(2, $request->brand)) {
+                $brand = 2; // pynk
+            }
+        } else {
+            // Single brand value
+            $brand = $request->brand;
+        }
         $data = Employee::create([
             'name'        => $request->name,
             'employee_id' => $request->employee_id,
+            'designation' => $request->designation,
             'email'       => $request->email,
+            'personal_mail'       => $request->personal_mail,
             'mobile'      => $request->mobile,
+            'alt_number1'      => $request->alt_number1,
+            'alt_number2'      => $request->alt_number2,
+            'alt_number3'      => $request->alt_number3,
             'whatsapp_no'      => $request->whatsapp_no,
             'type'        => $request->type,
             'state'       => $request->state,
             'city'        => $request->area,
             'date_of_joining'  => $request->date_of_joining,
+            'brand'  => $brand,
             'created_by'  => auth()->id(),
             'password'    => Hash::make($request->password), // hash here ✅
         ]);
-        DB::table('user_permission_categories')->updateOrInsert(
-                    ['employee_id' => $data->id, 'brand' => $request->brand],
-                    
-                    ['created_at' => now(), 'updated_at' => now()]
-                    );
+        
         return redirect()->route('employees.index')
                         ->with('success','employee created successfully.');
     }
@@ -204,265 +228,511 @@ class EmployeeController extends Controller
      * @param  \App\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function show($id): View
+    public function show(Request $request,$id): View
     {
         $data = (object) [];
         $data->employee = Employee::find($id);
         // VP
          // VP
         if ($data->employee->type == 1) {
-            $user_type = $request->user_type ? $request->user_type : '';
-            $name = $request->name ? $request->name : '';
-            $state = $request->state ? $request->state : '';
-            $area = $request->area ? $request->area : '';
+            $employeeBrand = $data->employee->brand;
+            $user = auth()->user();
 
-            $query = Team::where('vp_id', $data->employee->id);
+            // Logged-in user brand permissions
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
 
-            $query->when($user_type, function($query) use ($user_type, $name) {
-                if(!empty($name)) {
-                    if ($user_type == 1) $user_type = 'vp';
-                    elseif ($user_type == 2) $user_type = 'rsm';
-                    elseif ($user_type == 3) $user_type = 'asm';
-                    else $user_type = 'ase';
-                    
-                    
+            // Request filters
+            $user_type = $request->user_type ?? '';
+            $keyword = $request->keyword ?? '';
+            $state = $request->state ?? '';
+            $area = $request->area ?? '';
+            $brandFilter = $request->brand ?? '';
+            // Determine reporting column based on employee type
+            $column = match ($data->employee->type) {
+                1 => 'vp_id', // VP
+                2 => 'rsm_id', // RSM
+                3 => 'asm_id', // ASM
+                4 => 'ase_id', // ASE
+                default => null,
+            };
 
-                    $query->where($user_type, $name);
-                } else {
-                    if ($user_type == 2) {
-                        $user_type = 'rsm';
-                        $query->where('rsm_id', '!=', null)->groupBy('rsm_id');
-                    } elseif ($user_type == 3) {
-                        $user_type = 'asm';
-                        $query->where('asm_id', '!=', null)->groupBy('asm_id');
-                    } else {
-                        $user_type = 'ase';
-                        $query->where('ase_id', '!=', null)->groupBy('ase_id');
-                    
-                    }
-                }
-            });
+            if (!$column) {
+                return response()->json(['error' => true, 'message' => 'Invalid employee type.']);
+            }
 
-            $query->when($state, function($query) use ($state) {
-                $query->where('state', $state);
-            });
-            $query->when($area, function($query) use ($area) {
-                $query->where('city', $area);
-            });
+            // 🔹 Base Query
+            $query = Team::where($column, $data->employee->id)
+                ->where('is_deleted', 0)
+                ->where('status', 1);
 
-            $data->team = $query->paginate(25);
-            
-            return view('admin.user.detail.vp', compact('data', 'id', 'request'));
-        }
-        //ZSM
-         elseif ($data->employee->type == 2) {
-            $user_type = $request->user_type ? $request->user_type : '';
-            $name = $request->name ? $request->name : '';
-            $state = $request->state ? $request->state : '';
-            $area = $request->area ? $request->area : '';
+            // 🔹 Apply filters
+            if ($user_type) {
+                // Example: user_type = 2 means show RSM level under this VP
+                $typeMap = [1 => 'vp_id', 2 => 'rsm_id', 3 => 'asm_id', 4 => 'ase_id'];
+                $query->whereNotNull($typeMap[$user_type]);
+            }
 
-            $query = Team::where('rsm_id', $data->employee->id);
-
-            $query->when($user_type, function($query) use ($user_type, $name) {
-                if(!empty($name)) {
-                    if ($user_type == 1) $user_type = 'vp';
-                    elseif ($user_type == 2) $user_type = 'rsm';
-                    elseif ($user_type == 3) $user_type = 'asm';
-                    else $user_type = 'ase';
-                    
-
-                    $query->where($user_type, $name);
-                } else {
-                    if ($user_type == 2) {
-                        $user_type = 'rsm';
-                        $query->where('rsm_id', '!=', null)->groupBy('rsm_id');
-                    } elseif ($user_type == 3) {
-                        $user_type = 'asm';
-                        $query->where('asm', '!=', null)->groupBy('asm');
-                    } elseif ($user_type == 4) {
-                        $user_type = 'ase';
-                        $query->where('ase', '!=', null)->groupBy('ase');
-                    } elseif ($user_type == 5) {
-                        $user_type = 'distributor_name';
-                        $query->where('distributor_name', '!=', null)->groupBy('distributor_name');
-                    } else {
-                        $user_type = 'retailer';
-                        $query->where('retailer', '!=', null)->groupBy('retailer');
-                    }
-                }
-            });
-
-            $query->when($state, function($query) use ($state) {
-                $query->where('state', $state);
-            });
-            $query->when($area, function($query) use ($area) {
-                $query->where('area', $area);
-            });
-
-            $data->team = $query->paginate(25);
-            
-            return view('admin.user.detail.zsm', compact('data', 'id', 'request'));
-        }
-         // SM
-         elseif ($data->user->type == 3) {
-            $user_type = $request->user_type ? $request->user_type : '';
-            $name = $request->name ? $request->name : '';
-            $state = $request->state ? $request->state : '';
-            $area = $request->area ? $request->area : '';
-
-            $query = Team::where('rsm_id', $data->user->id);
-
-            $query->when($user_type, function($query) use ($user_type, $name) {
-                if(!empty($name)) {
-                    if ($user_type == 1) $user_type = 'vp';
-                    elseif ($user_type == 2) $user_type = 'rsm';
-                    elseif ($user_type == 3) $user_type = 'asm';
-                    elseif ($user_type == 4) $user_type = 'ase';
-                    elseif ($user_type == 5) $user_type = 'distributor_name';
-                    else $user_type = 'retailer';
-
-                    $query->where($user_type, $name);
-                } else {
-                    if ($user_type == 2) {
-                        $user_type = 'rsm';
-                        $query->where('rsm', '!=', null)->groupBy('rsm');
-                    } elseif ($user_type == 3) {
-                        $user_type = 'asm';
-                        $query->where('asm', '!=', null)->groupBy('asm');
-                    } elseif ($user_type == 4) {
-                        $user_type = 'ase';
-                        $query->where('ase', '!=', null)->groupBy('ase');
-                    } elseif ($user_type == 5) {
-                        $user_type = 'distributor_name';
-                        $query->where('distributor_name', '!=', null)->groupBy('distributor_name');
-                    } else {
-                        $user_type = 'retailer';
-                        $query->where('retailer', '!=', null)->groupBy('retailer');
-                    }
-                }
-            });
-
-            $query->when($state, function($query) use ($state) {
-                $query->where('state', $state);
-            });
-            $query->when($area, function($query) use ($area) {
-                $query->where('area', $area);
-            });
-
-            $data->team = $query->paginate(25);
-            
-            return view('admin.user.detail.rsm', compact('data', 'id', 'request'));
-        }
-        // SM
-        elseif ($data->user->type == 4) {
-            $user_type = $request->user_type ? $request->user_type : '';
-            $name = $request->name ? $request->name : '';
-            $state = $request->state ? $request->state : '';
-            $area = $request->area ? $request->area : '';
-
-            $query = Team::where('asm_id', $data->user->id);
-
-            $query->when($user_type, function($query) use ($user_type, $name) {
-                if(!empty($name)) {
-                    if ($user_type == 1) $user_type = 'vp';
-                    elseif ($user_type == 2) $user_type = 'rsm';
-                    elseif ($user_type == 3) $user_type = 'asm';
-                    elseif ($user_type == 4) $user_type = 'ase';
-                    elseif ($user_type == 5) $user_type = 'distributor_name';
-                    else $user_type = 'retailer';
-
-                    $query->where($user_type, $name);
-                } else {
-                    if ($user_type == 2) {
-                        $user_type = 'rsm';
-                        $query->where('rsm', '!=', null)->groupBy('rsm');
-                    } elseif ($user_type == 3) {
-                        $user_type = 'asm';
-                        $query->where('asm', '!=', null)->groupBy('asm');
-                    } elseif ($user_type == 4) {
-                        $user_type = 'ase';
-                        $query->where('ase', '!=', null)->groupBy('ase');
-                    } elseif ($user_type == 5) {
-                        $user_type = 'distributor_name';
-                        $query->where('distributor_name', '!=', null)->groupBy('distributor_name');
-                    } else {
-                        $user_type = 'retailer';
-                        $query->where('retailer', '!=', null)->groupBy('retailer');
-                    }
-                }
-            });
-
-            $query->when($state, function($query) use ($state) {
-                $query->where('state', $state);
-            });
-            $query->when($area, function($query) use ($area) {
-                $query->where('area', $area);
-            });
-
-            $data->team = $query->paginate(25);
-            
-            return view('admin.user.detail.sm', compact('data', 'id', 'request'));
-        }
-        // ASM
-        elseif ($data->user->type == 5) {
-            $user_type = $request->user_type ? $request->user_type : '';
-            $name = $request->name ? $request->name : '';
-            $state = $request->state ? $request->state : '';
-            $area = $request->area ? $request->area : '';
-
-            $query = Team::where('asm_id', $data->user->id);
-
-            $query->when($user_type, function($query) use ($user_type, $name) {
-                if(!empty($name)) {
-                    if ($user_type == 1) $user_type = 'vp';
-                    elseif ($user_type == 2) $user_type = 'rsm';
-                    elseif ($user_type == 3) $user_type = 'asm';
-                    elseif ($user_type == 4) $user_type = 'ase';
-                    elseif ($user_type == 5) $user_type = 'distributor_name';
-                    else $user_type = 'retailer';
-
-                    $query->where($user_type, $name);
-                } else {
-                    if ($user_type == 2) {
-                        $user_type = 'rsm';
-                        $query->where('rsm', '!=', null)->groupBy('rsm');
-                    } elseif ($user_type == 3) {
-                        $user_type = 'asm';
-                        $query->where('asm', '!=', null)->groupBy('asm');
-                    } elseif ($user_type == 4) {
-                        $user_type = 'ase';
-                        $query->where('ase_id', '!=', null)->groupBy('ase_id');
-                    } elseif ($user_type == 5) {
-                        $user_type = 'distributor_id';
-                        $query->where('distributor_id', '!=', null)->groupBy('distributor_id');
-                    } else {
-                        $user_type = 'retailer';
-                        $query->where('store_id', '!=', null)->groupBy('store_id');
-                    }
-                }
-            });
-
-            $query->when($state, function($query) use ($state) {
+            if ($state && $state !== 'all') {
                 $query->where('state_id', $state);
-            });
-            $query->when($area, function($query) use ($area) {
+            }
+
+            if ($area && $area !== 'all') {
                 $query->where('area_id', $area);
+            }
+
+            if (!empty($keyword)) {
+                $query->where(function ($query) use ($keyword) {
+                    $query->whereHas('rsm', fn($q) => $q->where('name', 'like', "%{$keyword}%"))
+                        ->orWhereHas('asm', fn($q) => $q->where('name', 'like', "%{$keyword}%"))
+                        ->orWhereHas('ase', fn($q) => $q->where('name', 'like', "%{$keyword}%"));
+                });
+            }
+
+            // 🔹 Brand Logic — unified and fixed
+            $query->where(function ($q) use ($employeeBrand, $userBrands, $brandFilter) {
+
+                // If dropdown filter selected
+                if ($brandFilter && $brandFilter !== 'All') {
+                    if ($brandFilter == 3) {
+                        // "Both" selected
+                        $q->whereIn('brand', [1, 2, 3]);
+                    } else {
+                        // ONN or PYNK selected
+                        $q->whereIn('brand', [$brandFilter, 3]);
+                    }
+                } else {
+                    // No dropdown → apply employee + user permission logic
+                    if ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [1, 2, 3]); // Both + Both
+                    } elseif ($employeeBrand == 3) {
+                        $q->whereIn('brand', array_merge($userBrands, [3])); // Both employee, limited user
+                    } elseif (in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [$employeeBrand, 3]); // Limited employee, both user
+                    } else {
+                        $q->whereIn('brand', [$employeeBrand]); // Limited + limited
+                    }
+                }
             });
 
-            $data->team = $query->paginate(25);
+            // 🔹 Get results
+            $data->team = $query->with(['vp', 'rsm', 'asm', 'ase'])
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+            $state = State::where('status', 1)
+            ->where('is_deleted', 0)
+            ->orderBy('name')
+            ->get();
+            return view('employee.detail.vp', compact('data', 'id', 'request','state'));
+        }
+        //RSM
+         elseif ($data->employee->type == 2) {
+             $employeeBrand = $data->employee->brand;
+             $user = auth()->user();
+
+            // Logged-in user brand permissions
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            // Request filters
+            $user_type = $request->user_type ?? '';
+            $keyword = $request->keyword ?? '';
+            $state = $request->state ?? '';
+            $area = $request->area ?? '';
+            $brandFilter = $request->brand ?? '';
+            // Determine reporting column based on employee type
+            $column = match ($data->employee->type) {
+                1 => 'vp_id', // VP
+                2 => 'rsm_id', // RSM
+                3 => 'asm_id', // ASM
+                4 => 'ase_id', // ASE
+                default => null,
+            };
+
+            if (!$column) {
+                return response()->json(['error' => true, 'message' => 'Invalid employee type.']);
+            }
+
+            // 🔹 Base Query
+            $query = Team::where($column, $data->employee->id)
+                ->where('is_deleted', 0)
+                ->where('status', 1);
+
+            // 🔹 Apply filters
+            if ($user_type) {
+                // Example: user_type = 2 means show RSM level under this VP
+                $typeMap = [1 => 'vp_id', 2 => 'rsm_id', 3 => 'asm_id', 4 => 'ase_id'];
+                $query->whereNotNull($typeMap[$user_type]);
+            }
+
+            if ($state && $state !== 'all') {
+                $query->where('state_id', $state);
+            }
+
+            if ($area && $area !== 'all') {
+                $query->where('area_id', $area);
+            }
+
+            if (!empty($keyword)) {
+                $query->where(function ($query) use ($keyword) {
+                    $query->whereHas('vp', fn($q) => $q->where('name', 'like', "%{$keyword}%"))
+                         ->orWhereHas('rsm', fn($q) => $q->where('name', 'like', "%{$keyword}%"))
+                        ->orWhereHas('asm', fn($q) => $q->where('name', 'like', "%{$keyword}%"))
+                        ->orWhereHas('ase', fn($q) => $q->where('name', 'like', "%{$keyword}%"));
+                });
+            }
+
+            // 🔹 Brand Logic — unified and fixed
+            $query->where(function ($q) use ($employeeBrand, $userBrands, $brandFilter) {
+
+                // If dropdown filter selected
+                if ($brandFilter && $brandFilter !== 'All') {
+                    if ($brandFilter == 3) {
+                        // "Both" selected
+                        $q->whereIn('brand', [1, 2, 3]);
+                    } else {
+                        // ONN or PYNK selected
+                        $q->whereIn('brand', [$brandFilter, 3]);
+                    }
+                } else {
+                    // No dropdown → apply employee + user permission logic
+                    if ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [1, 2, 3]); // Both + Both
+                    } elseif ($employeeBrand == 3) {
+                        $q->whereIn('brand', array_merge($userBrands, [3])); // Both employee, limited user
+                    } elseif (in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [$employeeBrand, 3]); // Limited employee, both user
+                    } else {
+                        $q->whereIn('brand', [$employeeBrand]); // Limited + limited
+                    }
+                }
+            });
+
+            // 🔹 Get results
+            $data->team = $query->with(['vp', 'rsm', 'asm', 'ase'])
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+            $state = State::where('status', 1)
+            ->where('is_deleted', 0)
+            ->orderBy('name')
+            ->get();
+            return view('employee.detail.rsm', compact('data', 'id', 'request','state'));
+        }
+         // ASM
+         elseif ($data->employee->type == 3) {
+            $employeeBrand = $data->employee->brand;
+             $user = auth()->user();
+
+            // Logged-in user brand permissions
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            // Request filters
+            $user_type = $request->user_type ?? '';
+            $keyword = $request->keyword ?? '';
+            $state = $request->state ?? '';
+            $area = $request->area ?? '';
+            $brandFilter = $request->brand ?? '';
+            // Determine reporting column based on employee type
+            $column = match ($data->employee->type) {
+                1 => 'vp_id', // VP
+                2 => 'rsm_id', // RSM
+                3 => 'asm_id', // ASM
+                4 => 'ase_id', // ASE
+                default => null,
+            };
+
+            if (!$column) {
+                return response()->json(['error' => true, 'message' => 'Invalid employee type.']);
+            }
+
+            // 🔹 Base Query
+            $query = Team::where($column, $data->employee->id)
+                ->where('is_deleted', 0)
+                ->where('status', 1);
+
+            // 🔹 Apply filters
+            if ($user_type) {
+                // Example: user_type = 2 means show RSM level under this VP
+                $typeMap = [1 => 'vp_id', 2 => 'rsm_id', 3 => 'asm_id', 4 => 'ase_id'];
+                $query->whereNotNull($typeMap[$user_type]);
+            }
+
+            if ($state && $state !== 'all') {
+                $query->where('state_id', $state);
+            }
+
+            if ($area && $area !== 'all') {
+                $query->where('area_id', $area);
+            }
+
+            if (!empty($keyword)) {
+                $query->where(function ($query) use ($keyword) {
+                    $query->whereHas('vp', fn($q) => $q->where('name', 'like', "%{$keyword}%"))
+                         ->orWhereHas('rsm', fn($q) => $q->where('name', 'like', "%{$keyword}%"))
+                        ->orWhereHas('asm', fn($q) => $q->where('name', 'like', "%{$keyword}%"))
+                        ->orWhereHas('ase', fn($q) => $q->where('name', 'like', "%{$keyword}%"));
+                });
+            }
+
+            // 🔹 Brand Logic — unified and fixed
+            $query->where(function ($q) use ($employeeBrand, $userBrands, $brandFilter) {
+
+                // If dropdown filter selected
+                if ($brandFilter && $brandFilter !== 'All') {
+                    if ($brandFilter == 3) {
+                        // "Both" selected
+                        $q->whereIn('brand', [1, 2, 3]);
+                    } else {
+                        // ONN or PYNK selected
+                        $q->whereIn('brand', [$brandFilter, 3]);
+                    }
+                } else {
+                    // No dropdown → apply employee + user permission logic
+                    if ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [1, 2, 3]); // Both + Both
+                    } elseif ($employeeBrand == 3) {
+                        $q->whereIn('brand', array_merge($userBrands, [3])); // Both employee, limited user
+                    } elseif (in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [$employeeBrand, 3]); // Limited employee, both user
+                    } else {
+                        $q->whereIn('brand', [$employeeBrand]); // Limited + limited
+                    }
+                }
+            });
+
+            // 🔹 Get results
+            $data->team = $query->with(['vp', 'rsm', 'asm', 'ase'])
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+            $state = State::where('status', 1)
+            ->where('is_deleted', 0)
+            ->orderBy('name')
+            ->get();
             
-            return view('admin.user.detail.asm', compact('data', 'id', 'request'));
+            return view('employee.detail.asm', compact('data', 'id', 'request','state'));
         }
         // ASE
-        elseif ($data->user->type == 4) {
-            $data->team = Team::where('ase_id', $data->id)->where('store_id', null)->where('is_deleted', 0)->first();
-            $data->workAreaList=userArea::where('user_id',$id)->where('is_deleted', 0)->groupby('area_id')->with('area')->get();
-            $data->distributorList = Team::where('ase_id', $data->user->id)->where('distributor_id', '!=', null)->where('store_id',NULL)->groupBy('distributor_id')->orderBy('id','desc')->get();
+        
+        
+        elseif ($data->employee->type == 4) {
+            $brandFilter = $request->get('brand');
+            $storebrandFilter = $request->get('storebrand'); 
+            $user = Auth::user();
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+            // Employee's brand permission (1=ONN, 2=PYNK, 3=Both)
+            $employeeBrand = $data->employee->brand ?? null;
+            $data->team = Team::where('ase_id', $data->employee->id)->where('store_id', null)->where('is_deleted', 0)->with('vp','rsm','asm','ase')->first();
+            $data->workAreaList=userArea::where('user_id',$data->employee->id)->where('is_deleted', 0)->groupby('area_id')->with('area')->get();
+            //$data->distributorList = Team::where('ase_id', $data->employee->id)->where('distributor_id', '!=', null)->where('store_id',NULL)->where('is_deleted', 0)->groupBy('distributor_id')->orderBy('id','desc')->get();
             
 			$data->areaDetail= Area::orderby('name')->get();
-            $data->distributorList = Team::where('ase_id', $data->id)->where('distributor_id', '!=', null)->where('store_id',NULL)->where('is_deleted', 0)->groupBy('distributor_id')->orderBy('id','desc')->get();
-			
-            return view('admin.user.detail.ase', compact('data', 'id', 'request'));
+            $data->state = State::where('status', 1)
+                ->where('is_deleted', 0)
+                ->orderBy('name')
+                ->get();
+        
+        
+            // ==================== STORE LIST ====================
+                $storeQuery = Store::where('stores.user_id', $data->employee->id)
+                    ->where('stores.is_deleted', 0)
+                    ->join('teams', function($join) use ($data) {
+                        $join->on('stores.id', '=', 'teams.store_id')
+                            ->whereNOTNull('teams.store_id')
+                            ->where('teams.is_deleted', 0);
+                    })
+                    ->select('stores.*')
+                    ->orderBy('stores.name');
+
+                $storeQuery->where(function ($q) use ($data, $storebrandFilter, $userBrands) {
+                         $employeeBrand = $data->employee->brand ?? null;
+                    
+
+                    if ($storebrandFilter) {
+                        if ($storebrandFilter == 3) {
+                            $q->whereIn('stores.brand', [1, 2, 3]);
+                        } else {
+                            $q->where(function ($q2) use ($storebrandFilter) {
+                                $q2->where('stores.brand', $storebrandFilter)
+                                ->orWhere('stores.brand', 3);
+                            });
+                        }
+                    } else {
+                        if ($employeeBrand == 1 && in_array(3, $userBrands)) {
+                            $q->whereIn('stores.brand', [1, 3]);
+                        } elseif ($employeeBrand == 2 && in_array(3, $userBrands)) {
+                            $q->whereIn('stores.brand', [2, 3]);
+                        } elseif ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                            $q->whereIn('stores.brand', [1, 2, 3]);
+                        } elseif ($employeeBrand == 3 && in_array(1, $userBrands)) {
+                            $q->whereIn('stores.brand', [1, 3]);
+                        } elseif ($employeeBrand == 3 && in_array(2, $userBrands)) {
+                            $q->whereIn('stores.brand', [2, 3]);
+                        } elseif (in_array($employeeBrand, $userBrands)) {
+                            $q->whereIn('stores.brand', [$employeeBrand, 3]);
+                        } else {
+                            $q->where('stores.brand', -1);
+                        }
+                    }
+                });
+
+                $data->storeList = $storeQuery->get();
+			 // 🔹 Distributor Query
+            $query = Team::where('ase_id', $data->employee->id)
+                ->whereNotNull('distributor_id')
+                ->whereNull('store_id')
+                ->where('status', 1)
+                ->where('is_deleted', 0)
+                ->orderBy('id', 'desc');
+
+                
+            // 🔹 If brand dropdown is applied
+            if ($brandFilter) {
+                $query->whereHas('distributor', function ($q) use ($brandFilter) {
+                    if ($brandFilter == 3) {
+                        $q->whereIn('brand', [1, 2, 3]);
+                    } else {
+                        $q->whereIn('brand', [$brandFilter]);
+                    }
+                });
+            } 
+            else {
+                // 🔹 No filter → Apply Employee + User Brand Logic
+                $query->whereHas('distributor', function ($q) use ($employeeBrand, $userBrands) {
+
+                    $allowedBrands = [];
+
+                    // CASE 1: Both have Both → Show All
+                    if (($employeeBrand == 3) && in_array(3, $userBrands)) {
+                        $allowedBrands = [1, 2, 3];
+                    }
+                    // CASE 2: Employee Both, User ONN → Only ONN
+                    elseif ($employeeBrand == 3 && in_array(1, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 3: Employee ONN, User Both → Only ONN
+                    elseif ($employeeBrand == 1 && in_array(3, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 4: Both ONN → Only ONN
+                    elseif ($employeeBrand == 1 && in_array(1, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 5: Other (like ONN+PYNK mismatch) → no distributors
+                    else {
+                        $allowedBrands = [];
+                    }
+
+                    if (!empty($allowedBrands)) {
+                        $q->whereIn('brand', $allowedBrands);
+                    } else {
+                        // Ensures no results if no matching permission
+                        $q->whereRaw('1=0');
+                    }
+                });
+            }
+
+            $data->distributorList = $query->groupBy('distributor_id')->get();
+
+            //all distributor 
+
+            $query1 = Distributor::where('status', 1)
+                ->where('is_deleted', 0)
+                ->orderBy('name', 'asc');
+
+                
+            
+                // 🔹 No filter → Apply Employee + User Brand Logic
+                $query1->where(function ($q) use ($employeeBrand, $userBrands) {
+
+                    $allowedBrands = [];
+
+                    // CASE 1: Both have Both → Show All
+                    if (($employeeBrand == 3) && in_array(3, $userBrands)) {
+                        $allowedBrands = [1, 2, 3];
+                    }
+                    // CASE 2: Employee Both, User ONN → Only ONN
+                    elseif ($employeeBrand == 3 && in_array(1, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 3: Employee ONN, User Both → Only ONN
+                    elseif ($employeeBrand == 1 && in_array(3, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 4: Both ONN → Only ONN
+                    elseif ($employeeBrand == 1 && in_array(1, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 5: Other (like ONN+PYNK mismatch) → no distributors
+                    else {
+                        $allowedBrands = [];
+                    }
+
+                    if (!empty($allowedBrands)) {
+                        $q->whereIn('brand', $allowedBrands);
+                    } else {
+                        // Ensures no results if no matching permission
+                        $q->whereRaw('1=0');
+                    }
+                });
+            
+
+            $distributorList = $query1->get();
+
+            //all ase
+
+            $query2 = Employee::where('type',4)->where('status', 1)
+                ->where('is_deleted', 0)
+                ->orderBy('name', 'asc');
+
+                
+            
+                // 🔹 No filter → Apply Employee + User Brand Logic
+                $query2->where(function ($q) use ($employeeBrand, $userBrands) {
+
+                    $allowedBrands = [];
+
+                    // CASE 1: Both have Both → Show All
+                    if (($employeeBrand == 3) && in_array(3, $userBrands)) {
+                        $allowedBrands = [1, 2, 3];
+                    }
+                    // CASE 2: Employee Both, User ONN → Only ONN
+                    elseif ($employeeBrand == 3 && in_array(1, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 3: Employee ONN, User Both → Only ONN
+                    elseif ($employeeBrand == 1 && in_array(3, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 4: Both ONN → Only ONN
+                    elseif ($employeeBrand == 1 && in_array(1, $userBrands)) {
+                        $allowedBrands = [1];
+                    }
+                    // CASE 5: Other (like ONN+PYNK mismatch) → no distributors
+                    else {
+                        $allowedBrands = [];
+                    }
+
+                    if (!empty($allowedBrands)) {
+                        $q->whereIn('brand', $allowedBrands);
+                    } else {
+                        // Ensures no results if no matching permission
+                        $q->whereRaw('1=0');
+                    }
+                });
+            //}
+
+            $aseList = $query2->with('stateDetail')->get();
+            return view('employee.detail.ase', compact('data', 'id', 'request','distributorList','aseList'));
         }
         $state = State::where('status', 1)
         ->where('is_deleted', 0)
@@ -504,15 +774,6 @@ class EmployeeController extends Controller
         ]);
     
         $data = Employee::findOrfail($id);
-        $updateData = $request->except('password'); // take everything except password
-
-        // If password is present, hash it
-        if ($request->filled('password')) {
-            $updateData['password'] = Hash::make($request->password);
-        }
-
-        $data->update($updateData);
-                // Normalize brand value
         if (is_array($request->brand)) {
             // If multiple brands selected
             if (in_array(1, $request->brand) && in_array(2, $request->brand)) {
@@ -526,16 +787,22 @@ class EmployeeController extends Controller
             // Single brand value
             $brand = $request->brand;
         }
+        $updateData = $request->except('password'); // take everything except password
 
-        // Update or insert (this will overwrite old record for same employee)
-        DB::table('user_permission_categories')->updateOrInsert(
-            ['employee_id' => $data->id],  // condition (only employee_id, so old brand replaced)
-            [
-                'brand' => $brand,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        );
+        // If password is present, hash it
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+        // If password is present, hash it
+        if ($request->filled('brand')) {
+            $updateData['brand'] = $brand;
+        }
+
+        $data->update($updateData);
+                // Normalize brand value
+        
+
+        
         return redirect()->route('employees.index')
                         ->with('success','Employee updated successfully');
     }
@@ -913,13 +1180,16 @@ class EmployeeController extends Controller
 
      public function addArea(Request $request)
     {
-          $area=UserArea::where('user_id',$request->user_id)->where('state_id',$request->state_id)->where('area_id',$request->area_id)->first();
+        //dd($request->all());
+          $area=UserArea::where('user_id',$request->employee_id)->where('state_id',$request->state_id)->whereIN('area_id',$request->city)->first();
 		  if(empty($area)){
-           $areaSave=New UserArea();
-		   $areaSave->user_id = $request->user_id ?? '';
-		   $areaSave->state_id = $request->state ?? '';
-           $areaSave->area_id = $request->city ?? '';
-		   $areaSave->save();
+            foreach($request->city as $row){
+                $areaSave=New UserArea();
+                $areaSave->user_id = $request->employee_id ?? '';
+                $areaSave->state_id = $request->state ?? '';
+                $areaSave->area_id = $row ?? '';
+                $areaSave->save();
+            }
        
             return redirect()->back()->with('success','Area created successfully');
           }else{
@@ -1333,10 +1603,40 @@ public function attendanceReportExport(Request $request)
        } else {
                 return response()->json(['error'=>false, 'resp'=>'ASE List','data'=>$data]);
        } 
-        
+
     }
+
+
+    public function typeWiseName(Request $request,$type)
+    {
+		if($type=='all'){
+			$typeQuery = '';
+		} else {
+			$typeQuery = "where type='$type'";
+		}
+
+		$name = DB::select("SELECT DISTINCT name ,id from employees ".$typeQuery." order by name");
+
+        $resp = [
+            'type' => $type,
+            'name' => [],
+        ];
+
+        foreach($name as $item) {
+            $resp['name'][] = [
+				'id' =>  $item->id,
+                'name' => $item->name
+            ];
+        }
+
+		return response()->json(['error' => false, 'message' => 'Type wise name list', 'data' => $resp]);
+    }
+
+    
+        
+}
     
 
      
 
-}
+

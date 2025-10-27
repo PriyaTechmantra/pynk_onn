@@ -107,7 +107,7 @@ Route::group(['middleware' => ['auth']], function() {
     //employee
     Route::resource('employees', EmployeeController::class);
     Route::get('employees/{userId}/delete', [EmployeeController::class, 'destroy']);
-    Route::get('employees/{userId}/status/change', [AreaController::class, 'status']);
+    Route::get('employees/{userId}/status/change', [EmployeeController::class, 'status']);
     Route::get('employees/csv/export', [EmployeeController::class, 'employeeExport']);
     Route::post('employees/bulk/upload', [EmployeeController::class, 'bulkUpload']);
     Route::get('employees/state/{state}', [EmployeeController::class, 'state'])->name('users.state');
@@ -116,6 +116,13 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('employees/filter-by-brand', [EmployeeController::class, 'hierarchy'])->name('employees.filter-by-brand');
     Route::post('employee/area/save', [EmployeeController::class, 'addArea'])->name('employee.area.store');
     Route::get('employee/area/delete/{id}', [EmployeeController::class, 'deleteArea'])->name('employee.area.delete');
+    Route::get('employee/type-wise-name/{type}', [EmployeeController::class, 'typeWiseName']);
+    Route::get('employee/team/{id}/delete', [EmployeeController::class, 'teamdestroy'])->name('team.delete');
+	Route::get('employee/team/export/csv/{id}', [EmployeeController::class, 'teamexportCSV'])->name('team.export.all');
+			//team create
+	Route::post('employee/team/add', [EmployeeController::class, 'userTeamAdd'])->name('team.add');
+			//team edit
+	Route::post('employee/team/update/{id}', [EmployeeController::class, 'userTeamEdit'])->name('team.update');
 
     //team show
     Route::get('vp/brand/wise/{id}', [EmployeeController::class, 'vpBrandWise'])->name('vp.brand.wise');
@@ -132,15 +139,15 @@ Route::group(['middleware' => ['auth']], function() {
     
     //distributor
     
-    Route::get('distributors/note', [DistributorController::class, 'note'])->name('distributors.note');
-    Route::get('distributors/note/exportCSV', [DistributorController::class, 'noteCSV'])->name('distributors.note.exportCSV');
+    Route::get('distributors/note', [DistributorNoteController::class, 'note'])->name('distributors.note');
+    Route::get('distributors/note/exportCSV', [DistributorNoteController::class, 'noteCSV'])->name('distributors.note.exportCSV');
 
     Route::resource('distributors', DistributorController::class);
     Route::get('distributors/{userId}/delete', [DistributorController::class, 'destroy']);
     Route::get('distributors/{userId}/status/change', [DistributorController::class, 'status']);
     Route::get('distributors/csv/export', [DistributorController::class, 'employeeExport']);
     Route::post('distributors/bulk/upload', [DistributorController::class, 'bulkUpload']);
-    
+    Route::get('distributors/list', [DistributorController::class, 'distributorList'])->name('distributors.list');
     //collections
      Route::resource('collections', CollectionController::class);
      Route::get('collections/{userId}/edit', [CollectionController::class, 'edit'])->name('collections.edit');

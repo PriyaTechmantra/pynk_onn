@@ -90,6 +90,8 @@ if (!function_exists('findManagerDetails')) {
                             $namagerDetails['vp'] = $query->vp->name ?? '';
                             $namagerDetails['rsm'] = $query->rsm->name?? '';
                             $namagerDetails['asm'] = $query->asm->name?? '';
+                            $namagerDetails['state'] = $query->states->name?? '';
+					        $namagerDetails['area'] = $query->areas->name?? '';
                             
                         } else {
                             $namagerDetails[] = "";
@@ -157,4 +159,108 @@ if(!function_exists('sendNotification')) {
         $noti->read_flag = 0;
         $noti->save();
     }
+
+
+    function vpStates($id) {
+        return \App\Models\Team::select('state_id')->where('vp_id', 'LIKE', '%'.$id.'%')->groupBy('state_id')->orderBy('state_id')->get();
+    }
+
+    function vpAreaCount($id) {
+        return \App\Models\Team::select('area_id')->where('vp_id', 'LIKE', '%'.$id.'%')->groupBy('area_id')->get();
+    }
+
+    function vpRSMCount($id) {
+        return \App\Models\Team::select('rsm_id')->where('vp_id', 'LIKE', '%'.$id.'%')->where('rsm_id', '!=', null)->groupBy('rsm_id')->get();
+    }
+
+    function vpASMCount($id) {
+        return \App\Models\Team::select('asm_id')->where('vp_id', 'LIKE', '%'.$id.'%')->where('asm_id', '!=', null)->groupBy('asm_id')->get();
+    }
+
+    function vpASECount($id) {
+        return \App\Models\Team::select('ase_id')->where('vp_id', 'LIKE', '%'.$id.'%')->where('ase_id', '!=', null)->groupBy('ase_id')->get();
+    }
+
+
+    function rsmVp($id) {
+        if ($id == null) {
+            return \App\Models\Team::select('vp_id')->whereRaw('rsm_id IS null')->groupBy('vp_id')->get();
+        } else {
+            return \App\Models\Team::select('vp_id')->where('rsm_id', 'LIKE', '%'.$id.'%')->groupBy('vp_id')->get();
+        }
+    }
+
+    function rsmStates($id) {
+        if ($id == null) {
+            return \App\Models\Team::select('state_id')->whereRaw('rsm_id IS null')->groupBy('state_id')->orderBy('state_id')->get();
+        } else {
+            return \App\Models\Team::select('state_id')->where('rsm_id', 'LIKE', '%'.$id.'%')->groupBy('state_id')->orderBy('state_id')->get();
+        }
+    }
+
+    function rsmAreaCount($id) {
+        if ($id == null) {
+            return \App\Models\Team::select('area_id')->whereRaw('rsm_id IS null')->groupBy('area_id')->get();
+        } else {
+            return \App\Models\Team::select('area_id')->where('rsm_id', 'LIKE', '%'.$id.'%')->groupBy('area_id')->get();
+        }
+    }
+
+    function rsmASMCount($id) {
+        if ($id == null) {
+        return \App\Models\Team::select('asm_id')->whereRaw('rsm_id IS null')->groupBy('asm_id')->get();
+        } else {
+        return \App\Models\Team::select('asm_id')->where('rsm_id', 'LIKE', '%'.$id.'%')->groupBy('asm_id')->get();
+        }
+    }
+
+    function rsmASECount($id) {
+        if ($id == null) {
+            return \App\Models\Team::select('ase_id')->whereRaw('rsm_id IS null')->groupBy('ase_id')->get();
+        } else {
+            return \App\Models\Team::select('ase_id')->where('rsm_id', 'LIKE', '%'.$id.'%')->groupBy('ase_id')->get();
+        }
+    }
+
+
+    function asmVp($id) {
+        if ($id == null) {
+            return \App\Models\Team::select('vp_id')->whereRaw('asm_id IS null')->groupBy('vp_id')->get();
+        } else {
+            return \App\Models\Team::select('vp_id')->where('asm_id', 'LIKE', '%'.$id.'%')->groupBy('vp_id')->get();
+        }
+    }
+
+    function asmStates($id) {
+        if ($id == null) {
+            return \App\Models\Team::select('state_id')->whereRaw('asm_id IS null')->groupBy('state_id')->orderBy('state_id')->get();
+        } else {
+            return \App\Models\Team::select('state_id')->where('asm_id', 'LIKE', '%'.$id.'%')->groupBy('state_id')->orderBy('state_id')->get();
+        }
+    }
+
+    function asmAreaCount($id) {
+        if ($id == null) {
+            return \App\Models\Team::select('area_id')->whereRaw('asm_id IS null')->groupBy('area_id')->get();
+        } else {
+            return \App\Models\Team::select('area_id')->where('asm_id', 'LIKE', '%'.$id.'%')->groupBy('area_id')->get();
+        }
+    }
+
+    function asmRSMCount($id) {
+        if ($id == null) {
+        return \App\Models\Team::select('asm_id')->whereRaw('asm_id IS null')->groupBy('asm_id')->get();
+        } else {
+        return \App\Models\Team::select('asm_id')->where('asm_id', 'LIKE', '%'.$id.'%')->groupBy('asm_id')->get();
+        }
+    }
+
+    function asmASECount($id) {
+        if ($id == null) {
+            return \App\Models\Team::select('ase_id')->whereRaw('asm_id IS null')->groupBy('ase_id')->get();
+        } else {
+            return \App\Models\Team::select('ase_id')->where('asm_id', 'LIKE', '%'.$id.'%')->groupBy('ase_id')->get();
+        }
+    }
+
 }

@@ -1747,6 +1747,39 @@ public function aseSalesreport(Request $request)
             
             return response()->json(['error' => false, 'resp' => 'Store orders with filter', 'data' => $orders]);
         }
+        
+    public function catalogueList(Request $request)
+    {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $data = ProductCatalogue::where('status', 1)
+            ->where('is_deleted', 0)
+            ->with(['category', 'collection','colorSize']) // optional: if you want category/color-size too
+            ->orderBy('position_collection', 'asc')
+            ->get()
+            ->map(function ($product) use ($brandMap) {
+                return [
+                    'product_id' => $product->id,
+                    'product_style_no' => $product->style_no,
+                    'product_name' => $product->name,
+                    'brand' => $brandMap[$product->brand] ?? 'Unknown',
+                    'category' => $product->category ? $product->category->name : null,
+                    'collection' => $product->collection ? $product->collection->name : null,
+                    'color_size' => $product->colorSize ?? [],
+                ];
+            });
+
+        return response()->json([
+            'error' => false,
+            'resp' => 'Product data fetched successfully',
+            'data' => $data,
+        ]);
+    }
+
 
 
 

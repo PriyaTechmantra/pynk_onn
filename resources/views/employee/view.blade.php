@@ -266,7 +266,7 @@
                                 <div class="col-6">
                                     @can('transfer stores')
                                     <a href="#transferModal" data-bs-toggle="modal" data-target=".bd-example-modal-lg" class="btn btn-danger">Transfer</a>
-                                    @endif
+                                    @endcan
                                 </div>
                             <div class="col-xl-6 col-lg-8 col-12">
                                 
@@ -282,7 +282,7 @@
                                                                             }
                                                                         }
                                                                     @endphp>
-                                                        @can('view store')
+                                                      @can('view store')
                                                       <a href="{{ url('stores/'.$item->id) }}" style="margin-left: 10px;"><h5>{{$item->name}}({{$item->unique_code}})</h5></a>
                                                       @else
                                                         <h5>{{$item->name ??''}}({{$item->unique_code}})</h5>
@@ -360,48 +360,48 @@
                 </div>
             </div>
              <div class="modal fade" id="newRangeModal" tabindex="-1" aria-labelledby="newRangeModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="newRangeModalLabel">Add new Area</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <form action="{{route('employee.area.store')}}" method="POST">@csrf
-                                                    
-                                                    <input type="hidden" name="user_id" value="{{$data->id}}">
-                                                    <div class="row">
-                                                        <div class="mb-3">
-                                                            <label for="state">State <span class="text-danger">*</span></label>
-                                                            <select class="form-select select2" id="state" name="state" aria-label="Floating label select example">
-                                                                <option value="" selected disabled>--Select State--</option>
-                                                                @foreach ($state as $index => $item)
-                                                                    <option value="{{ $item->id }}" >{{ $item->name }}</option>
-                                                                @endforeach
-                                                            </select>
-                                                            @error('state') <p class="small text-danger">{{$message}}</p> @enderror
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label for="area">City/ Area <span class="text-danger">*</span></label>
-                                                            <select class="form-select select2" id="area" name="city" aria-label="Floating label select example" disabled>
-                                                                <option value="">Select State first</option>
-                                                            </select>
-                                                        </div>
-                                                    
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="newRangeModalLabel">Add new Area</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="{{route('employee.area.store')}}" method="POST">@csrf
                                 
-                                                        <div class="col-12 mt-3">
-                                                            <button type="submit" class="btn btn-sm btn-danger">Add Area</button>
-                                                        </div>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                            {{-- <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                <button type="button" class="btn btn-primary">Save changes</button>
-                                            </div> --}}
-                                        </div>
+                                <input type="hidden" name="user_id" value="{{$data->id}}">
+                                <div class="row">
+                                    <div class="mb-3">
+                                        <label for="state">State <span class="text-danger">*</span></label>
+                                        <select class="form-select select2" id="state" name="state" aria-label="Floating label select example">
+                                            <option value="" selected disabled>--Select State--</option>
+                                            @foreach ($state as $index => $item)
+                                                <option value="{{ $item->id }}" >{{ $item->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('state') <p class="small text-danger">{{$message}}</p> @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="area">City/ Area <span class="text-danger">*</span></label>
+                                        <select class="form-select select2" id="area" name="city" aria-label="Floating label select example" disabled>
+                                            <option value="">Select State first</option>
+                                        </select>
+                                    </div>
+                                
+            
+                                    <div class="col-12 mt-3">
+                                        <button type="submit" class="btn btn-sm btn-danger">Add Area</button>
                                     </div>
                                 </div>
+                            </form>
+                        </div>
+                        {{-- <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary">Save changes</button>
+                        </div> --}}
+                    </div>
+                </div>
+            </div>
             
 @endsection
 

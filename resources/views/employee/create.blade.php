@@ -31,7 +31,7 @@
                                     <h4 class="page__subtitle">Add New</h4>
                         
                                     <div class="mb-3">
-                                        <label for="">User Type</label>
+                                        <label for="">User Type <span class="text-danger">*</span></label>
                                         <select id="user_type" name="type" class="form-control">
                                             <option value="" selected disabled>Select</option>
                                             <option value="1">VP</option>
@@ -59,9 +59,14 @@
                                         @error('name') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="mb-3">
-                                        <label class="label-control">Email  </label>
+                                        <label class="label-control">Official Email  </label>
                                         <input type="email" name="email" placeholder="" class="form-control" value="{{old('email')}}">
                                         @error('email') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="label-control">Personal Email  </label>
+                                        <input type="email" name="personal_mail" placeholder="" class="form-control" value="{{old('personal_mail')}}">
+                                        @error('personal_mail') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="mb-3">
                                         <label class="label-control">Contact <span class="text-danger">*</span> </label>
@@ -72,6 +77,21 @@
                                         <label class="label-control">WhatsApp Number </label>
                                         <input type="number" name="whatsapp_no" placeholder="" class="form-control" value="{{old('whatsapp_no')}}">
                                         @error('whatsapp_no') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="label-control">Alt. Mobile 1 </label>
+                                        <input type="number" name="alt_number1" placeholder="" class="form-control" value="{{old('alt_number1')}}">
+                                        @error('alt_number1') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="label-control">Alt. Mobile 2 </label>
+                                        <input type="number" name="alt_number2" placeholder="" class="form-control" value="{{old('alt_number2')}}">
+                                        @error('alt_number2') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="label-control">Alt. Mobile 3 </label>
+                                        <input type="number" name="alt_number3" placeholder="" class="form-control" value="{{old('alt_number3')}}">
+                                        @error('alt_number3') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="mb-3">
                                         <label for="state">State <span class="text-danger">*</span></label>
@@ -90,7 +110,7 @@
                                         </select>
                                     </div>
                                     <div class="mb-3">
-                                        <label class="label-control">Date of Joining <span class="text-danger">*</span> </label>
+                                        <label class="label-control">Date of Joining </label>
                                         <input type="date" name="date_of_joining" placeholder="" class="form-control" value="{{old('date_of_joining')}}">
                                         @error('date_of_joining') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
@@ -101,8 +121,8 @@
                                     </div>
                                     <div class="mb-3">
                                             <!-- Communication Medium -->
-                                            <h6>Brand Permission:</h6>
-                                            
+                                            <h6>Brand Permission:  <span class="text-danger">*</span></h6>
+                                             @error('brand') <p class="small text-danger">{{ $message }}</p> @enderror
                                             <div class="form-check">
                                                 <input 
                                                     class="form-check-input medium-checkbox" 
@@ -135,6 +155,7 @@
                                                     id="mediumBoth"
                                                     onchange="toggleSelectBox()"
                                                 >
+                                               
                                                 <label class="form-check-label" for="mediumCave">Both</label>
                                             </div>
                                         </div>
