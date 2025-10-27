@@ -8,6 +8,9 @@ use App\Models\Employee;
 use App\Models\Team;
 use App\Models\Distributor;
 use App\Models\State;
+use App\Models\UserNoOrderReason;
+use App\Models\NoOrderReason;
+use Illuminate\Support\Facades\Response;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
@@ -600,6 +603,110 @@ class StoreController extends Controller
 
     }
 
+    public function noOrderreason(Request $request)
+    {
+        $query = UserNoOrderReason::query();
 
+        if ($request->filled('ase')) {
+            $query->where('user_id', $request->ase);
+        }
+
+        if ($request->filled('asm')) {
+            $query->where('user_id', $request->asm);
+        }
+
+        if ($request->filled('store_id')) {
+            $query->where('store_id', $request->store_id);
+        }
+
+        if ($request->filled('comment')) {
+            $query->where('no_order_reason_id', $request->comment);
+        }
+
+        if ($request->filled('keyword')) {
+            $query->where('comment', 'like', '%' . $request->keyword . '%');
+        }
+        if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
+
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
+        }
+
+        $data = $query->with(['user', 'store', 'noorder'])
+                    ->latest('id')
+                    ->paginate(25);
+
+        $ases = Employee::where('type', 4)
+            ->whereNotNull('name')
+            ->orderBy('name')
+            ->get();
+
+        $stores = Store::where('is_deleted', 0)
+            ->orderBy('name')
+            ->get();
+
+        $reasons = NoOrderReason::orderBy('noorderreason')->get();
+
+        return view('store.noorder', compact('data', 'stores', 'reasons', 'request', 'ases'));
+    }
+
+    public function noOrderReasonCsv(Request $request)
+    {
+        $query = UserNoOrderReason::with(['user', 'store']);
+
+        if ($request->ase) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('id', $request->ase);
+            });
+        }
+
+        if ($request->store_id) {
+            $query->where('store_id', $request->store_id);
+        }
+
+        if ($request->comment) {
+            $query->where('comment', $request->comment);
+        }
+
+        if ($request->brand_selection) {
+            $query->where('brand', $request->brand_selection);
+        }
+
+        $data = $query->get();
+
+        // CSV header
+        $filename = 'no_order_reasons_' . date('Ymd') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, ['#', 'Name', 'Store Name', 'Reason', 'Location', 'Date']);
+
+            foreach ($data as $index => $item) {
+                fputcsv($file, [
+                    $index + 1,
+                    $item->user ? $item->user->name : '',
+                    $item->store ? $item->store->name : '',
+                    $item->comment .'|'.$item->description,
+                    $item->location,
+                    date('d M Y', strtotime($item->date)).' '.$item->time,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
 
 }

@@ -8,22 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class UserNoOrderReason extends Model
 {
     use HasFactory;
-
     public function user()
     {
         return $this->belongsTo(Employee::class, 'user_id');
     }
-
     public function distributor()
     {
         return $this->belongsTo(Distributor::class, 'distributor_id'); 
     }
-      public function store()
-     {
-         return $this->belongsTo(Store::class);
-     }
-
-     public function noorder(){
+    public function store()
+    {
+        return $this->belongsTo(Store::class, 'store_id');
+    }
+    public function noorder()
+    {
         return $this->belongsTo(NoOrderReason::class,'no_order_reason_id');
-     }
+    }
 }
