@@ -10,6 +10,7 @@ use App\Models\UserArea;
 use App\Models\Team;
 use App\Models\Store;
 use App\Models\Distributor;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -1608,7 +1609,97 @@ public function attendanceReportExport(Request $request)
 		return response()->json(['error' => false, 'message' => 'Type wise name list', 'data' => $resp]);
     }
 
-    
+    public function notificationList(Request $request)
+    {
+        $date_from = $request->date_from ?? '';
+        $date_to = $request->date_to ?? '';
+        $keyword = $request->term ?? '';
+
+        $query = Notification::query();
+
+        $query->when($date_from, function ($query) use ($date_from) {
+            $query->whereDate('created_at', '>=', $date_from);
+        });
+
+        $query->when($date_to, function ($query) use ($date_to) {
+            $query->whereDate('created_at', '<=', $date_to);
+        });
+
+        $query->when($keyword, function ($query) use ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                ->orWhere('body', 'like', "%{$keyword}%");
+            });
+        });
+
+        $data = $query->latest('id')->with('senderDetails','receiverDetails')->paginate(25);
+
+        return view('notification.index', compact('data', 'request'));
+    }
+
+    public function notificationExportCSV(Request $request)
+    {
+        $date_from = $request->date_from ?? '';
+        $date_to = $request->date_to ?? '';
+        $keyword = $request->term ?? '';
+
+        $query = Notification::query();
+
+        $query->when($date_from, function ($query) use ($date_from) {
+            $query->whereDate('created_at', '>=', $date_from);
+        });
+
+        $query->when($date_to, function ($query) use ($date_to) {
+            $query->whereDate('created_at', '<=', $date_to);
+        });
+
+        $query->when($keyword, function ($query) use ($keyword) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                ->orWhere('body', 'like', "%{$keyword}%");
+            });
+        });
+
+        $data = $query->latest('id')->with('senderDetails', 'receiverDetails')->get();
+
+        if ($data->isEmpty()) {
+            return back()->with('status', 'No data found for export.');
+        }
+
+        $filename = 'notifications_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($data) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'S.No', 'Type', 'Sender', 'Receiver', 'Title', 'Body', 'Created At', 'Status'
+            ]);
+
+            $serial = 1;
+
+            foreach ($data as $item) {
+                fputcsv($handle, [
+                    $serial++,
+                    $item->type,
+                    $item->senderDetails->name ?? '',
+                    $item->receiverDetails->name ?? '',
+                    $item->title,
+                    $item->body,
+                    $item->created_at->format('Y-m-d H:i:s'),
+                    $item->read_flag ? 'Read' : 'Unread',
+                ]);
+            }
+
+            fclose($handle);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
         
 }
     

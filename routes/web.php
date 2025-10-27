@@ -113,7 +113,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::post('employees/bulk/upload', [EmployeeController::class, 'bulkUpload']);
     Route::get('employees/state/{state}', [EmployeeController::class, 'state'])->name('users.state');
     Route::get('employees/hierarchy', [EmployeeController::class, 'hierarchy'])->name('employees.hierarchy');
-    Route::get('employees/notifications', [EmployeeController::class, 'notifications'])->name('notifications.index');
+    Route::get('employees/notifications/index', [EmployeeController::class, 'notificationList'])->name('notifications.index');
+    Route::get('employees/notifications/exportCSV', [EmployeeController::class, 'notificationExportCSV'])->name('notifications.exportCSV');
     Route::get('employees/filter-by-brand', [EmployeeController::class, 'hierarchy'])->name('employees.filter-by-brand');
     Route::post('employee/area/save', [EmployeeController::class, 'addArea'])->name('employee.area.store');
     Route::get('employee/area/delete/{id}', [EmployeeController::class, 'deleteArea'])->name('employee.area.delete');
