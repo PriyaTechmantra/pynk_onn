@@ -7,6 +7,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DistributorController;
 use App\Http\Controllers\LostBookController;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\DistributorNoteController;
 use App\Http\Controllers\Lms\IssueController;
 use App\Http\Controllers\Facility\CabBookingController;
 use App\Http\Controllers\Facility\TrainBookingController;

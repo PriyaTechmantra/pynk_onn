@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
-use App\Models\UserNoOrderReason;
+use App\Models\DistributorMom;
 use App\Models\Employee;
 use App\Models\Distributor;
 
@@ -10,7 +10,7 @@ class DistributorNoteController extends Controller
 {
     public function note(Request $request)
     {
-        $query = UserNoOrderReason::query();
+        $query = DistributorMom::query();
 
         if (!empty($request->term)) {
             $query->where('comment', 'LIKE', '%' . $request->term . '%');
@@ -45,8 +45,8 @@ class DistributorNoteController extends Controller
             $query->whereIn('user_id', $userIds);
         }
 
-        $userIds = UserNoOrderReason::pluck('user_id')->unique();
-        $distributorIds = UserNoOrderReason::pluck('distributor_id')->unique();
+        $userIds = DistributorMom::pluck('user_id')->unique();
+        $distributorIds = DistributorMom::pluck('distributor_id')->unique();
 
         $users = Employee::whereIn('id', $userIds)
             ->where('status', 1)
@@ -83,7 +83,7 @@ class DistributorNoteController extends Controller
 
     public function noteCSV(Request $request)
     {
-        $query = UserNoOrderReason::query();
+        $query = DistributorMom::query();
 
         if (!empty($request->term)) {
             $query->where('comment', 'LIKE', '%' . $request->term . '%');
