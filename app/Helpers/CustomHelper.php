@@ -263,4 +263,64 @@ if(!function_exists('sendNotification')) {
         }
     }
 
+
+    if (!function_exists('findTeamDetails')) {
+    function findTeamDetails($userName, $userType ) {
+        $namagerDetails = array();
+        $team_wise_attendance =array();
+        switch ($userType) {
+            case 1:
+                $namagerDetails[] = "";
+                break;
+            case 2:
+                $query=Team::select('vp_id','state_id','area_id')->where('rsm_id',$userName)->groupby('rsm_id')->with('vp','states','areas')->first();
+               
+                if ($query) {
+                    $namagerDetails['vp'] = $query->vp->name?? '';
+                    $namagerDetails['state'] = $query->states->name?? '';
+					$namagerDetails['area'] = $query->areas->name?? '';
+                    $namagerDetails['asm'] = "";
+                } else {
+                    $namagerDetails[] = "";
+                }
+                break;
+            
+                case 3:
+                    $query=Team::select('vp_id','rsm_id','state_id','area_id')->where('asm_id',$userName)->orderby('id','desc')->with('vp','rsm','states','areas')->first();
+                    
+                    if ($query) {
+                        $namagerDetails['vp'] = $query->vp->name?? '';
+                        $namagerDetails['rsm'] = $query->rsm->name?? '';
+                        $namagerDetails['state'] = $query->states->name?? '';
+						$namagerDetails['area'] = $query->areas->name?? '';
+                        $namagerDetails['asm'] = "";
+                    } else {
+                        $namagerDetails[]= "";
+                    }
+                    break;
+                case 4:
+                        $query=Team::select('vp_id','rsm_id','asm_id','state_id','area_id')->where('ase_id',$userName)->orderby('id','desc')->with('vp','rsm','asm','states','areas')->first();
+                        
+                        if ($query) {
+                            $namagerDetails['vp'] = $query->vp->name ?? '';
+                            $namagerDetails['rsm'] = $query->rsm->name?? '';
+                            $namagerDetails['asm'] = $query->asm->name?? '';
+                            $namagerDetails['state'] = $query->states->name?? '';
+							$namagerDetails['area'] = $query->areas->name?? '';
+                        } else {
+                            $namagerDetails[] = "";
+                        }
+                        break;
+				
+                
+            default: 
+                $namagerDetails[] = "";
+                break;
+        }
+        array_push($team_wise_attendance, $namagerDetails);
+      
+        return $team_wise_attendance;
+    }
+}
+
 }

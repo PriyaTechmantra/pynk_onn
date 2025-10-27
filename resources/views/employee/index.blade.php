@@ -15,6 +15,13 @@
                 @if (session('status'))
                     <div class="alert alert-success">{{ session('status') }}</div>
                 @endif
+                @if ($errors->any())
+                <ul class="alert alert-warning">
+                    @foreach ($errors->all() as $error)
+                        <li>{{$error}}</li>
+                    @endforeach
+                </ul>
+                @endif
                         @php
                             $assignedPermissions = DB::table('user_permission_categories')
                             ->select('user_permission_categories.*')

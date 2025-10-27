@@ -65,7 +65,7 @@
                
                 
                @can('view employee')
-                <li class="@if(request()->is('employees*')||request()->is('employees/hierarchy*')||request()->is('activities*')||request()->is('employees/notifications*')) { {{'active'}} }  @endif">
+                <li class="@if(request()->is('employees*')||request()->is('employees/hierarchy/details*')||request()->is('activities*')||request()->is('employees/notifications*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Employee</span></a>
                     <ul>
                         
@@ -74,7 +74,7 @@
                         <li class="{{ ( request()->is('employees*') ) ? 'active' : '' }}"><a href="{{ route('employees.index') }}"><i class="fi fi-br-user"></i> <span>Employee Management</span></a></li>
                         @endcan
                         @can('view employee hierarchy')
-                        <li class="{{ ( request()->is('employees/hierarchy*') ) ? 'active' : '' }}"><a href="{{route('employees.hierarchy')}}"><i class="fi fi-br-database"></i> <span>Employee Hierarchy</span></a></li>
+                        <li class="{{ ( request()->is('employees/hierarchy/details*') ) ? 'active' : '' }}"><a href="{{route('employees.hierarchy.index')}}"><i class="fi fi-br-database"></i> <span>Employee Hierarchy</span></a></li>
                         @endcan
                         @can('view employee activities')
                         <li class="{{ ( request()->is('activities*') ) ? 'active' : '' }}"><a href="{{route('activities.index')}}"><i class="fi fi-br-book"></i> <span>Activity Management</span></a></li>

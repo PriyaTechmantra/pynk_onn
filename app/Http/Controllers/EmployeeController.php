@@ -1701,6 +1701,207 @@ public function attendanceReportExport(Request $request)
 
         return Response::stream($callback, 200, $headers);
     }
+
+
+    public function employeeHierarchy(Request $request)
+     {
+        
+        
+        $keyword     = $request->keyword ?? '';
+        $brandFilter = $request->brand ?? '';
+
+        $user = auth()->user();
+    
+        // Base query
+        $query = Employee::select('employees.*')->join('teams', 'teams.ase_id', '=', 'employees.id')->distinct();
+
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('employees.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('employees.brand', $request->brand)
+                    ->orWhere('employees.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('employees.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('employees.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
+
+        /**
+         * STEP 2: Keyword search (optional)
+         */
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('employees.name', 'like', '%'.$keyword.'%')
+                 
+                  ->orWhere('employees.mobile', 'like', '%'.$keyword.'%')
+                  ->orWhere('employees.employee_id', 'like', '%'.$keyword.'%')
+                  ->orWhere('employees.email', 'like', '%'.$keyword.'%');
+            });
+        }
+
+        /**
+         * STEP 6: Fetch data with pagination
+         */
+        $data = $query->where('employees.type',4)->where('employees.is_deleted',0)->where('teams.store_id',NULL)->orderBy('employees.id', 'desc')->paginate(25);
+        
+        
+        return view('employee.hierarchy', compact( 'request','data'));
+     }
+
+
+      public function hierarchyExportCSV(Request $request)
+    {
+
+       $keyword     = $request->keyword ?? '';
+        $brandFilter = $request->brand ?? '';
+
+        $user = auth()->user();
+    
+        // Base query
+        $query = Employee::select('employees.*')->join('teams', 'teams.ase_id', '=', 'employees.id')->distinct();
+
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('employees.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('employees.brand', $request->brand)
+                    ->orWhere('employees.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('employees.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('employees.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
+
+        /**
+         * STEP 2: Keyword search (optional)
+         */
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('employees.name', 'like', '%'.$keyword.'%')
+                 
+                  ->orWhere('employees.mobile', 'like', '%'.$keyword.'%')
+                  ->orWhere('employees.employee_id', 'like', '%'.$keyword.'%')
+                  ->orWhere('employees.email', 'like', '%'.$keyword.'%');
+            });
+        }
+
+        /**
+         * STEP 6: Fetch data with pagination
+         */
+        $data = $query->where('employees.type',4)->where('employees.is_deleted',0)->orderBy('employees.id', 'desc')->get();
+
+
+
+        if (count($data) > 0) {
+            $delimiter = ",";
+            $filename = "employee-hiererchy-".date('Y-m-d').".csv";
+
+            // Create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            // Set column headers
+            $fields = array('SR','BRAND','STATE','AREA','VP','RSM','ASM','ASE');
+            fputcsv($f, $fields, $delimiter);
+
+            $count = 1;
+
+            foreach($data as $row) {
+               $assignedPermissions = [$row->brand];
+
+                    $brandMap = [
+                        1 => 'ONN',
+                        2 => 'PYNK',
+                        3 => 'Both',
+                    ];
+
+                    if (in_array(3, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } elseif (in_array(1, $assignedPermissions) && in_array(2, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } else {
+                        $brandPermissions = collect($assignedPermissions)
+                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                        ->implode(', ');
+                    }
+                $findTeamDetails= findTeamDetails($row->id, $row->type);
+                $lineData = array(
+                    $count,
+                    $brandPermissions,
+                    $findTeamDetails[0]['state']?? '',
+                    $findTeamDetails[0]['area']?? '',
+                   
+                    
+                    $findTeamDetails[0]['vp']?? '',
+                    $findTeamDetails[0]['rsm']?? '',
+                    
+                    $findTeamDetails[0]['asm']?? '',
+                    $row ? $row->name : ''
+                   
+                );
+
+                fputcsv($f, $lineData, $delimiter);
+
+                $count++;
+            }
+
+            // Move back to beginning of file
+            fseek($f, 0);
+
+            // Set headers to download file rather than displayed
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '";');
+
+            //output all remaining data on a file pointer
+            fpassthru($f);
+        }
+    }
         
 }
     

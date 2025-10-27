@@ -112,7 +112,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('employees/csv/export', [EmployeeController::class, 'employeeExport']);
     Route::post('employees/bulk/upload', [EmployeeController::class, 'bulkUpload']);
     Route::get('employees/state/{state}', [EmployeeController::class, 'state'])->name('users.state');
-    Route::get('employees/hierarchy', [EmployeeController::class, 'hierarchy'])->name('employees.hierarchy');
+    Route::get('employees/hierarchy/details', [EmployeeController::class, 'employeeHierarchy'])->name('employees.hierarchy.index');
+    Route::get('employees/hierarchy/exportCSV', [EmployeeController::class, 'hierarchyExportCSV'])->name('employees.hierarchy.exportCSV');
     Route::get('employees/notifications/index', [EmployeeController::class, 'notificationList'])->name('notifications.index');
     Route::get('employees/notifications/exportCSV', [EmployeeController::class, 'notificationExportCSV'])->name('notifications.exportCSV');
     Route::get('employees/filter-by-brand', [EmployeeController::class, 'hierarchy'])->name('employees.filter-by-brand');
