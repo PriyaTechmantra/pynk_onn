@@ -41,7 +41,7 @@ class EmployeeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request): View
+public function index(Request $request): View
 {
     $user_type   = $request->type ?? '';
     $state       = $request->state ?? '';

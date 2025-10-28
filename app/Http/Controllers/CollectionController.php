@@ -5,6 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Collection;
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Auth;
+use Hash;
 use Illuminate\Support\Facades\DB;
 
 class CollectionController extends Controller
@@ -19,23 +26,65 @@ class CollectionController extends Controller
    
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
+        // Base query
         $query = Collection::query();
+
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand_selection')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand_selection == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('collections.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('collections.brand', $request->brand_selection)
+                    ->orWhere('collections.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('collections.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('collections.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
+        
 
         if (!empty($request->term)) {
             $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
 
-        if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
-
-            if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
-            } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
-            } elseif ($brand == '3') {
-                $query->where('brand', 3);
-            }
-        }
+        
 
         $data = $query->orderBy('position','desc')->paginate(25);
 
@@ -206,13 +255,15 @@ class CollectionController extends Controller
 
     public function destroy($id)
     {
-        // $isReferenced = DB::table('products')->where('collection_id', $id)->exists();
+        $isReferenced = DB::table('products')->where('collection_id', $id)->exists();
     
-        // if ($isReferenced) {
-        //     return redirect()->route('collections.index')->with('error', 'Collection cannot be deleted because it is referenced in another table.');
-        // }
+        if ($isReferenced) {
+            return redirect()->route('collections.index')->with('error', 'Collection cannot be deleted because it is referenced in another table.');
+        }
 
         $data=Collection::destroy($id);
+        $data->is_deleted=1;
+        $data->save();
         if ($data) {
             return redirect()->route('collections.index')->with('success', 'Collection deleted successfully.');
         } else {
@@ -221,24 +272,67 @@ class CollectionController extends Controller
     }
     public function csvExport(Request $request)
     {
+       $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
+        // Base query
         $query = Collection::query();
+
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand_selection')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand_selection == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('collections.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('collections.brand', $request->brand_selection)
+                    ->orWhere('collections.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('collections.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('collections.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
+        
 
         if (!empty($request->term)) {
             $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
 
-        if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
+        
 
-            if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
-            } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
-            } elseif ($brand == '3') {
-                $query->where('brand', 3);
-            }
-        }
-        $data = $query->orderBy('position', 'desc')->get();
+        $data = $query->orderBy('position','desc')->get();
 
         $filename = "Product-Collection-" . date('Y-m-d') . ".csv";
 

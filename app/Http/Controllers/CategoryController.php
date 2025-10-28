@@ -6,27 +6,77 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Auth;
+use Hash;
 class CategoryController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
+        // Base query
         $query = Category::query();
+
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand_selection')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand_selection == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('categories.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('categories.brand', $request->brand_selection)
+                    ->orWhere('categories.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('categories.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('categories.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
+        
 
         if (!empty($request->term)) {
             $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
 
-        if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
-
-            if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
-            } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
-            } elseif ($brand == '3') {
-                $query->where('brand', 3);
-            }
-        }
+        
 
         $data = $query->orderBy('position','desc')->paginate(25);
 
@@ -51,7 +101,6 @@ class CategoryController extends Controller
         $upload_path = "public/uploads/category/";
         $data = new Category;
         $data->name = $request->title;
-        $data->parent = $request->parent;
         $data->description = $request->description;
         $data->brand = $request->brand;
 
@@ -133,7 +182,6 @@ class CategoryController extends Controller
 
         $data = Category::findOrfail($id);
         $data->name = $request->title;
-        $data->parent = $request->parent;
         $data->description = $request->description;
         $data->brand = $request->brand;
 
@@ -189,12 +237,14 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
-        // $isReferenced = DB::table('products')->where('cat_id', $id)->exists();
+        $isReferenced = DB::table('products')->where('cat_id', $id)->exists();
     
-        // if ($isReferenced) {
-        //     return redirect()->route('categories.index')->with('error', 'Category cannot be deleted because it is referenced in another table.');
-        // }
+        if ($isReferenced) {
+            return redirect()->route('categories.index')->with('error', 'Category cannot be deleted because it is referenced in another table.');
+        }
         $data=Category::destroy($id);
+        $data->is_deleted=1;
+        $data->save();
         if ($data) {
             return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
         } else {
@@ -217,25 +267,67 @@ class CategoryController extends Controller
     
     public function csvExport(Request $request)
     {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
+        // Base query
         $query = Category::query();
+
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand_selection')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand_selection == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('categories.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('categories.brand', $request->brand_selection)
+                    ->orWhere('categories.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('categories.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('categories.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
+        
 
         if (!empty($request->term)) {
             $query->where('name', 'LIKE', '%' . $request->term . '%');
         }
 
-        if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
+        
 
-            if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
-            } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
-            } elseif ($brand == '3') {
-                $query->where('brand', 3);
-            }
-        }
-
-        $data = $query->orderBy('position', 'desc')->get();
+        $data = $query->orderBy('position','desc')->get();
 
         $filename = "Product-Category-" . date('Y-m-d') . ".csv";
 
@@ -249,7 +341,7 @@ class CategoryController extends Controller
             foreach ($data as $row) {
                 fputcsv($f, [
                     $count++,
-                    ucwords($row->name) . ' | ' . $row->parent, 
+                    ucwords($row->name), 
                     'Published: ' . $row->created_at->format('j F, Y'),
                     $row->status == 1 ? 'Active' : 'Inactive',
                 ]);

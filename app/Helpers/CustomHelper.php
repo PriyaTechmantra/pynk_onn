@@ -415,3 +415,13 @@ function dates_attendance($id, $date) {
     return [$users];
 }
 
+
+if (!function_exists('slugGenerate')) {
+    function slugGenerate($title, $table) {
+        $slug = Str::slug($title, '-');
+        $slugExistCount = DB::table($table)->where('name', $title)->count();
+        if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
+        return $slug;
+    }
+}
+
