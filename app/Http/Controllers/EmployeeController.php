@@ -1258,47 +1258,82 @@ class EmployeeController extends Controller
         return redirect()->back()->with('success', 'Stores transferred successfully.');
     }
 
-    public function attendanceReport(Request $request) {
+    public function attendanceReport(Request $request) 
+    {
          // === Filter parameters ===
-        $date_from = $request->date_from ?? date('Y-m-d');
-        $month = $request->month ?? date('Y-m');
-        $brand_id = $request->brand_id ?? '';
+        // === Step 1: Filters ===
+        $month = $request->month ?? date('Y-m'); // Format: YYYY-MM
+        $brand = $request->brand_id ?? '';
         $vp_id = $request->vp_id ?? '';
         $rsm_id = $request->rsm_id ?? '';
         $asm_id = $request->asm_id ?? '';
         $ase_id = $request->ase_id ?? '';
         $state_id = $request->state_id ?? '';
-        $day = date('D', strtotime($month));
+        $area_id = $request->area_id ?? '';
+
+        // Logged-in user's brand permission
+        $user = auth()->user();
         
-        // === Step 1: Get all ASEs (final-level employees) based on filters ===
-        $employees = Employee::query()
-            ->where('status', 1)
-            ->where('is_deleted', 0); // Assuming type=5 means ASE
 
-        if ($ase_id) {
-            $employees->where('id', $ase_id);
-        } elseif ($asm_id) {
-            $employees->where('id', $asm_id);
-        } elseif ($rsm_id) {
-            $employees->where('id', $rsm_id);
-        } elseif ($vp_id) {
-            $employees->where('id', $vp_id);
-        }
+        // === Step 2: ASE list from team table based on filters ===
+        $teamQuery = \DB::table('teams')->join('employees', 'teams.ase_id', '=', 'employees.id')
+            ->select('employees.*', 'teams.state_id', 'teams.area_id')
+            ->whereNotNull('ase_id');
+            if ($request->filled('brand_id')) {
+                $teamQuery->where(function ($q) use ($request) {
+                    if ($request->brand_id == 3) {
+                        // "Both" selected → show ONN (1), PYNK (2), and Both (3)
+                        $q->whereIn('employees.brand', [1, 2, 3]);
+                    } else {
+                        // Single brand selected → include that + both
+                        $q->where('employees.brand', $request->brand_id)
+                        ->orWhere('employees.brand', 3);
+                    }
+                });
+            } else {
+                // No brand selected — show based on user's brand permissions
+                $user = auth()->user();
+                $userBrandPermissions = DB::table('user_permission_categories')
+                    ->where('user_id', $user->id)
+                    ->pluck('brand')
+                    ->toArray();
 
-        // Filter by brand via user_permission_categories
-        if ($brand_id && $brand_id != 'all') {
-            $userIds = \DB::table('user_permission_categories')
-                ->where('brand', $brand_id)
-                ->pluck('employee_id');
-            $employees->whereIn('id', $userIds);
-        }
+                if (!empty($userBrandPermissions)) {
+                    $teamQuery->where(function ($q) use ($userBrandPermissions) {
+                        if (in_array(3, $userBrandPermissions)) {
+                            // User has both brand permission
+                            $q->whereIn('employees.brand', [1, 2, 3]);
+                        } else {
+                            // User has limited brands
+                            $q->whereIn('employees.brand', array_merge($userBrandPermissions, [3]));
+                        }
+                    });
+                }
+            }
 
-        $employees = $employees->get();
+        // if ($brandPermissions != 'Both') {
+        //     $teamQuery->where('brand', $brandPermissions);
+        // }
+
+        // if ($brand_id && $brand_id != 'all') {
+        //     $teamQuery->where('brand', $brand_id);
+        // }
+        if ($vp_id) $teamQuery->where('vp_id', $vp_id);
+        if ($rsm_id) $teamQuery->where('rsm_id', $rsm_id);
+        if ($asm_id) $teamQuery->where('asm_id', $asm_id);
+        if ($ase_id) $teamQuery->where('ase_id', $ase_id);
+        if ($state_id) $teamQuery->where('state_id', $state_id);
+        if ($area_id) $teamQuery->where('area_id', $area_id);
+
+        $data = $teamQuery
+            
+            ->distinct()
+            ->paginate(25);
         
        
         $vpDetails=Employee::where('type',1)->where('status',1)->where('is_deleted',0)->get();
          $month = !empty($request->month)?$request->month:date('Y-m');
-        return view('attendance.index', compact('request', 'vpDetails', 'month'));
+        return view('attendance.index', compact('request', 'vpDetails', 'month','data'));
     }
 
 public function attendanceReportExport(Request $request)

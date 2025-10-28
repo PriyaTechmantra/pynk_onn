@@ -1059,7 +1059,9 @@ public function aseSalesreport(Request $request)
                 'product_id' => $product->id,
                 'product_style_no' => $product->product_style_no,
                 'product_name' => $product->product_name,
+                'product_image' => $product->image,
                 'brand' => $brandMap[$product->brand_id] ?? 'Unknown',
+
             ];
         }
 

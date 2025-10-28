@@ -70,7 +70,7 @@
                                                         <label class="small text-muted">Brand</label>
                                                         <select class="form-select form-select-sm" aria-label="Default select example" name="brand_id" id="brand_id">
                                                             <option value="" selected disabled>Select</option>
-                                                                 <option value="all" {{ (request()->input('brand_id') == "all") ? 'selected' : '' }}>All</option>
+                                                                 <option value="3" {{ (request()->input('brand_id') == 3) ? 'selected' : '' }}>All</option>
                                                             
                                                                 <option value="1" {{ (request()->input('brand_id') == 1) ? 'selected' : '' }}>ONN</option>
                                                                 <option value="2" {{ (request()->input('brand_id') == 2) ? 'selected' : '' }}>PYNK</option>
@@ -134,7 +134,7 @@
                                                                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> EXPORT
                                                                 </a>
                                                                 @endcan
-                                                        <!--</div>-->
+                                                        
                                                     </div>
                                                 </div>
                                             </form>
@@ -158,12 +158,13 @@
                             <table class="table">
                                 <thead>
                                     <tr>
-                                            <th style="min-width: 200px">Team</th>
-                                            <th>Employee</th>
-                                            <th>Employee Id</th>
-                                            <th>Employee Status</th>
-                                            <th>Employee Designation</th>
-                                            <th>Employee Contact No</th>
+                                            <th class="sl_no index-col">#</th>
+                                            <th>Brand Permission</th>
+                                            <th>Name</th>
+                                            <th>Designation</th>
+                                            <th>Mobile</th> 
+                                            <th style="min-width: 200px">Manager</th>
+                                            <th>Status</th>
                                             {{-- <th>Total Days</th> --}}
                                             @foreach ($month_names as $months)
                                                 <th>{{$months}}</th>
@@ -174,20 +175,56 @@
                                 <tbody>
                                     @forelse ($data as $index => $item)
                                             @php
-                                                $findTeamDetails = findManagerDetails($item->name, $item->user_type);
+                                                $findTeamDetails = findManagerDetails($item->id, $item->type);
                                                 
                                             @endphp
                                             <tr>
+                                                 <td class="index-col">{{ $index + 1 }}</td>
+                                                <td> 
+                                                    @php
+                                               
+
+                                                            $brandMap = [
+                                                                1 => 'ONN',
+                                                                2 => 'PYNK',
+                                                                3 => 'Both',
+                                                            ];
+
+                                                            $brands = [$item->brand];
+
+                                                    // Check conditions
+                                                        if (in_array(3, $brands)) {
+                                                            $brandPermissions = 'Both';
+                                                        } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                                            $brandPermissions = 'Both';
+                                                        } else {
+                                                            $brandPermissions = collect($brands)
+                                                                ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                                                ->implode(', ');
+                                                        }
+                                                    @endphp
+
+                                                    {{ $brandPermissions ?? '' }}
+                                                </td> 
                                                 
-                                                <td> {!! findManagerDetails($item->name, $item->user_type) !!} </td> 
-                                                
-                                                <td> {{$item->name}} </td>
-                                                <td> {{$item->employee_id}} </td>
                                                 <td>
-                                                    <span class="badge bg-{{($item->status == 1) ? 'success' : 'danger'}}">{{($item->status == 1) ? 'Active' : 'Inactive'}}</span>
+                                                    <p class="">{{ $item->name ?? '' }}</p>
+                                                    <p class="small">{{$item->employee_id}}</p>
                                                 </td>
-                                                <td> {{$item->designation}} </td>
-                                                <td> {{$item->mobile}} </td>
+                                                <td>
+                                                {{ $item->designation ? $item->designation : userTypeName($item->type) }}
+                                                </td>
+                                                <td>{{$item->mobile}} {{$item->whatsapp_no}}</td>
+                                                <td>
+                                                    <p style="text-transform: uppercase;">{!! findManagerDetails($item->id, $item->type) !!}</p>
+                                                </td>
+                                                    
+                                                <td>
+                                                        
+                                                            <span class="badge badge-status bg-{{ $item->status == 1 ? 'success' : 'danger' }}">{{ $item->status == 1 ? 'Active' : 'Inactive' }}</span>
+                                                        
+                                                       
+                                                </td>
                                                 {{-- <td> {{$totaldays}} </td> --}}
 
                                                 {{-- {{dd($date_values)}} --}}
@@ -198,33 +235,35 @@
                                                         
                                                     @endphp
                                                     @if($dates_attendance[0][0]['date_wise_attendance'][0]['is_present']=='A')
-                                                        <td class="redColor" style="background-color: red;color: #fff;padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
+                                                        <td class="redColor" style="background-color: red;color: #fff;padding: 10px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
                                                             {{$dates_attendance[0][0]['date_wise_attendance'][0]['is_present']}}
                                                         </td>
 
                                                     @elseif($dates_attendance[0][0]['date_wise_attendance'][0]['is_present']=='P')
-                                                        <td class="redColor" style="background-color: rgb(1, 134, 52); color:#fff;padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
+                                                        <td class="redColor" style="background-color: rgb(1, 134, 52); color:#fff;padding: 10px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
                                                             {{$dates_attendance[0][0]['date_wise_attendance'][0]['is_present']}}
                                                         </td>
 
                                                     @elseif($dates_attendance[0][0]['date_wise_attendance'][0]['is_present']=='W')
-                                                        <td class="redColor"  style="background-color: rgb(241, 225, 0); color:#fff; padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
+                                                        <td class="redColor"  style="background-color: rgb(241, 225, 0); color:#fff; padding: 10px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
                                                             {{$dates_attendance[0][0]['date_wise_attendance'][0]['is_present']}}
                                                         </td>
                                                     @elseif($dates_attendance[0][0]['date_wise_attendance'][0]['is_present']=='L')
-                                                        <td class="redColor"  style="background-color: #FFA500; color:#fff; padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
+                                                        <td class="redColor"  style="background-color: #FFA500; color:#fff; padding: 10px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
                                                             {{$dates_attendance[0][0]['date_wise_attendance'][0]['is_present']}}
                                                         </td>
                                                     @else
-                                                        <td class="redColor"  style="background-color: #294fa1da; color:#fff; padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
+                                                        <td class="redColor"  style="background-color: #294fa1da; color:#fff; padding: 10px;text-align: center;border: 1px solid #fff; vertical-align: middle;">
                                                             {{$dates_attendance[0][0]['date_wise_attendance'][0]['is_present']}}
                                                         </td>
                                                     @endif
                                                 @endforeach
                                             </tr>
                                         @empty
-                                            <tr><td colspan="100%" class="small text-muted">No data found</td></tr>
-                                        @endforelse
+                                    <tr>
+                                        <td colspan="9" class="text-center">No record found</td>
+                                    </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>

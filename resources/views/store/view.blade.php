@@ -5,6 +5,13 @@
 @section('content')
 
 @php
+     $brandMap = [1 => 'ONN', 2 => 'PYNK', 3 => 'Both'];
+    $brandPermissions = $brandMap[$data->brand] ?? 'Unknown';
+     // Logged-in user permission (fetched from user_permission_categories table)
+    $userPermission = \App\Models\UserPermissionCategory::where('user_id', auth()->id())
+        ->value('brand'); // assuming column name is 'brand' in user_permission_categories
+
+    $userBrandPermission = $brandMap[$userPermission] ?? 'Unknown';
        $store_name = $data->store_name;
        $area = $data->area;
 	//$name=$data->user->name;
@@ -139,11 +146,12 @@
                     {{-- Store Info --}}
                     <h5 class="text-primary border-bottom pb-2">Store Information</h5>
                     <div class="row">
-                        <div class="col-md-4 mb-3"><strong>Store Name:</strong> {{ $data->name ?? 'NA' }}</div>
-                        <div class="col-md-4 mb-3"><strong>Firm Name:</strong> {{ $data->bussiness_name ?? 'NA' }}</div>
-                        <div class="col-md-4 mb-3"><strong>GST Number:</strong> {{ $data->gst_no ?? 'NA' }}</div>
-                        <div class="col-md-4 mb-3"><strong>PAN Number:</strong> {{ $data->pan_no ?? 'NA' }}</div>
-                        <div class="col-md-4 mb-3"><strong>Store OCC Number:</strong> {{ $data->store_OCC_number ?? 'NA' }}</div>
+                        <div class="col-md-3"><strong>Brand:</strong> {{ $brandPermissions }}</div>
+                        <div class="col-md-3 mb-3"><strong>Store Name:</strong> {{ $data->name ?? 'NA' }}</div>
+                        <div class="col-md-3 mb-3"><strong>Firm Name:</strong> {{ $data->bussiness_name ?? 'NA' }}</div>
+                        <div class="col-md-3 mb-3"><strong>GST Number:</strong> {{ $data->gst_no ?? 'NA' }}</div>
+                        <div class="col-md-3 mb-3"><strong>PAN Number:</strong> {{ $data->pan_no ?? 'NA' }}</div>
+                        <div class="col-md-3 mb-3"><strong>Store OCC Number:</strong> {{ $data->store_OCC_number ?? 'NA' }}</div>
                     </div>
 
                     {{-- Manager Info --}}
