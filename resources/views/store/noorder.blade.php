@@ -100,7 +100,7 @@
                                                 class="btn btn-sm btn-cta d-flex align-items-center justify-content-center"
                                                 data-bs-toggle="tooltip" 
                                                 title="Clear Filter">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" 
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="18" 
                                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" 
                                                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
                                                         class="feather feather-x">

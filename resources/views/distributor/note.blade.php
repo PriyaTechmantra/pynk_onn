@@ -32,6 +32,14 @@
                                     <form action="{{url('distributors/note')}}">
                                         <div class="row">
                                             <div class="col-2">
+                                                <select name="brand_selection" class="form-control form-control-sm">
+                                                    <option value="">Select Brand</option>
+                                                    <option value="1" {{ app('request')->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
+                                                    <option value="2" {{ app('request')->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
+                                                    <option value="3" {{ app('request')->input('brand_selection') == 3 ? 'selected' : '' }}>Both</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-2">
                                                  <select name="user_type" class="form-control form-control-sm">
                                                     <option value="">User Type</option>
 
@@ -76,15 +84,7 @@
                                                 </select>
                                             </div>
                                             
-                                            <div class="col-2">
-                                                 
-                                                <select name="brand_selection" class="form-control form-control-sm">
-                                                    <option value="">Select Brand</option>
-                                                    <option value="1" {{ app('request')->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
-                                                    <option value="2" {{ app('request')->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
-                                                    <option value="3" {{ app('request')->input('brand_selection') == 3 ? 'selected' : '' }}>Both</option>
-                                                </select>
-                                            </div>
+                                            
                                             <div class="col-2">
                                                 <input type="search" name="term" id="term" class="form-control form-control-sm" placeholder="Comment" value="{{app('request')->input('term')}}" autocomplete="off">
                                             </div>

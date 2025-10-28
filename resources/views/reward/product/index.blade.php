@@ -37,10 +37,6 @@
                                     <form action="{{route('reward.retailer.product.index')}}">
                                         <div class="row">
                                             <div class="col-3">
-                                                <input type="search" name="term" id="term" class="form-control form-control-sm" placeholder="Search by keyword." value="{{app('request')->input('term')}}" autocomplete="off">
-                                            </div>
-                                            
-                                            <div class="col-3">
                                                  
                                                 <select name="brand_selection" class="form-control form-control-sm">
                                                     <option value="">Select Brand</option>
@@ -49,6 +45,11 @@
                                                     <option value="3" {{ app('request')->input('brand_selection') == 3 ? 'selected' : '' }}>Both</option>
                                                 </select>
                                             </div>
+                                            <div class="col-3">
+                                                <input type="search" name="term" id="term" class="form-control form-control-sm" placeholder="Search by keyword." value="{{app('request')->input('term')}}" autocomplete="off">
+                                            </div>
+                                            
+                                            
                                             <div class="col-6 text-end">
                                                     <button type="submit" class="btn btn-sm btn-cta">
                                                         Filter

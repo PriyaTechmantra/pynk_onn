@@ -26,13 +26,7 @@
                                 <div class="col-12">
                                     <form action="{{url('news/')}}">
                                         <div class="row g-2 align-items-center">
-                                            <div class="col-2">
-                                                <input type="search" name="term" id="term" 
-                                                    class="form-control form-control-sm" 
-                                                    placeholder="Search by keyword." 
-                                                    value="{{ app('request')->input('term') }}" 
-                                                    autocomplete="off">
-                                            </div>
+                                            
 
                                             <div class="col-3 d-flex align-items-center gap-2">
                                                 <select name="brand_selection" class="form-control form-control-sm">
@@ -50,7 +44,7 @@
 
                                             </div>
 
-                                            <div class="col-5 d-flex align-items-center gap-2">
+                                            <div class="col-4 d-flex align-items-center gap-2">
                                                 <label class="text-muted small mb-0">From</label>
                                                 <input type="date" name="date_from" 
                                                     class="form-control form-control-sm" 
@@ -60,6 +54,13 @@
                                                 <input type="date" name="date_to" 
                                                     class="form-control form-control-sm" 
                                                     value="{{ request()->input('date_to') ?? date('Y-m-d') }}">
+                                            </div>
+                                            <div class="col-3">
+                                                <input type="search" name="term" id="term" 
+                                                    class="form-control form-control-sm" 
+                                                    placeholder="Search by keyword." 
+                                                    value="{{ app('request')->input('term') }}" 
+                                                    autocomplete="off">
                                             </div>
 
                                             <div class="col-2 text-end">
