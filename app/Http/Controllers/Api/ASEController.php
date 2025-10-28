@@ -14,7 +14,9 @@ use App\Models\PrimaryOrder;
 use App\Models\SecondaryOrder;
 use App\Models\NoOrderReason;
 use App\Models\Category;
+use App\Models\Color;
 use App\Models\Collection;
+use App\Models\ProductImage;
 use App\Models\Product;
 use App\Models\ProductColorSize;
 use App\Models\UserNoOrderReason;
@@ -95,6 +97,16 @@ class ASEController extends Controller
     ];
 
     $visit_id = DB::table('visits')->insertGetId($data);
+    $attendance = [
+        
+        "user_id" => $request->user_id,
+        "entry_date" => $request->entry_date,
+        "start_time" => $request->start_time,
+        "type" => 'P',
+         "created_at" => now(),
+         
+    ];
+    $attendance_id = DB::table('user_attendances')->insertGetId($attendance);
 
     return response()->json(['status' => true, 'message' => 'Visit started', 'visit_id' => $visit_id],200);
 }

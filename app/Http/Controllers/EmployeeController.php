@@ -1260,257 +1260,343 @@ class EmployeeController extends Controller
         return redirect()->back()->with('success', 'Stores transferred successfully.');
     }
 
-    public function attendanceReport(Request $request) 
-    {
-         // === Filter parameters ===
-        // === Step 1: Filters ===
-        $month = $request->month ?? date('Y-m'); // Format: YYYY-MM
-        $brand = $request->brand_id ?? '';
-        $vp_id = $request->vp_id ?? '';
-        $rsm_id = $request->rsm_id ?? '';
-        $asm_id = $request->asm_id ?? '';
-        $ase_id = $request->ase_id ?? '';
-        $state_id = $request->state_id ?? '';
-        $area_id = $request->area_id ?? '';
+   public function attendanceReport(Request $request)
+{
+    // === Step 1: Filters ===
+    $month = $request->month ?? date('Y-m'); // Format: YYYY-MM
+    $brand = $request->brand_id ?? '';
+    $vp_id = $request->vp_id ?? '';
+    $rsm_id = $request->rsm_id ?? '';
+    $asm_id = $request->asm_id ?? '';
+    $ase_id = $request->ase_id ?? '';
+    $state_id = $request->state_id ?? '';
+    $area_id = $request->area_id ?? '';
 
-        // Logged-in user's brand permission
-        $user = auth()->user();
+    $user = auth()->user();
+
+    // === Step 2: Build Employee Query ===
+    $dataQuery = Employee::query();
+
+    // === Step 3: Apply Brand Filter ===
+    if ($request->filled('brand_id')) {
+        $dataQuery->where(function ($q) use ($request) {
+            if ($request->brand_id == 3) {
+                // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                $q->whereIn('brand', [1, 2, 3]);
+            } else {
+                // single brand selected → include that + both
+                $q->where('brand', $request->brand_id)
+                  ->orWhere('brand', 3);
+            }
+        });
+    } else {
+        // If brand not selected — filter based on user permissions
+        $userBrandPermissions = DB::table('user_permission_categories')
+            ->where('user_id', $user->id)
+            ->pluck('brand')
+            ->toArray();
+
+        if (!empty($userBrandPermissions)) {
+            $dataQuery->where(function ($q) use ($userBrandPermissions) {
+                if (in_array(3, $userBrandPermissions)) {
+                    $q->whereIn('brand', [1, 2, 3]);
+                } else {
+                    $q->whereIn('brand', array_merge($userBrandPermissions, [3]));
+                }
+            });
+        }
+    }
+
+    // === Step 4: Hierarchy Filters ===
+    $aseIds = [];
+    $asmIds = [];
+    $rsmIds = [];
+    $vpIds = [];
+
+    $teamQuery = Team::query();
+
+    // Apply filters dynamically
+    if (!empty($vp_id)) $teamQuery->where('vp_id', $vp_id);
+    if (!empty($rsm_id)) $teamQuery->where('rsm_id', $rsm_id);
+    if (!empty($asm_id)) $teamQuery->where('asm_id', $asm_id);
+    if (!empty($ase_id)) $teamQuery->where('ase_id', $ase_id);
+    if (!empty($state_id)) $teamQuery->where('state_id', $state_id);
+
+    // Fetch hierarchy IDs
+    $aseIds = $teamQuery->pluck('ase_id')->filter()->unique()->toArray();
+    $asmIds = $teamQuery->pluck('asm_id')->filter()->unique()->toArray();
+    $rsmIds = $teamQuery->pluck('rsm_id')->filter()->unique()->toArray();
+    $vpIds = $teamQuery->pluck('vp_id')->filter()->unique()->toArray();
+
+    // Merge all employee IDs
+    $userIds = array_unique(array_merge($vpIds, $rsmIds, $asmIds, $aseIds));
+
+    // === Step 5: Apply to Data Query ===
+    if ($vp_id === "all") {
+        $dataQuery->latest('id');
+    } elseif (!empty($userIds)) {
+        $dataQuery->whereIn('id', $userIds);
+    } else {
+        $dataQuery->latest('id');
+    }
+
+    // === Step 6: Paginate Result ===
+    $data = $dataQuery->paginate(15);
+
+    // === Step 7: VP List ===
+    $vpDetails = Employee::where('type', 1)
+        ->where('status', 1)
+        ->where('is_deleted', 0)
+        ->get();
+
+    // === Step 8: Return View ===
+    return view('attendance.index', compact('request', 'vpDetails', 'month', 'data'));
+}
+
+
+    public function attendanceReportExport(Request $request)
+    {
         
 
-        // === Step 2: ASE list from team table based on filters ===
-        $teamQuery = \DB::table('teams')->join('employees', 'teams.ase_id', '=', 'employees.id')
-            ->select('employees.*', 'teams.state_id', 'teams.area_id')
-            ->whereNotNull('ase_id');
+       // === Step 1: Filters ===
+            $month = $request->month ?? date('Y-m'); // Format: YYYY-MM
+            $brand = $request->brand_id ?? '';
+            $vp_id = $request->vp_id ?? '';
+            $rsm_id = $request->rsm_id ?? '';
+            $asm_id = $request->asm_id ?? '';
+            $ase_id = $request->ase_id ?? '';
+            $state_id = $request->state_id ?? '';
+            $area_id = $request->area_id ?? '';
+
+            $user = auth()->user();
+
+            // === Step 2: Build Employee Query ===
+            $dataQuery = Employee::query();
+
+            // === Step 3: Apply Brand Filter ===
             if ($request->filled('brand_id')) {
-                $teamQuery->where(function ($q) use ($request) {
+                $dataQuery->where(function ($q) use ($request) {
                     if ($request->brand_id == 3) {
-                        // "Both" selected → show ONN (1), PYNK (2), and Both (3)
-                        $q->whereIn('employees.brand', [1, 2, 3]);
+                        // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                        $q->whereIn('brand', [1, 2, 3]);
                     } else {
-                        // Single brand selected → include that + both
-                        $q->where('employees.brand', $request->brand_id)
-                        ->orWhere('employees.brand', 3);
+                        // single brand selected → include that + both
+                        $q->where('brand', $request->brand_id)
+                        ->orWhere('brand', 3);
                     }
                 });
             } else {
-                // No brand selected — show based on user's brand permissions
-                $user = auth()->user();
+                // If brand not selected — filter based on user permissions
                 $userBrandPermissions = DB::table('user_permission_categories')
                     ->where('user_id', $user->id)
                     ->pluck('brand')
                     ->toArray();
 
                 if (!empty($userBrandPermissions)) {
-                    $teamQuery->where(function ($q) use ($userBrandPermissions) {
+                    $dataQuery->where(function ($q) use ($userBrandPermissions) {
                         if (in_array(3, $userBrandPermissions)) {
-                            // User has both brand permission
-                            $q->whereIn('employees.brand', [1, 2, 3]);
+                            $q->whereIn('brand', [1, 2, 3]);
                         } else {
-                            // User has limited brands
-                            $q->whereIn('employees.brand', array_merge($userBrandPermissions, [3]));
+                            $q->whereIn('brand', array_merge($userBrandPermissions, [3]));
                         }
                     });
                 }
             }
 
-        // if ($brandPermissions != 'Both') {
-        //     $teamQuery->where('brand', $brandPermissions);
-        // }
+            // === Step 4: Hierarchy Filters ===
+            $aseIds = [];
+            $asmIds = [];
+            $rsmIds = [];
+            $vpIds = [];
 
-        // if ($brand_id && $brand_id != 'all') {
-        //     $teamQuery->where('brand', $brand_id);
-        // }
-        if ($vp_id) $teamQuery->where('vp_id', $vp_id);
-        if ($rsm_id) $teamQuery->where('rsm_id', $rsm_id);
-        if ($asm_id) $teamQuery->where('asm_id', $asm_id);
-        if ($ase_id) $teamQuery->where('ase_id', $ase_id);
-        if ($state_id) $teamQuery->where('state_id', $state_id);
-        if ($area_id) $teamQuery->where('area_id', $area_id);
+            $teamQuery = Team::query();
 
-        $data = $teamQuery
-            
-            ->distinct()
-            ->paginate(25);
-        
-       
-        $vpDetails=Employee::where('type',1)->where('status',1)->where('is_deleted',0)->get();
-         $month = !empty($request->month)?$request->month:date('Y-m');
-        return view('attendance.index', compact('request', 'vpDetails', 'month','data'));
-    }
+            // Apply filters dynamically
+            if (!empty($vp_id)) $teamQuery->where('vp_id', $vp_id);
+            if (!empty($rsm_id)) $teamQuery->where('rsm_id', $rsm_id);
+            if (!empty($asm_id)) $teamQuery->where('asm_id', $asm_id);
+            if (!empty($ase_id)) $teamQuery->where('ase_id', $ase_id);
+            if (!empty($state_id)) $teamQuery->where('state_id', $state_id);
 
-public function attendanceReportExport(Request $request)
-{
-    // --- STEP 1: Get Filter Inputs ---
-    $brand_id = $request->brand_id ?? '';  // 1=ONN, 2=PYNK, 'all'=BOTH
-    $vp_id    = $request->vp_id ?? '';
-    $state_id = $request->state_id ?? '';
-    $rsm_id   = $request->rsm_id ?? '';
-    $asm_id   = $request->asm_id ?? '';
-    $ase_id   = $request->ase_id ?? '';
-    $month    = !empty($request->month) ? $request->month : date('Y-m');
+            // Fetch hierarchy IDs
+            $aseIds = $teamQuery->pluck('ase_id')->filter()->unique()->toArray();
+            $asmIds = $teamQuery->pluck('asm_id')->filter()->unique()->toArray();
+            $rsmIds = $teamQuery->pluck('rsm_id')->filter()->unique()->toArray();
+            $vpIds = $teamQuery->pluck('vp_id')->filter()->unique()->toArray();
 
-    // --- STEP 2: Prepare ID Arrays ---
-    $vpIds  = [];
-    $rsmIds = [];
-    $asmIds = [];
-    $aseIds = [];
+            // Merge all employee IDs
+            $userIds = array_unique(array_merge($vpIds, $rsmIds, $asmIds, $aseIds));
 
-    // --- STEP 3: BRAND WISE VP FETCH ---
-    if ($brand_id && $brand_id != 'all') {
-        $brandIds = \DB::table('user_permission_categories')
-                ->where('brand', $brand_id)
-                ->pluck('employee_id')->toArray();
-        $vpIds = Employee::where('type',1)->whereIN('id',$brandIds)->pluck('id')->toArray();
-    } else {
-        // BOTH means ONN + PYNK VPs
-        $vpIds = Team::groupBy('vp_id')->pluck('vp_id')->toArray();
-    }
-
-    // --- STEP 4: VP WISE STATE & RSM ---
-    if ($vp_id) {
-        $stateIds = Team::where('vp_id', $vp_id)
-            ->groupBy('state_id')
-            ->pluck('state_id')
-            ->toArray();
-
-        if ($state_id) {
-            // VP + STATE wise RSM
-            $rsmIds = Team::where('vp_id', $vp_id)
-                ->where('state_id', $state_id)
-                ->groupBy('rsm_id')
-                ->pluck('rsm_id')
-                ->toArray();
-        } else {
-            // Only VP wise all RSM
-            $rsmIds = Team::where('vp_id', $vp_id)
-                ->groupBy('rsm_id')
-                ->pluck('rsm_id')
-                ->toArray();
-        }
-    }
-
-    // --- STEP 5: RSM WISE ASM ---
-    if ($rsm_id) {
-        $asmIds = Team::where('rsm_id', $rsm_id)
-            ->groupBy('asm_id')
-            ->pluck('asm_id')
-            ->toArray();
-    } elseif (!empty($rsmIds)) {
-        $asmIds = Team::whereIn('rsm_id', $rsmIds)
-            ->groupBy('asm_id')
-            ->pluck('asm_id')
-            ->toArray();
-    }
-
-    // --- STEP 6: ASM WISE ASE ---
-    if ($asm_id) {
-        $aseIds = Team::where('asm_id', $asm_id)
-            ->groupBy('ase_id')
-            ->pluck('ase_id')
-            ->toArray();
-    } elseif (!empty($asmIds)) {
-        $aseIds = Team::whereIn('asm_id', $asmIds)
-            ->groupBy('ase_id')
-            ->pluck('ase_id')
-            ->toArray();
-    }
-
-    // If ASE selected manually, use only that
-    if ($ase_id) {
-        $aseIds = [$ase_id];
-    }
-
-    // --- STEP 7: Merge all Hierarchy IDs ---
-    $allIds = array_merge($vpIds, $rsmIds, $asmIds, $aseIds);
-
-    // --- STEP 8: Get Employees matching any of these IDs ---
-    $employees = Employee::whereIn('id', $allIds)
-        ->where('status', 1)
-        ->where('is_deleted', 0)
-        ->get();
-
-    // --- STEP 9: Attendance Logic ---
-    $my_month = explode('-', $month);
-    $year_val = $my_month[0];
-    $month_val = $my_month[1];
-
-    $dates_month = dates_month($month_val, $year_val);
-    $month_names = $dates_month['month_names'];
-    $date_values = $dates_month['date_values'];
-
-    $tableHead = ['TEAM', 'EMPLOYEE', 'EMPLOYEE ID', 'STATUS', 'DESIGNATION', 'DOJ', 'HQ', 'CONTACT'];
-    foreach ($month_names as $months) {
-        array_push($tableHead, $months);
-    }
-
-    $tableBody = [];
-
-    foreach ($employees as $item) {
-        $monthlyDates = [];
-        foreach ($date_values as $date) {
-            $att = dates_attendance($item->id, $date);
-
-            if (empty($att[0][0]['date_wise_attendance'][0]['is_present'])) {
-                // --- Sunday = W, Missing date = '-'
-                $day = date('w', strtotime($date));
-                if ($day == 0) {
-                    $status = 'W';
-                } else {
-                    $status = '-';
-                }
+            // === Step 5: Apply to Data Query ===
+            if ($vp_id === "all") {
+                $dataQuery->latest('id');
+            } elseif (!empty($userIds)) {
+                $dataQuery->whereIn('id', $userIds);
             } else {
-                $status = $att[0][0]['date_wise_attendance'][0]['is_present'];
+                $dataQuery->latest('id');
             }
 
-            // --- Add Colors ---
-            $color = match ($status) {
-                'P' => 'background-color: #018634; color:#fff;',
-                'A' => 'background-color: red; color:#fff;',
-                'L' => 'background-color: #FFA500; color:#fff;',
-                'W' => 'background-color: #F1E100; color:#000;',
-                default => 'background-color: #294fa1da; color:#fff;',
-            };
+            // === Step 6: Paginate Result ===
+                $data = $dataQuery->get();
+                $month = !empty($request->month)?$request->month:date('Y-m');
 
-            $monthlyDates[] = "<td style='{$color} text-align:center; border:1px solid #fff;'>{$status}</td>";
-        }
 
-        $tableBody[] = [
-            $item->team_name ?? '',
-            $item->name ?? '',
-            $item->employee_id ?? '',
-            $item->status == 1 ? 'Active' : 'Inactive',
-            $item->designation ?? '',
-            $item->date_of_joining ?? '',
-            $item->headquater ?? '',
-            $item->mobile ?? '',
-            $monthlyDates
-        ];
+
+
+
+
+
+                if (count($data) > 0) {
+                    // initializing vars
+                    $my_month =  explode("-",$month);
+                    $year_val = $my_month[0];
+                    $month_val = $my_month[1];
+                    $dates_month=dates_month($month_val,$year_val);
+                    $month_names = $dates_month['month_names'];
+                    $date_values = $dates_month['date_values'];
+                    $totaldays=count($dates_month['date_values']);
+
+                    // generating table head content
+                    $tableHead = ['BRAND PERMISSION',  'EMPLOYEE NAME', 'EMPLOYEE DESIGNATION', 'EMPLOYEE ID','EMPLOYEE CONTACT','MANAGER', 'EMPLOYEE STATUS' ];
+                    foreach($month_names as $months) {
+                        array_push($tableHead, $months);
+                    }
+
+                    // dd($tableHead);
+
+                    // generating table body
+                    $tableBody = [];
+                    foreach($data as $index => $item) {
+                        $findTeamDetails =  findManagerDetails($item->id, $item->type);
+                        $assignedPermissions = [$item->brand];
+
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            if (in_array(3, $assignedPermissions)) {
+                                $brandPermissions = 'Both';
+                            } elseif (in_array(1, $assignedPermissions) && in_array(2, $assignedPermissions)) {
+                                $brandPermissions = 'Both';
+                            } else {
+                                $brandPermissions = collect($assignedPermissions)
+                                ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                ->implode(', ');
+                            }
+                        // dd($findTeamDetails[0]['nsm']);
+
+                        $monthlyDates = [];
+                        foreach($date_values as $date) {
+                            $dates_attendance=dates_attendance($item->id, $date);
+
+                            if($dates_attendance[0][0]['date_wise_attendance'][0]['is_present']=='A') {
+                                $htmlRow = '<td class="redColor" style="background-color: red;color: #fff;padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">'.
+                                    $dates_attendance[0][0]['date_wise_attendance'][0]['is_present']
+                                .'</td>';
+                            }
+                            elseif($dates_attendance[0][0]['date_wise_attendance'][0]['is_present']=='P') {
+                                $htmlRow = '<td class="redColor" style="background-color: rgb(1, 134, 52); color:#fff;padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">'.
+                                    $dates_attendance[0][0]['date_wise_attendance'][0]['is_present']
+                                .'</td>';
+                            }
+                            elseif($dates_attendance[0][0]['date_wise_attendance'][0]['is_present']=='W') {
+                                $htmlRow = '<td class="redColor"  style="background-color: rgb(241, 225, 0); color:#fff; padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">'.
+                                    $dates_attendance[0][0]['date_wise_attendance'][0]['is_present']
+                                .'</td>';
+                            }
+                            elseif($dates_attendance[0][0]['date_wise_attendance'][0]['is_present']=='L') {
+                                $htmlRow = '<td class="redColor"  style="background-color: #FFA500; color:#fff; padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">'.
+                                    $dates_attendance[0][0]['date_wise_attendance'][0]['is_present']
+                                .'</td>';
+                            }
+                            else {
+                                $htmlRow = '<td class="redColor"  style="background-color: #294fa1da; color:#fff; padding: 15px;text-align: center;border: 1px solid #fff; vertical-align: middle;">'.
+                                    $dates_attendance[0][0]['date_wise_attendance'][0]['is_present']
+                                .'</td>';
+                            }
+
+                            array_push($monthlyDates, $htmlRow);
+                        }
+
+                        if ($item->status == 1) {
+                            $empStatClass = 'success';
+                            $empStatType = 'Active';
+                        } else {
+                            $empStatClass = 'danger';
+                            $empStatType = 'Inactive';
+                        }
+                        
+                        $empStatus = '<span class="badge bg-'.$empStatClass.'">'.$empStatType.'</span>';
+
+                        $tableBody[] = [
+                            $brandPermissions,
+                            $item->name ?? '',
+                            $item->designation ?? '',
+                            $item->employee_id ?? '',
+                            $item->mobile ?? '',
+                            $findTeamDetails,
+                            $empStatus,
+                            $monthlyDates
+                        ];
+                    }
+
+                    $finalHtml = '';
+
+                    $finalHtml .= '
+                    <table class="table">
+                        <thead>
+                            <tr>';
+                            foreach($tableHead as $head) {
+                                $finalHtml .= '<th>'.$head.'</th>';
+                            }
+                    $finalHtml .= '</tr>
+                        </thead>
+                        <tbody>';
+
+                            foreach($tableBody as $bodyIndex => $body) {
+                                $finalHtml .=
+                                '<tr>
+                                    <td>'.$body[0].'</td>
+                                    <td>'.$body[1].'</td>
+                                    <td>'.$body[2].'</td>
+                                    <td>'.$body[3].'</td>
+                                    <td>'.$body[4].'</td>
+                                    <td>'.$body[5].'</td>
+                                    <td>'.$body[6].'</td>
+                                    
+                                
+                                    
+                                    
+                                    ';
+
+                                    // monthly dates attendance
+                                    foreach($body[7] as $attendance) {
+                                        $finalHtml .= $attendance;
+                                    }
+
+                                $finalHtml .= '</tr>';
+                            }
+                    $finalHtml .= '
+                        </tbody>
+                    </table>
+                    ';
+
+                    // dd($finalHtml);
+
+                    return response()->json([
+                        'status' => 200,
+                        'message' => 'Data found',
+                        'data' => $finalHtml
+                    ]);
+                } else {
+                    return response()->json([
+                        'status' => 400,
+                        'message' => 'No data found'
+                    ]);
+                }
     }
-
-    // --- STEP 10: Build HTML Table ---
-    $html = '<table class="table"><thead><tr>';
-    foreach ($tableHead as $th) {
-        $html .= "<th>{$th}</th>";
-    }
-    $html .= '</tr></thead><tbody>';
-
-    foreach ($tableBody as $row) {
-        $html .= '<tr>';
-        foreach (array_slice($row, 0, 8) as $col) {
-            $html .= "<td>{$col}</td>";
-        }
-        foreach ($row[8] as $att) {
-            $html .= $att;
-        }
-        $html .= '</tr>';
-    }
-    $html .= '</tbody></table>';
-
-    return response()->json([
-        'status' => 200,
-        'data' => $html
-    ]);
-}
 
     public function vpBrandWise(Request $request, $brand_id)
    {

@@ -381,36 +381,7 @@ function dates_attendance($id, $date) {
     $users = array();
     $user = Employee::where('id', $id)->first();
 
-    if($user->type==2 || $user->type==3){
-        
-           // $res=UserLogin::join('other_activities', 'other_activities.user_id', 'user_logins.user_id')->where('user_logins.user_id',$id)->whereRaw("DATE_FORMAT(user_logins.created_at,'%Y-%m-%d')",$date)->get();
-           // $res=DB::select("select * from user_logins where user_id='$id' and is_login=1 and created_at like '$date%'");
-          $res= UserAttendance::where('user_id',$id)->whereDate('entry_date', $date)->groupby('entry_date')->orderby('id','asc')->first();
-          if(!empty($res)){
-                if ($res->type=='P') {
-                    $d['is_present'] = 'P';
-                }
-                else if($day=='Sun' && empty($res))
-                {
-                    $d['is_present'] = 'W';
-                }else if($date > date('Y-m-d')){
-                    $d['is_present'] = '-';
-                }else if(!empty($res) && $res->type=='leave') {
-                    
-                        $d['is_present'] = 'L';
-                    
-                }
-                else{
-                    $d['is_present'] = 'A';
-                }
-            }else{
-                $d['is_present'] = 'A';
-            }
-
-            array_push($date_wise_attendance, $d);
-        
-    }else{
-        
+    
             $res= UserAttendance::where('user_id',$id)->whereDate('entry_date', $date)->groupby('entry_date')->orderby('id','asc')->first();
             if(!empty($res)){
                 if ($res->type=='P') {
@@ -435,7 +406,7 @@ function dates_attendance($id, $date) {
 
             array_push($date_wise_attendance, $d);
         
-    }
+    
 
     $data['date_wise_attendance'] = $date_wise_attendance;
 
