@@ -18,7 +18,7 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $keyword = (!empty($request->keyword) && $request->keyword!='')?$request->keyword:'';
         $collectionD = (!empty($request->collection_id) && $request->collection_id!='')?$request->collection_id:'';
