@@ -79,7 +79,7 @@
                         @can('view employee activities')
                         <li class="{{ ( request()->is('activities*') ) ? 'active' : '' }}"><a href="{{route('activities.index')}}"><i class="fi fi-br-book"></i> <span>Activity Management</span></a></li>
                         @endcan
-                        @can('view employee')
+                        @can('view notifications')
                         <li class="{{ ( request()->is('employees/notifications*') ) ? 'active' : '' }}"><a href="{{route('notifications.index')}}"><i class="fi fi-br-book"></i> <span>Notification</span></a></li>
                         @endcan
                         

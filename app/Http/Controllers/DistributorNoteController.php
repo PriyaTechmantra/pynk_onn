@@ -90,30 +90,16 @@ class DistributorNoteController extends Controller
         }
 
         if (!empty($request->brand_selection)) {
-            $brands = explode(',', $request->brand_selection);
+            $brand = $request->brand_selection;
 
-            $query->where(function ($q) use ($brands) {
-                foreach ($brands as $brand) {
-                    switch ($brand) {
-                        case '1':
-                            $q->orWhereJsonContains('brand', '1')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-                        case '2':
-                            $q->orWhereJsonContains('brand', '2')
-                            ->orWhereJsonContains('brand', '3');
-                            break;
-                        case '3':
-                            $q->orWhere(function ($q2) {
-                                $q2->whereJsonContains('brand', '1')
-                                ->whereJsonContains('brand', '2');
-                            })->orWhereJsonContains('brand', '3');
-                            break;
-                    }
-                }
-            });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
         }
-
         if ($request->filled('user_name')) {
             $query->where('user_id', $request->user_name);
         }

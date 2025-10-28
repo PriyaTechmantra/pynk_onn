@@ -230,7 +230,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('stores/{userId}/status/change', [StoreController::class, 'status']);
     Route::get('stores/csv/export', [StoreController::class, 'storesExport']);
     Route::post('stores/bulk/upload', [StoreController::class, 'bulkUpload']);
-    Route::get('stores/noorderreason', [StoreController::class, 'noorderreason'])->name('stores.noorderreason');
+    Route::get('stores/noorderreason/list', [StoreController::class, 'noorderreason'])->name('stores.noorderreason');
+    Route::get('stores/noorderreason/exportCSV', [StoreController::class, 'noOrderreasonCSV'])->name('store.noorderreasonview.csv');
     Route::post('/stores/transfer/to/ase', [StoreController::class, 'bulkASEDistributorransfer'])->name('stores.transfer');
 
     //orders
