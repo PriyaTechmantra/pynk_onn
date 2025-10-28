@@ -57,7 +57,7 @@
                         <h4 class="d-flex">
                             Product
                             @can('product export')
-                            <a href="{{ url('products/csv/export',['brand'=>$request->brand,'cat_id'=>$request->cat_id,'collection_id'=>$request->collection_id,'keyword'=>$request->keyword]) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
+                            <a href="{{ url('products/export/csv',['brand'=>$request->brand,'cat_id'=>$request->cat_id,'collection_id'=>$request->collection_id,'keyword'=>$request->keyword]) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 CSV
                             </a>
@@ -151,7 +151,6 @@
                                         <th class="text-center"><i class="fi fi-br-picture"></i></th>
                                         <th>Brand</th>
                                         <th>Name</th>
-                                        <th>Style No.</th>
                                         <th>Range</th>
                                         <th>Category</th>
                                         <th>Price</th>
@@ -169,6 +168,17 @@
                                     @endphp
                                     <tr>
                                         <td class="index-col">{{ $index + 1 }}</td>
+                                        @if($item->image == "uploads/product/polo_tshirt_front.png" ||
+                                                        !file_exists($item->image))
+                                            <td class="text-center column-thumb">
+                                                <img src="{{asset('admin/images/default-placeholder-product-image.png')}}" />
+                                            </td>
+                                        
+                                        @else
+                                        <td class="text-center column-thumb">
+                                                <img src="{{asset($item->image)}}" />
+                                            </td>
+                                        @endif
                                         <td>
                                             @php
                                                
@@ -203,16 +213,9 @@
                                           <a href="{{ route('collections.show', $item->collection->id) }}">{{$item->collection ? $item->collection->name : ''}}</a>
                                         </td>
                                         <td><a href="{{ route('categories.show', $item->category->id) }}">{{$item->category ? $item->category->name : ''}}</a></td>
+                                        
                                         <td>
-                                             @if($item->type == 4)
-                                            <p class="small text-dark">{{$area}}</p>
-                        				    @endif
-                                          {{$item->area->name}},{{$item->stateDetail->name ??''}}
-                                         
-                                          
-                                        </td>
-                                        <td>
-                                          <p style="text-transform: uppercase;">{{$item->offer_price}}</p>
+                                          <p style="text-transform: uppercase;">{{'Rs. ' . number_format($item->price)}}</p>
                                         </td>
                                         <td>{{date('d-m-Y', strtotime($item->created_at))}}</td>
                                         <td>

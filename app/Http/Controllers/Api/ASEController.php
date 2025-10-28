@@ -1254,7 +1254,12 @@ public function aseSalesreport(Request $request)
 
     public function productcolor(Request $request,$id)
     {
-        $color=ProductColorSize::where('product_id',$id)->where('status',1)->distinct('color_id')->with('colorData:id,name')->get();
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+        $color=ProductColorSize::where('product_id',$id)->where('status',1)->distinct('color_id')->with('colorData:id,name,code')->get();
         if ($color) {
             return response()->json(['error'=>false, 'resp'=>'Color List fetched successfully','data'=>$color]);
         } else {

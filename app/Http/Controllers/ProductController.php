@@ -82,7 +82,7 @@ class ProductController extends Controller
 
 
         if ($request->filled('collection_id')) {
-            $query->where('collection_id',$collection);
+            $query->where('collection_id',$request->collection_id);
         }
         /**
          * STEP 3: State filter
@@ -338,10 +338,96 @@ class ProductController extends Controller
 
     public function csvExport(Request $request)
     {
-         $data = DB::select("SELECT p.name, p.style_no, cls.name AS collection_name, ctr.name AS category_name, c.name AS org_color, pcs.color_id, s.name AS org_size, pcs.size_id, pcs.price FROM product_color_sizes AS pcs INNER JOIN colors AS c ON c.id = pcs.color_id INNER JOIN sizes AS s ON s.id = pcs.size_id INNER JOIN products AS p ON p.id = pcs.product_id INNER JOIN collections AS cls ON cls.id = p.collection_id INNER JOIN categories AS ctr ON ctr.id = p.cat_id");
+         $keyword = (!empty($request->keyword) && $request->keyword!='')?$request->keyword:'';
+        $collectionD = (!empty($request->collection_id) && $request->collection_id!='')?$request->collection_id:'';
+        $categoryD = (!empty($request->cat_id) && $request->cat_id!='')?$request->cat_id:'';
+        $brandFilter = (!empty($request->brand) && $request->brand!='')?$request->brand:'';
 
-        // dd($data[0]->orderDetails->id);
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
 
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
+        // Base query
+        $query = Product::query();
+
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('products.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('products.brand', $request->brand)
+                    ->orWhere('products.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('products.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('products.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
+
+
+        if ($request->filled('collection_id')) {
+            $query->where('collection_id',$request->collection_id);
+        }
+        /**
+         * STEP 3: State filter
+         */
+        if ($request->filled('cat_id')) {
+            $query->where('cat_id', $request->cat_id);
+        }
+
+        
+        
+
+        /**
+         * STEP 5: Keyword search (optional)
+         */
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('name', 'like', '%'.$keyword.'%')
+                  ->orWhere('style_no', 'like', '%'.$keyword.'%')
+                  ->orWhere('short_desc', 'like', '%'.$keyword.'%')
+                  ->orWhere('desc', 'like', '%'.$keyword.'%');
+            });
+        }
+
+        /**
+         * STEP 6: Fetch data with pagination
+         */
+        $data = $query->where('is_deleted',0)->with('colorSize.colorData','category','collection')->orderBy('id', 'desc')->get();
+        dd($data);
         if (count($data) > 0) {
             $delimiter = ",";
             $filename = "all-products-" . date('Y-m-d') . ".csv";
@@ -378,15 +464,15 @@ class ProductController extends Controller
 
                 $lineData = array(
                     $count,
-                    $brandPermissions.
+                    $brandPermissions,
                     $row->name ?? '',
                     $row->style_no ?? '',
-                    $row->collection_name ?? '',
-                    $row->category_name ?? '',
-                    $color,
-                    $size,
-                    'Rs. ' . number_format($row->price) ?? '0',
-                    'Rs. ' . number_format($row->offer_price) ?? '0',
+                    $row->collection->name ?? '',
+                    $row->category->name ?? '',
+                    $row->colorSize->colorData->name,
+                    $row->colorSize->size->name,
+                    'Rs. ' . number_format($row->colorSize->price) ?? '0',
+                    'Rs. ' . number_format($row->colorSize->offer_price) ?? '0',
                     $row->short_desc ?? '',
                     $row->size_chart ?? '',
                     $row->pack ?? '',
