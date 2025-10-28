@@ -31,10 +31,9 @@
                                             <div class="col-md-2">
                                                 <label class="form-label small text-muted mb-1">Brand</label>
                                                 <select name="brand_selection" class="form-select form-select-sm">
-                                                    <option value="">Select</option>
-                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>All</option>
-                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
-                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
+                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>ALL</option>
+                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>ONN</option>
+                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>PYNK</option>
                                                 </select>
                                             </div>
 
