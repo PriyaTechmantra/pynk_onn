@@ -29,13 +29,7 @@
                                 <div class="col-12">
                                    <form action="{{ route('notifications.index') }}" method="GET">
                                         <div class="row g-2 align-items-center">
-                                            <div class="col-3 d-flex align-items-center gap-2">
-                                                <input type="search" name="term" id="term"
-                                                    class="form-control form-control-sm"
-                                                    placeholder="Search by keyword"
-                                                    value="{{ request('term') }}"
-                                                    autocomplete="off">
-                                            </div>
+                                            
 
                                             <div class="col-6 d-flex align-items-center gap-2">
                                                 <label class="text-muted small ">From</label>
@@ -47,6 +41,13 @@
                                                 <input type="date" name="date_to"
                                                     class="form-control form-control-sm"
                                                     value="{{ request('date_to') }}">
+                                            </div>
+                                            <div class="col-3 d-flex align-items-center gap-2">
+                                                <input type="search" name="term" id="term"
+                                                    class="form-control form-control-sm"
+                                                    placeholder="Search by keyword"
+                                                    value="{{ request('term') }}"
+                                                    autocomplete="off">
                                             </div>
 
                                               <div class="col-3 text-end">

@@ -6,6 +6,7 @@ use App\Models\Distributor;
 use App\Models\State;
 use App\Models\Area;
 use App\Models\Team;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -192,17 +193,67 @@ class DistributorController extends Controller
      * @param  \App\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function show($id): View
-    {
+    public function show(Request $request,$id): View
+    { 
+        $storebrandFilter = $request->get('storebrand');
         $data = (object) [];
         $data->distributor = Distributor::find($id);
         $area=Area::where('id', $data->distributor->area_id)->first();
-			
-        $data->team = Team::where('distributor_id', $data->distributor->id)->where('store_id','=',NULL)->first();
-			
+		$user = Auth::user();
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+            // Employee's brand permission (1=ONN, 2=PYNK, 3=Both)
+            $employeeBrand = $data->distributor->brand ?? null;
+            $data->team = Team::where('distributor_id', $data->distributor->id)->where('store_id','=',NULL)->first();
+		// ==================== STORE LIST ====================
+                $storeQuery = Store::where('teams.distributor_id', $data->distributor->id)
+                    ->where('stores.is_deleted', 0)
+                    ->join('teams', function($join) use ($data) {
+                        $join->on('stores.id', '=', 'teams.store_id')
+                            ->whereNOTNull('teams.store_id')
+                            ->where('teams.is_deleted', 0);
+                    })
+                    ->select('stores.*')
+                    ->orderBy('stores.name');
+
+                $storeQuery->where(function ($q) use ($data, $storebrandFilter, $userBrands) {
+                         $employeeBrand = $data->distributor->brand ?? null;
+                    
+
+                    if ($storebrandFilter) {
+                        if ($storebrandFilter == 3) {
+                            $q->whereIn('stores.brand', [1, 2, 3]);
+                        } else {
+                            $q->where(function ($q2) use ($storebrandFilter) {
+                                $q2->where('stores.brand', $storebrandFilter)
+                                ->orWhere('stores.brand', 3);
+                            });
+                        }
+                    } else {
+                        if ($employeeBrand == 1 && in_array(3, $userBrands)) {
+                            $q->whereIn('stores.brand', [1, 3]);
+                        } elseif ($employeeBrand == 2 && in_array(3, $userBrands)) {
+                            $q->whereIn('stores.brand', [2, 3]);
+                        } elseif ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                            $q->whereIn('stores.brand', [1, 2, 3]);
+                        } elseif ($employeeBrand == 3 && in_array(1, $userBrands)) {
+                            $q->whereIn('stores.brand', [1, 3]);
+                        } elseif ($employeeBrand == 3 && in_array(2, $userBrands)) {
+                            $q->whereIn('stores.brand', [2, 3]);
+                        } elseif (in_array($employeeBrand, $userBrands)) {
+                            $q->whereIn('stores.brand', [$employeeBrand, 3]);
+                        } else {
+                            $q->where('stores.brand', -1);
+                        }
+                    }
+                });
+
+                $data->storeList = $storeQuery->get();
        
-		$data->storeList = Team::where('distributor_id', $data->distributor->id)->where('store_id','!=',null)->groupBy('store_id')->with('store')->get();
-        return view('distributor.view',compact('data'));
+		//$data->storeList = Team::where('distributor_id', $data->distributor->id)->where('store_id','!=',null)->groupBy('store_id')->with('store')->get();
+        return view('distributor.view',compact('data','id','request'));
     }
     
     /**
@@ -687,6 +738,55 @@ class DistributorController extends Controller
             //output all remaining data on a file pointer
             fpassthru($f);
         }
+    }
+
+
+    public function range(Request $request, $id)
+    {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+           
+		$data = DB::table('distributor_ranges')->where('distributor_id', $id)->get();
+		$collections = Collection::where('status', 1)->where('is_deleted',0)->orderBy('position')->get();
+        $distributor = Distributor::findOrFail($id);
+        $aseList = RetailerListOfOcc::where('distributor_name',$distributor->name)->orderBy('ase')->groupby('ase')->get();
+		
+        return view('admin.distributor.collection', compact('data', 'collections', 'id', 'distributor', 'aseList'));
+    }
+
+	public function rangeSave(Request $request, $id)
+    {
+		$request->validate([
+			"collection_id" => "required|integer|min:1",
+			"distributor_id" => "required|integer|min:1",
+			"user_id" => "required|integer|min:1",
+			"user_name" => "required|string|min:1"
+		]);
+
+		$check = DB::table('distributor_ranges')->where('distributor_id', $request->distributor_id)->where('collection_id', $request->collection_id)->first();
+
+		if($check) {
+			return redirect()->back()->with('failure', 'This Range already exists to this Distributor');
+		} else {
+			DB::table('distributor_ranges')->insert([
+                'distributor_id' => $request->distributor_id, 
+                'collection_id' => $request->collection_id,
+                'user_id' => $request->user_id,
+                'user_name' => $request->user_name
+            ]);
+		}
+
+		return redirect()->back()->with('success', 'Range Added to this Distributor');
+    }
+
+	public function collectionDelete(Request $request, $id)
+    {
+		$data = DB::table('distributor_ranges')->where('id', $id)->delete();
+        return redirect()->back()->with('success', 'Range Deleted for this Distributor');
     }
 
 

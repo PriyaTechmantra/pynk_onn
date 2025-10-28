@@ -1,490 +1,229 @@
 @extends('layouts.app')
+@section('page', '')
 
 @section('content')
+@php
+    $brandMap = [1 => 'ONN', 2 => 'PYNK', 3 => 'Both'];
+    $brandPermissions = $brandMap[$data->distributor->brand] ?? 'Unknown';
+     // Logged-in user permission (fetched from user_permission_categories table)
+    $userPermission = \App\Models\UserPermissionCategory::where('user_id', auth()->id())
+        ->value('brand'); // assuming column name is 'brand' in user_permission_categories
 
+    $userBrandPermission = $brandMap[$userPermission] ?? 'Unknown';
+@endphp
+
+<style>
+    .working_area {
+        display: inline-flex;
+        align-items: center;
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 6px 12px;
+        margin-right: 6px;
+        color: #000;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .working_area svg { margin-right: 6px; }
+    .select2-container { width: 100% !important; z-index: 9999; }
+</style>
 
 <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-12">
+    <div class="row">
+        <div class="col-md-12">
 
-                @if ($errors->any())
-                <ul class="alert alert-warning">
-                    @foreach ($errors->all() as $error)
-                        <li>{{$error}}</li>
-                    @endforeach
-                </ul>
-                @endif
+            {{-- Error Messages --}}
+            @if ($errors->any())
+                <div class="alert alert-warning">
+                    <ul class="mb-0">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-                <div class="card data-card">
+        <div class="card data-card">
                     <div class="card-header">
-                        <h4 class="d-flex">Distributor Detail
-                            
-                            <a href="{{ url('distributors') }}" class="btn btn-cta ms-auto">Back</a>
-                            @can('update employee')
-                                <a href="{{ url('distributors/'.$data->id.'/edit') }}" class="btn btn-cta">
-                                    Edit
-                                </a>
-                            @endcan
-                            @can('add range')
-                                <a href="{{ url('distributors/range/'.$data->id.'/add') }}" class="btn btn-cta">
-                                    Range
-                                </a>
-                            @endcan
-                            
-                        </h4>
+                    
+                     <h4 class="d-flex">Distributor Detail
+                        <a href="{{ url('distributors') }}" class="btn btn-cta ms-auto">Back</a>
+                        <a href="{{ url('distributors/'.$data->distributor->id.'/edit') }}" class="btn btn-cta">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="{{ url('distributors/'.$data->distributor->id.'/range/add') }}" class="btn btn-cta">
+                            <i class="bi bi-pencil"></i> Range
+                        </a>
+                    </h4>
+                </div>
+            <div class="card-body">
+
+                {{-- HEADER --}}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        
+                        <span class="badge bg-primary fs-5">Distributor</span>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-xl-3 col-lg-2 col-12"></div>
-                            <div class="col-xl-6 col-lg-8 col-12">
-                                
-                                <div class="table-responsive">
-                                    <table class="table">
-                                         <div class="user-info">
-                                            
-                                         <tr>
-                                            <td class="text-muted">VP : </td>
-                                            <td>{{$team->vp->name ??''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">RSM : </td>
-                                            <td>{{$team->rsm->name ??''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">ASM : </td>
-                                            <td>{{$team->asm->name ??''}}</td>
-                                        </tr>
-                                             <tr>
-                                                <td class="text-muted">Name : </td>
-                                                <td>{{$data->name}}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="text-muted">User Type: </td>
-                                                <td>{{ $data->designation ? $data->designation : userTypeName($data->type) }}</td>
-                                            </tr>
-                                         </div>
-                                        <tr>
-                                            <td class="text-muted">Designation: </td>
-                                            <td>{{ $data->designation ??''}}</td>
-                                        </tr>
-                                        
-                                        <tr>
-                                            <td class="text-muted">Employee ID :  </td>
-                                            <td>{{ $data->employee_id }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Email : </td>
-                                            <td>{{$data->email}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Mobile : </td>
-                                            <td>{{ $data->mobile ??''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">WhatsApp Number : </td>
-                                            <td>{{ $data->whatsapp_no ??''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Alt. Mobile number 1 : </td>
-                                            <td>{{ $data->alt_number1 ??''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Alt. Mobile number 2 : </td>
-                                            <td>{{ $data->alt_number2 ??''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Alt. Mobile number 3 : </td>
-                                            <td>{{ $data->alt_number3 ?? ''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Personal email : </td>
-                                            <td>{{ $data->personal_mail ??''}}</td>
-                                        </tr>
-                                        
-                                        <tr>
-                                            <td class="text-muted">State : </td>
-                                            <td>{{ $data->stateDetail->name ??''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Area/City : </td>
-                                            <td>{{ $data->area->name ??''}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Working Area List</td>
-                                            @foreach ($workAreaList as $item)
-                                                <td>
-                                                    @can('delete employee area')
-                                                        <a href="{{ route('employee.area.delete', $item->id) }}" 
-                                                        class="working_area delete-confirm" 
-                                                        title="Delete area/bit">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" 
-                                                                width="16" height="16" 
-                                                                viewBox="0 0 24 24" 
-                                                                fill="none" stroke="currentColor" 
-                                                                stroke-width="1" stroke-linecap="round" 
-                                                                stroke-linejoin="round" 
-                                                                class="feather feather-x">
-                                                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                            </svg>
-                                                           
-                                                        </a>
-                                                   
-                                                        
-                                                    @endcan
-                                                        <span>
-                                                            {{ $item->area->name }}@if(!$loop->last), @endif
-                                                        </span>
-                                                </td>
-                                            @endforeach
-                                        </tr>
-
-                                        <tr>
-                                            <td class="text-muted">Date of Joining : </td>
-                                            <td>{{ $data->date_of_joining ??''}}</td>
-                                        </tr>
-                                        @php
-                                        
-
-                                            $brandMap = [
-                                                1 => 'ONN',
-                                                2 => 'PYNK',
-                                                3 => 'Both',
-                                            ];
-
-                                            $brands = [$data->brand];
-
-                                            // Check conditions
-                                                if (in_array(3, $brands)) {
-                                                    $brandPermissions = 'Both';
-                                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
-                                                    $brandPermissions = 'Both';
-                                                } else {
-                                                    $brandPermissions = collect($brands)
-                                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
-                                                        ->implode(', ');
-                                                }
-                                        @endphp
-                                        <tr>
-                                            <td class="text-muted">Brand Permission : </td>
-                                            <td>{{ $brandPermissions ??''}}</td>
-                                        </tr>
-                                         
-                                        
-                                        <tr>
-                                            <td class="text-muted">Status : </td>
-                                            <td>{{($data->status == 1) ? 'Active' : 'Inactive'}}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-muted">Created/Edited By: </td>
-                                            <td>{{ $data->createdBy->name ??'' }}</td>
-                                        </tr>
-                                        
-                                        <tr>
-                                            <td class="text-muted">Created At: </td>
-                                            <td>{{ date('d-m-Y', strtotime($data->created_at)) }}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-lg-2 col-12"></div>
-                        </div>
+                    <div>
+                        
                     </div>
                 </div>
 
-
-                <div class="card data-card">
-                    <div class="card-header">
-                        <h4 class="d-flex">Distributor Details
-                            
-                            
-                        </h4>
-                        @if($brandPermissions=='Both')
-                                <div class="col-md-4">
-                                    <label class="small text-muted">Brand</label>
-                                    <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
-                                        <option value="" selected disabled>Select</option>
-                                                <option value="All" {{ (request()->input('brand') == "All") ? 'selected' : '' }}>All</option>
-                                        
-                                            <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
-                                            <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
-                                            
-                                            
-                                    </select>
-                                </div>
-                        @endif
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-xl-3 col-lg-2 col-12"></div>
-                            <div class="col-xl-6 col-lg-8 col-12">
-                                
-                                @forelse ($distributorList as $item)
-                                    
-                                    
-                                        <div class="col-md-6">
-                                            @can('view distributor')
-                                            <a href="{{ url('distributors/'.$item->id) }}"><h5>{{$item->distributor->name ??''}}</h5></a>
-                                            @else
-                                            <h5>{{$item->distributor->name ??''}}</h5>
-                                            @endcan
-                                        </div>
-                                    
-                                    @empty
-                                        <div class="col-md-4">
-                                            <p class="">No Distributor found</p>
-                                        </div>
-                                @endforelse
-                            </div>
-                            <div class="col-xl-3 col-lg-2 col-12"></div>
-                        </div>
-                    </div>
+                {{-- PRIMARY INFO --}}
+                <h5 class="text-primary border-bottom pb-2">Primary Information</h5>
+                <div class="row mb-4">
+                    <div class="col-md-3"><strong>Brand:</strong> {{ $brandPermissions }}</div>
+                    <div class="col-md-3"><strong>Name:</strong> {{ $data->distributor->name }}</div>
+                    <div class="col-md-3"><strong>Mobile:</strong> {{ $data->distributor->contact }}</div>
+                    <div class="col-md-3"><strong>Official Email:</strong> {{ $data->distributor->email }}</div>
+                    <div class="col-md-3"><strong>Code:</strong> {{ $data->distributor->code }}</div>
+                    <div class="col-md-3"><strong>Date of Joining:</strong> {{ date('d-m-Y', strtotime($data->distributor->date_of_joining)) ?? 'NA' }}</div>
+                   
                 </div>
 
+                {{-- LOCATION INFO --}}
+                <h5 class="text-primary border-bottom pb-2">Location Information</h5>
+                <div class="row mb-4">
+                    <div class="col-md-3"><strong>State:</strong> {{ $data->distributor->states->name ?? 'N/A' }}</div>
+                    <div class="col-md-3"><strong>Area:</strong> {{ $data->distributor->areas->name ?? 'N/A' }}</div>
+                    
+                </div>
 
-                <div class="card data-card">
-                    <div class="card-header">
-                        <h4 class="d-flex">Store Details
-                            
-                            
-                        </h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
+                {{-- TEAM INFO --}}
+                <h5 class="text-primary border-bottom pb-2">Team Information</h5>
+                <div class="row mb-4">
+                    <div class="col-md-3"><strong>VP:</strong> {{ $data->team->vp->name ?? 'N/A' }}</div>
+                    <div class="col-md-3"><strong>RSM:</strong> {{ $data->team->rsm->name ?? 'N/A' }}</div>
+                    <div class="col-md-3"><strong>ASM:</strong> {{ $data->team->asm->name ?? 'N/A' }}</div>
+                    <div class="col-md-3"><strong>ASE:</strong> {{ $data->team->ase->name ?? 'N/A' }}</div>
+                </div>
 
-                            <div class="col-6">
-                                <div style="display: flex; align-items: center;">
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" id="flexCheckDefault"
-                                                onclick="headerCheckFunc()">
-                                            <label class="form-check-label" for="flexCheckDefault"></label>
-                                        </div>
                 
-                                        
-                                        
-                                </div>
-                            </div>
-                                <div class="col-6">
-                                    @can('transfer stores')
-                                    <a href="#transferModal" data-bs-toggle="modal" data-target=".bd-example-modal-lg" class="btn btn-danger">Transfer</a>
-                                    @endcan
-                                </div>
-                            <div class="col-xl-6 col-lg-8 col-12">
-                                
-                                @forelse ($storeList as $item)
-                                    
-                                        <div class="col-md-4 mb-3">
-                                            <div style="display: flex; align-items: center;">
-                                                    <input name="status_check[]" class="tap-to-delete" type="checkbox" onclick="clickToRemove()"
-                                                                    value="{{ $item->id }}" @php
-                                                                        if (old('status_check')) {
-                                                                            if (in_array($item->id, old('status_check'))) {
-                                                                                echo 'checked';
-                                                                            }
-                                                                        }
-                                                                    @endphp>
-                                                      @can('view store')
-                                                      <a href="{{ url('stores/'.$item->id) }}" style="margin-left: 10px;"><h5>{{$item->name}}({{$item->unique_code}})</h5></a>
-                                                      @else
-                                                        <h5>{{$item->name ??''}}({{$item->unique_code}})</h5>
-                                                      @endcan
-                                            </div>
-                                        </div>
-                                        
-                                    
-                                @empty
-                                        <div class="col-md-4">
-                                            <p class="">No Stores found</p>
-                                        </div>
-                                @endforelse
-                            </div>
-                            <div class="col-xl-3 col-lg-2 col-12"></div>
-                        </div>
-                    </div>
+
+                {{-- OTHERS --}}
+                <h5 class="text-primary border-bottom pb-2">Others</h5>
+                <div class="row mb-4">
+                    <div class="col-md-3"><strong>Created / Edited By:</strong> {{ $data->distributor->createdBy->name ?? 'N/A' }}</div>
+                    <div class="col-md-3"><strong>Created At:</strong> {{ date('d-m-Y', strtotime($data->distributor->created_at)) }}</div>
                 </div>
+
+            </div>
+        </div>
+
+        
+
+        {{-- STORE DETAILS --}}
+        <div class="card shadow-sm mb-4">
+            
+            <div class="card-header d-flex justify-content-between align-items-center">
+                
+                <div style="display: flex; align-items: center;">
+                        
+
+                        <h4 class="m-0">Store Details</h4>
+                        @if($brandPermissions == 'Both'  && $userBrandPermission === 'Both')
+                            <select class="form-select form-select-sm w-auto" id="storebrand" name="storebrand">
+                                {{--<option value="All">All</option>--}}
+                                <option value="1">ONN</option>
+                                <option value="2">PYNK</option>
+                            </select>
+                        @endif
+                </div>
+                           
+                
+                @can('transfer stores')
+                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#transferModal">Transfer</button>
+                @endcan
+            </div>
+            <div class="card-body" id="storeList">
+                @forelse ($data->storeList as $item)
+                    <div class="form-check mb-2">
+                        
+                        @can('view store')
+                            <a href="{{ url('stores/'.$item->id) }}" class="ms-2 text-decoration-none">
+                                {{ $item->name }} ({{ $item->unique_code }})
+                            </a>
+                        @else
+                            <span class="ms-2">{{ $item->name }} ({{ $item->unique_code }})</span>
+                        @endcan
+                    </div>
+                @empty
+                    <p class="text-muted">No stores found</p>
+                @endforelse
             </div>
         </div>
     </div>
-            <!-- modal-->
+</section>
 
 
-                                <!-- Modal -->
-            <div class="modal fade bd-example-modal-lg" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="transferModalLabel">Transfer to another ASE & Distributor</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="{{ route('stores.transfer') }}" method="POST" id="transferForm">
-                                @csrf
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <div class=" mb-3">
-                                                <label for="aseUser">ASE *</label>
-                                                <select class="form-select select2" style="height:200px" id="aseUser" name="aseUser[]" aria-label="Floating label select example" multiple>
-                                                    <option value="" selected disabled>Select</option>
-                                                    @foreach (DB::table('employees')->where('type', 4)->orderBy('name')->get() as $aseItem)
-                                                        
-                                                        <option value="{{ $aseItem->id }}">{{ $aseItem->name }}({{ $aseItem->state->name ??''}})</option>
-                                                    @endforeach
-                                                </select>
-                                                
-                                            </div>
-                                            @error('aseUser') <p class="small text-danger">{{ $message }}</p> @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label for="distributorUser">Distributor *</label>
-                                            <div class=" mb-3">
-                                                <select class="form-select select2" style="height:200px" id="distributorUser" name="distributorUser[]" aria-label="Floating label select example" multiple>
-                                                    <option value="" selected disabled>Select</option>
-                                                    @foreach ($distributorList as $distributorItem)
-                                                        <option value="{{ $distributorItem->id }}">{{ $distributorItem->name }}({{ $distributorItem->states->name }})</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            @error('distributorUser') <p class="small text-danger">{{ $message }}</p> @enderror
-                                        </div>
-                                    </div>
-                                </div>
-                                <div id="hiddenInputsContainer"></div>
-                                <div class="col-12 mt-3">
-                                    <button type="submit" class="btn btn-sm btn-danger">Add</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-             <div class="modal fade" id="newRangeModal" tabindex="-1" aria-labelledby="newRangeModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="newRangeModalLabel">Add new Area</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="{{route('employee.area.store')}}" method="POST">@csrf
-                                
-                                <input type="hidden" name="user_id" value="{{$data->id}}">
-                                <div class="row">
-                                    <div class="mb-3">
-                                        <label for="state">State <span class="text-danger">*</span></label>
-                                        <select class="form-select select2" id="state" name="state" aria-label="Floating label select example">
-                                            <option value="" selected disabled>--Select State--</option>
-                                            @foreach ($state as $index => $item)
-                                                <option value="{{ $item->id }}" >{{ $item->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('state') <p class="small text-danger">{{$message}}</p> @enderror
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="area">City/ Area <span class="text-danger">*</span></label>
-                                        <select class="form-select select2" id="area" name="city" aria-label="Floating label select example" disabled>
-                                            <option value="">Select State first</option>
-                                        </select>
-                                    </div>
-                                
-            
-                                    <div class="col-12 mt-3">
-                                        <button type="submit" class="btn btn-sm btn-danger">Add Area</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        {{-- <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary">Save changes</button>
-                        </div> --}}
-                    </div>
-                </div>
-            </div>
-            
+
+
 @endsection
 
-
 @section('script')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- printThis Plugin -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/printThis/1.15.0/printThis.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-        <script>
-            $(document).ready(function() {
-                $('.select2').select2();
-            });
-        </script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    $('select[name="state"]').on('change', (event) => {
-        var stateId = $(event.target).val();
-        var selectedCityId = "{{ $data->city ?? '' }}"; // from backend
+$(function() {
+    $('.select2').select2();
+
+    // Fetch areas dynamically
+    $('select[name="state"]').on('change', function() {
+        const stateId = $(this).val();
+        $.get(`{{ url('/') }}/areas/state/wise/${stateId}`, function(result) {
+            let options = '<option disabled selected>--Select City--</option>';
+            $.each(result.data.area, (key, value) => {
+                options += `<option value="${value.area_id}">${value.area}</option>`;
+            });
+            $('select[name="city[]"]').html(options).prop('disabled', false);
+        });
+    });
+
+    // Pass checked stores to transfer modal
+    $('#transferForm').on('submit', function() {
+        $('#hiddenInputsContainer').empty();
+        $('input[name="status_check[]"]:checked').each(function() {
+            $('#hiddenInputsContainer').append(`<input type="hidden" name="status_check[]" value="${$(this).val()}">`);
+        });
+    });
+});
+</script>
+<script>
+    $(document).on('change', '#brand', function() {
+        var brand = $(this).val();
+        var url = "{{ url('distributors') }}/{{ $id }}";
 
         $.ajax({
-            url: '{{url("/")}}/areas/state/wise/' + stateId,
-            method: 'GET',
-            success: function(result) {
-                var content = '';
-                var slectTag = 'select[name="city"]';
-                var displayCollection = "All";
-
-                content += '<option value="" disabled>--Select City--</option>';
-                $.each(result.data.area, (key, value) => {
-                    let selected = (value.area_id == selectedCityId) ? 'selected' : '';
-                    content += '<option value="' + value.area_id + '" ' + selected + '>' + value.area + '</option>';
-                });
-                $(slectTag).html(content).attr('disabled', false);
+            url: url,
+            type: 'GET',
+            data: { brand: brand },
+            success: function(response) {
+                // Replace only the distributor list part from the response
+                var newList = $(response).find('#distributorList').html();
+                $('#distributorList').html(newList);
+            },
+            error: function() {
+                alert('Something went wrong.');
             }
         });
     });
 
-    // 🔹 Trigger change once to pre-fill cities in edit form
-    $('select[name="state"]').trigger('change');
-</script>
-<script>
-document.getElementById('transferForm').addEventListener('submit', function(event) {
-    const checkboxes = document.querySelectorAll('input[name="status_check[]"]:checked');
-    const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
+    $(document).on('change', '#storebrand', function() {
+        var storebrand = $(this).val();
+        var url = "{{ url('employees') }}/{{ $id }}";
 
-    hiddenInputsContainer.innerHTML = ''; // Clear any previous inputs
-
-    checkboxes.forEach(function(checkbox) {
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'status_check[]';
-        hiddenInput.value = checkbox.value;
-        hiddenInputsContainer.appendChild(hiddenInput);
-    });
-});
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll('.delete-confirm').forEach(button => {
-        button.addEventListener('click', function (e) {
-            e.preventDefault(); // stop normal link
-
-            let url = this.getAttribute('href');
-
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You won't be able to revert this!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, delete it!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = url; // redirect if confirmed
-                }
-            });
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: { storebrand: storebrand },
+            success: function(response) {
+                // Replace only the distributor list part from the response
+                var newList = $(response).find('#storeList').html();
+                $('#storeList').html(newList);
+            },
+            error: function() {
+                alert('Something went wrong.');
+            }
         });
     });
-});
 </script>
 @endsection

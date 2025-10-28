@@ -1003,6 +1003,7 @@ public function aseSalesreport(Request $request)
                     p.id, 
                     p.style_no AS product_style_no, 
                     p.name AS product_name,
+                    p.image AS product_image,
                     p.brand AS brand_id
                 FROM products AS p
                 WHERE p.collection_id = ?
@@ -1026,6 +1027,7 @@ public function aseSalesreport(Request $request)
                     p.id, 
                     p.style_no AS product_style_no, 
                     p.name AS product_name,
+                    p.image AS product_image,
                     p.brand AS brand_id
                 FROM products AS p
                 INNER JOIN collections AS c ON p.collection_id = c.id
@@ -1059,7 +1061,9 @@ public function aseSalesreport(Request $request)
                 'product_id' => $product->id,
                 'product_style_no' => $product->product_style_no,
                 'product_name' => $product->product_name,
+                'product_image' => $product->product_image,
                 'brand' => $brandMap[$product->brand_id] ?? 'Unknown',
+
             ];
         }
 

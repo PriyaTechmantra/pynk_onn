@@ -15,4 +15,7 @@ class Distributor extends Model
     public function states() {
         return $this->belongsTo('App\Models\State', 'state_id', 'id');
     }
+    public function createdBy() {
+        return $this->belongsTo('App\Models\User', 'user_id', 'id');
+    }
 }
