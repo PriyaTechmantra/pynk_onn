@@ -658,26 +658,38 @@ class StoreController extends Controller
 
     public function noOrderReasonCsv(Request $request)
     {
-        $query = UserNoOrderReason::with(['user', 'store']);
+        $query = UserNoOrderReason::query();
 
-        if ($request->ase) {
-            $query->whereHas('user', function($q) use ($request) {
-                $q->where('id', $request->ase);
-            });
+        if ($request->filled('ase')) {
+            $query->where('user_id', $request->ase);
         }
 
-        if ($request->store_id) {
+        if ($request->filled('asm')) {
+            $query->where('user_id', $request->asm);
+        }
+
+        if ($request->filled('store_id')) {
             $query->where('store_id', $request->store_id);
         }
 
-        if ($request->comment) {
-            $query->where('comment', $request->comment);
+        if ($request->filled('comment')) {
+            $query->where('no_order_reason_id', $request->comment);
         }
 
-        if ($request->brand_selection) {
-            $query->where('brand', $request->brand_selection);
+        if ($request->filled('keyword')) {
+            $query->where('comment', 'like', '%' . $request->keyword . '%');
         }
+        if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
 
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
+        }
         $data = $query->get();
 
         // CSV header
