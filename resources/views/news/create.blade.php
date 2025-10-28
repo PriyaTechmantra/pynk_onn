@@ -85,39 +85,38 @@
                                         </div>
                                         <input type="hidden" name="brand" id="brandValue">
                                     </div>
-                                    <div class="col-12 col-md-6 col-xl-12">
-                                        <div class="row">
-                                            <div class="col-md-6 card">
-                                                <div class="card-header p-0 mb-3">Image <span class="text-danger">*</span></div>
-                                                <div class="card-body p-0">
-                                                    <div class="w-100 product__thumb">
-                                                        <label for="icon"><img id="iconOutput" src="{{ asset('admin/images/placeholder-image.jpg') }}" /></label>
-                                                    </div>
-                                                    <input type="file" name="image" id="icon" accept="image/*" onchange="loadIcon(event)" class="d-none">
-                                                    <script>
-                                                        let loadIcon = function(event) {
-                                                            let iconOutput = document.getElementById('iconOutput');
-                                                            iconOutput.src = URL.createObjectURL(event.target.files[0]);
-                                                            iconOutput.onload = function() {
-                                                                URL.revokeObjectURL(iconOutput.src) // free memory
-                                                            }
-                                                        };
-                                                    </script>
-                                                </div>
-                                                @error('image') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Image <span class="text-danger">*</span></label>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="product__thumb">
+                                                <label for="icon" style="cursor:pointer;">
+                                                    <img id="iconOutput" src="{{ asset('admin/images/placeholder-image.jpg') }}" width="200px" style="object-fit:cover;" />
+                                                </label>
                                             </div>
-                                            <div class="col-md-6 card">
-                                                <div class="card-header p-0 mb-3">Pdf <span class="text-danger">*</span></div>
-                                                <div class="card-body p-0">
-                                                    <div class="w-100 product__thumb">
-                                                    </div>
-                                                    <div class="col-sm-9">
-                                                        <input class="form-control" type="file" name="pdf" id="pdf">
-                                                </div>
-                                                </div>
-                                                @error('pdf') <p class="small text-danger">{{ $message }}</p> @enderror
-                                            </div>
+                                            <input type="file" name="image" id="icon" accept="image/*" onchange="loadIcon(event)" class="d-none">
                                         </div>
+
+                                        <script>
+                                            let loadIcon = function(event) {
+                                                let iconOutput = document.getElementById('iconOutput');
+                                                iconOutput.src = URL.createObjectURL(event.target.files[0]);
+                                                iconOutput.onload = function() {
+                                                    URL.revokeObjectURL(iconOutput.src); // free memory
+                                                }
+                                            };
+                                        </script>
+
+                                        @error('image')
+                                            <p class="small text-danger">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group mb-3">
+                                        <label class="label-control me-3">Pdf <span class="text-danger">*</span></label>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <input class="form-control" type="file" name="pdf" id="pdf">
+                                        </div>
+                                        @error('pdf') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-sm btn-danger">Add News</button>

@@ -12,7 +12,7 @@
                 <div class="card data-card mt-3">
                     <div class="card-header">
                         <h4>No Order Reason
-                            <a href="{{route('store.noorderreasonview.csv', request()->only('ase','store_id' ,'comment','brand_selection')) }}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
+                            <a href="{{route('store.noorderreasonview.csv', request()->only('ase','store_id' ,'comment','brand_selection','keyword')) }}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 CSV
                             </a>
@@ -25,13 +25,24 @@
                                 </div>
                             </div>
                             <div class="row">
-                                        
                                 <div class="col-12">
-                                    <form action="{{route('stores.noorderreason')}}">
-                                        <div class="row g-2 align-items-center">
-                                            <div class="col-10 d-flex align-items-center gap-2">
-                                                <label class="text-muted small mb-0">ASE</label>
-                                                 <select name="ase" class="form-control form-control-sm">
+                                    <form action="{{ route('stores.noorderreason') }}" class="bg-light p-3 rounded shadow-sm">
+                                        <div class="row g-2 align-items-end">
+
+                                            <!-- Brand -->
+                                            <div class="col-md-2 col-sm-6">
+                                                <label class="text-muted small mb-1 fw-semibold">Brand</label>
+                                                <select name="brand_selection" class="form-control form-control-sm select2">
+                                                    <option value="">All</option>
+                                                    <option value="1" {{ request('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
+                                                    <option value="2" {{ request('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
+                                                </select>
+                                            </div>
+
+                                            <!-- ASE -->
+                                            <div class="col-md-2 col-sm-6">
+                                                <label class="text-muted small mb-1 fw-semibold">ASE</label>
+                                                <select name="ase" class="form-control form-control-sm select2">
                                                     <option value="">All</option>
                                                     @foreach($ases as $ase)
                                                         <option value="{{ $ase->id }}" {{ request('ase') == $ase->id ? 'selected' : '' }}>
@@ -39,8 +50,12 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                <label class="text-muted small mb-0">Store</label>
-                                               <select name="store_id" class="form-control form-control-sm">
+                                            </div>
+
+                                            <!-- Store -->
+                                            <div class="col-md-2 col-sm-6">
+                                                <label class="text-muted small mb-1 fw-semibold">Store</label>
+                                                <select name="store_id" class="form-control form-control-sm select2">
                                                     <option value="">All</option>
                                                     @foreach($stores as $store)
                                                         <option value="{{ $store->id }}" {{ request('store_id') == $store->id ? 'selected' : '' }}>
@@ -48,8 +63,12 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                <label class="text-muted small mb-0">Reason</label>
-                                                 <select name="comment" class="form-control form-control-sm">
+                                            </div>
+
+                                            <!-- Reason -->
+                                            <div class="col-md-2 col-sm-6">
+                                                <label class="text-muted small mb-1 fw-semibold">Reason</label>
+                                                <select name="comment" class="form-control form-control-sm select2">
                                                     <option value="">All</option>
                                                     @foreach($reasons as $reason)
                                                         <option value="{{ $reason->id }}" {{ request('comment') == $reason->id ? 'selected' : '' }}>
@@ -57,19 +76,28 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                <label class="text-muted small mb-0">Brand</label>
-                                                 <select name="brand_selection" class="form-control form-control-sm">
-                                                    <option value="">All</option>
-                                                    <option value="1" {{ app('request')->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
-                                                    <option value="2" {{ app('request')->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
-                                                    <option value="3" {{ app('request')->input('brand_selection') == 3 ? 'selected' : '' }}>Both</option>
-                                                </select>
                                             </div>
 
-                                            <div class="col-2 text-end">
-                                                <button type="submit" class="btn btn-sm btn-cta">Filter</button>
+                                            <!-- Keyword -->
+                                            <div class="col-md-2 col-sm-6">
+                                                <label class="text-muted small mb-1 fw-semibold">Keyword</label>
+                                                <input type="search" 
+                                                    name="keyword" 
+                                                    id="keyword" 
+                                                    class="form-control form-control-sm" 
+                                                    placeholder="Search comment..." 
+                                                    value="{{ request('term') }}" 
+                                                    autocomplete="off">
+                                            </div>
+
+                                            <!-- Buttons -->
+                                            <div class="col-md-2 col-sm-6 d-flex align-items-end justify-content-end gap-2">
+                                                <button type="submit" class="btn btn-sm btn-cta">
+                                                    <i class="fas fa-filter me-1"></i> Filter
+                                                </button>
+
                                                 <a href="{{ url()->current() }}" 
-                                                class="btn btn-sm btn-cta" 
+                                                class="btn btn-sm btn-cta d-flex align-items-center justify-content-center"
                                                 data-bs-toggle="tooltip" 
                                                 title="Clear Filter">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" 
@@ -81,13 +109,12 @@
                                                     </svg>
                                                 </a>
                                             </div>
-                                        </div>
 
-                                       
+                                        </div>
                                     </form>
                                 </div>
-                                        
                             </div>
+
                         </div>
                     </div>
                     <div class="card-body">
@@ -117,10 +144,9 @@
                                                 {{$item->store ? $item->store->name : ''}}
                                             </td>
                                             <td>
-                                                {{$item->comment}}
-                                                @if($item->description)
-                                                <p class="small text-muted mb-0">{{$item->description}}</p>
-                                                @endif
+                                                {{$item->noorder ? $item->noorder->noorderreason : ''}}
+                                                <p class="small text-muted mb-0">{{$item->comment}}</p>
+                                               
                                             </td>
                                             <td>
                                                 {{$item->location}}
@@ -143,4 +169,16 @@
         </div>
 </div>
 
+@endsection
+@section('scripts')
+<script>
+$(document).ready(function() {
+    $('.select2').select2({
+        theme: 'bootstrap4',
+        width: '100%',
+        placeholder: 'Select an option',
+        allowClear: true
+    });
+});
+</script>
 @endsection
