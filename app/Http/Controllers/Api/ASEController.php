@@ -1154,15 +1154,15 @@ public function aseSalesreport(Request $request)
     public function productShow(Request $request, $id)
     {
         $productDetail = Product::findOrFail($id);
-        $productColors = ProductColorSize::where('product_id', $id)->with('color','size')->groupBy('color_id')->orderBy('position')->get();
+        $productColors = ProductColorSize::where('product_id', $id)->with('colorData','size')->groupBy('color_id')->orderBy('position')->get();
 
         $productColorsResp = [];
         foreach($productColors as $productColor) {
             $productColorsSizes = ProductColorSize::selectRaw('size_id AS size_id, price,offer_price')->where('product_id', $id)->where('color_id', $productColor->color_id)->orderBy('position')->get();
 
             $productColorsResp[] = [
-                "color_id" => $productColor->color_id,
-                "color_name" => $productColor->color->name,
+                "color_id" => $productColor->colorData,
+                "color_name" => $productColor->colorData->name,
                 "size_details" => $productColorsSizes,
             ];
         }
