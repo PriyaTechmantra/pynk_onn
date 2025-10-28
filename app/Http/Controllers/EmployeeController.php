@@ -132,8 +132,6 @@ class EmployeeController extends Controller
             $keyword = $request->keyword;
             $query->where(function ($q) use ($keyword) {
                 $q->where('name', 'like', '%'.$keyword.'%')
-                  ->orWhere('fname', 'like', '%'.$keyword.'%')
-                  ->orWhere('lname', 'like', '%'.$keyword.'%')
                   ->orWhere('mobile', 'like', '%'.$keyword.'%')
                   ->orWhere('employee_id', 'like', '%'.$keyword.'%')
                   ->orWhere('email', 'like', '%'.$keyword.'%');

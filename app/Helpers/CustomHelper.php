@@ -324,3 +324,35 @@ if(!function_exists('sendNotification')) {
 }
 
 }
+
+
+    if (!function_exists('findDistributorTeamDetails')) {
+    function findDistributorTeamDetails($userName) {
+        $namagerDetails = array();
+        $team_wise_attendance =array();
+        
+                $query=Team::select('vp_id','rsm_id','asm_id','ase_id','state_id','area_id')->where('distributor_id',$userName)->orderby('id','desc')->with('vp','rsm','asm','ase','states','areas')->first();
+                        
+                        if ($query) {
+                            $namagerDetails['vp'] = $query->vp->name ?? '';
+                            $namagerDetails['rsm'] = $query->rsm->name?? '';
+                            $namagerDetails['asm'] = $query->asm->name?? '';
+							$namagerDetails['ase'] = $query->ase->name?? '';
+							$namagerDetails['state'] = $query->states->name?? '';
+							$namagerDetails['area'] = $query->areas->name?? '';
+                        } else {
+                            $namagerDetails[] = "";
+                        }
+                
+            
+                
+				
+                
+            
+        
+        array_push($team_wise_attendance, $namagerDetails);
+      
+        return $team_wise_attendance;
+    }
+}
+

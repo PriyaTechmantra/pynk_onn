@@ -145,7 +145,12 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('distributors/note', [DistributorNoteController::class, 'note'])->name('distributors.note');
     Route::get('distributors/note/exportCSV', [DistributorNoteController::class, 'noteCSV'])->name('distributors.note.exportCSV');
 
+    
+    Route::get('distributors/hierarchy/details', [DistributorController::class, 'distributorHierarchy'])->name('distributors.hierarchy.index');
+    Route::get('distributors/hierarchy/exportCSV', [DistributorController::class, 'distributorhierarchyExportCSV'])->name('distributors.hierarchy.exportCSV');
     Route::resource('distributors', DistributorController::class);
+    Route::get('distributors/{userId}/range', [DistributorController::class, 'range']);
+    Route::get('distributors/{userId}/range/add', [DistributorController::class, 'rangeSave']);
     Route::get('distributors/{userId}/delete', [DistributorController::class, 'destroy']);
     Route::get('distributors/{userId}/status/change', [DistributorController::class, 'status']);
     Route::get('distributors/csv/export', [DistributorController::class, 'employeeExport']);
