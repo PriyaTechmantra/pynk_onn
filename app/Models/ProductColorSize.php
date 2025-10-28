@@ -10,11 +10,11 @@ class ProductColorSize extends Model
     use HasFactory;
     
 
-    public function color() {
-        return $this->hasMany('App\Models\Color' ,'color_id','id');
+    public function colorData() {
+        return $this->belongsTo('App\Models\Color' ,'color_id','id');
     }
     public function size() {
-        return $this->hasMany('App\Models\Size', 'size_id', 'id');
+        return $this->belongsTo('App\Models\Size', 'size_id', 'id');
     }
 
 }

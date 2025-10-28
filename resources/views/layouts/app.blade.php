@@ -65,7 +65,7 @@
                
                 
                @can('view employee')
-                <li class="@if(request()->is('employees*')||request()->is('employees/hierarchy/details*')||request()->is('activities*')||request()->is('employees/notifications*')) { {{'active'}} }  @endif">
+                <li class="@if(request()->is('employees*')||request()->is('employees/hierarchy/details*')||request()->is('activity*')||request()->is('employees/notifications*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Employee</span></a>
                     <ul>
                         
@@ -77,7 +77,7 @@
                         <li class="{{ ( request()->is('employees/hierarchy/details*') ) ? 'active' : '' }}"><a href="{{route('employees.hierarchy.index')}}"><i class="fi fi-br-database"></i> <span>Employee Hierarchy</span></a></li>
                         @endcan
                         @can('view employee activities')
-                        <li class="{{ ( request()->is('activities*') ) ? 'active' : '' }}"><a href="{{route('activities.index')}}"><i class="fi fi-br-book"></i> <span>Activity Management</span></a></li>
+                        <li class="{{ ( request()->is('activity*') ) ? 'active' : '' }}"><a href="{{route('activities.index')}}"><i class="fi fi-br-book"></i> <span>Activity Management</span></a></li>
                         @endcan
                         @can('view notifications')
                         <li class="{{ ( request()->is('employees/notifications*') ) ? 'active' : '' }}"><a href="{{route('notifications.index')}}"><i class="fi fi-br-book"></i> <span>Notification</span></a></li>
@@ -157,7 +157,7 @@
                     </ul>
                 </li>
                 @endcan
-                @can('view primary order')
+                {{--@can('view primary order')
                 <li class="@if(request()->is('primary/order*')||request()->is('secondary/order*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Order</span></a>
                     <ul>
@@ -173,7 +173,7 @@
                         
                     </ul>
                 </li>
-                @endcan
+                @endcan--}}
 
                 @can('view primary order report')
                 <li class="@if(request()->is('primary/order/report*')||request()->is('secondary/order/report*')||request()->is('attendance/report*')) { {{'active'}} }  @endif">
