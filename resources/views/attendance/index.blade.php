@@ -81,14 +81,14 @@
                                                      @endif
                                                      <div class="col">
                                                         <label class="small text-muted">VP</label>
-                                                        <select class="form-control form-control-sm select2" name="vp_id">
+                                                        <select class="form-control form-control-sm select2" id="vp_id" name="vp_id">
                                                        
                                                         <option value="{{ $request->vp_id }}">Select brand first</option>
                                                         </select>
                                                     </div>
                                                     <div class="col">
                                                         <label class="small text-muted">State</label>
-                                                        <select class="form-control form-control-sm select2" name="state_id">
+                                                        <select class="form-control form-control-sm select2" id="state_id" name="state_id">
                                                         
                                                         <option value="{{ $request->state_id }}">Select vp first</option>
                                                         </select>
@@ -296,135 +296,148 @@
             </div>
         </div>
     </div>
-
+<div id="expTab" style="display: none"></div>
 @endsection
 
 
 @section('script')
 
 <script>
-    $('select[name="brand_id"]').on('change', (event) => {
-        var value = $('select[name="brand_id"]').val();
-        VPChange(value);
+$(document).ready(function () {
+    // ======== 1️⃣ BRAND → VP ========
+    const selectedBrandId = '{{ request()->input("brand_id") ?? "" }}';
+    const selectedVpId = '{{ request()->input("vp_id") ?? "" }}';
+
+    $('select[name="brand_id"]').on('change', function () {
+        VPChange($(this).val(), '');
     });
 
-    @if (request()->input('brand_id'))
-        VPChange({{request()->input('brand_id')}})
-    @endif
-     function VPChange(value) {
-        $.ajax({
-            url: '{{url("/")}}/vp/brand/wise/'+value,
-            method: 'GET',
-            success: function(result) {
-                var content = '';
-                var slectTag = 'select[name="vp_id"]';
-                var displayCollection =  "All";
+    if (selectedBrandId) VPChange(selectedBrandId, selectedVpId);
 
-                content += '<option value="" selected>'+displayCollection+'</option>';
-                $.each(result.data, (key, value) => {
-                    let selected = ``;
-                    @if (request()->input('vp_id'))
-                        if({{request()->input('vp_id')}} == value.id) {selected = 'selected';}
-                    @endif
-                    content += '<option value="'+value.id+'" ${selected}>'+value.name+'</option>';
+    function VPChange(brandId, selectedVpId) {
+        $.ajax({
+            url: '{{ url("/") }}/vp/brand/wise/' + brandId,
+            method: 'GET',
+            success: function (result) {
+                let content = '<option value="">All</option>';
+                $.each(result.data, function (key, val) {
+                    const isSelected = (selectedVpId && selectedVpId == val.id) ? 'selected' : '';
+                    content += `<option value="${val.id}" ${isSelected}>${val.name}</option>`;
                 });
-                $(slectTag).html(content).attr('disabled', false);
+                $('select[name="vp_id"]').html(content).prop('disabled', false);
             }
         });
     }
-     
-</script>
-<script>
-    $('select[name="vp_id"]').on('change', (event) => {
-        var value = $('select[name="vp_id"]').val();
-      
-        $.ajax({
-            url: '{{url("/")}}/state/vp/wise/'+value,
-            method: 'GET',
-            success: function(result) {
-                var content = '';
-                var slectTag = 'select[name="state_id"]';
-                var displayCollection =  "All";
 
-                content += '<option value="" selected>'+displayCollection+'</option>';
-                $.each(result.data, (key, value) => {
-                    let selected = ``;
-                    @if (request()->input('state_id'))
-                        if({{request()->input('state_id')}} == value.states.id) {selected = 'selected';}
-                    @endif
-                    content += '<option value="'+value.states.id+'" ${selected}>'+value.states.name+'</option>';
+    // ======== 2️⃣ VP → STATE ========
+    const vpId = '{{ request()->input("vp_id") ?? "" }}';
+    const selectedStateId = '{{ request()->input("state_id") ?? "" }}';
+
+    $('select[name="vp_id"]').on('change', function () {
+        StateChange($(this).val(), '');
+    });
+
+    if (vpId) StateChange(vpId, selectedStateId);
+
+    function StateChange(vpId, selectedStateId) {
+        $.ajax({
+            url: '{{ url("/") }}/state/vp/wise/' + vpId,
+            method: 'GET',
+            success: function (result) {
+                let content = '<option value="">All</option>';
+                $.each(result.data, function (key, val) {
+                    const id = val.states ? val.states.id : val.id;
+                    const name = val.states ? val.states.name : val.name;
+                    const isSelected = (selectedStateId && selectedStateId == id) ? 'selected' : '';
+                    content += `<option value="${id}" ${isSelected}>${name}</option>`;
                 });
-                $(slectTag).html(content).attr('disabled', false);
+                $('select[name="state_id"]').html(content).prop('disabled', false);
+            },
+            error: () => console.error('Error loading states.')
+        });
+    }
+
+    // ======== 3️⃣ STATE → RSM ========
+    const selectedRsmId = '{{ request()->input("rsm_id") ?? "" }}';
+
+    $('select[name="state_id"]').on('change', function () {
+        RsmChange($(this).val(), '');
+    });
+
+    if (selectedStateId) RsmChange(selectedStateId, selectedRsmId);
+
+    function RsmChange(stateId, selectedRsmId) {
+        $.ajax({
+            url: '{{ url("/") }}/rsm/state/wise/' + stateId,
+            method: 'GET',
+            success: function (result) {
+                let content = '<option value="">All</option>';
+                $.each(result.data, function (key, val) {
+                    const id = val.rsm ? val.rsm.id : val.id;
+                    const name = val.rsm ? val.rsm.name : val.name;
+                    const isSelected = (selectedRsmId && selectedRsmId == id) ? 'selected' : '';
+                    content += `<option value="${id}" ${isSelected}>${name}</option>`;
+                });
+                $('select[name="rsm_id"]').html(content).prop('disabled', false);
+            },
+            error: (xhr) => console.error('Error loading RSM list:', xhr.responseText)
+        });
+    }
+
+    // ======== 4️⃣ RSM → ASM ========
+    const selectedAsmId = '{{ request()->input("asm_id") ?? "" }}';
+
+    $('select[name="rsm_id"]').on('change', function () {
+        AsmChange($(this).val(), '');
+    });
+
+    if (selectedRsmId) AsmChange(selectedRsmId, selectedAsmId);
+
+    function AsmChange(rsmId, selectedAsmId) {
+        $.ajax({
+            url: '{{ url("/") }}/asm/rsm/wise/' + rsmId,
+            method: 'GET',
+            success: function (result) {
+                let content = '<option value="">All</option>';
+                $.each(result.data, function (key, val) {
+                    const id = val.asm ? val.asm.id : val.id;
+                    const name = val.asm ? val.asm.name : val.name;
+                    const isSelected = (selectedAsmId && selectedAsmId == id) ? 'selected' : '';
+                    content += `<option value="${id}" ${isSelected}>${name}</option>`;
+                });
+                $('select[name="asm_id"]').html(content).prop('disabled', false);
             }
         });
+    }
+
+    // ======== 5️⃣ ASM → ASE ========
+    const selectedAseId = '{{ request()->input("ase_id") ?? "" }}';
+
+    $('select[name="asm_id"]').on('change', function () {
+        AseChange($(this).val(), '');
     });
-</script>
 
-<script>
-    $('select[name="state_id"]').on('change', (event) => {
-        var value = $('select[name="state_id"]').val();
-      
+    if (selectedAsmId) AseChange(selectedAsmId, selectedAseId);
+
+    function AseChange(asmId, selectedAseId) {
         $.ajax({
-            url: '{{url("/")}}/rsm/state/wise/'+value,
+            url: '{{ url("/") }}/ase/asm/wise/' + asmId,
             method: 'GET',
-            success: function(result) {
-                var content = '';
-                var slectTag = 'select[name="rsm_id"]';
-                var displayCollection =  "All";
-
-                content += '<option value="" selected>'+displayCollection+'</option>';
-                $.each(result.data, (key, value) => {
-                    content += '<option value="'+value.rsm.id+'">'+value.rsm.name+'</option>';
+            success: function (result) {
+                let content = '<option value="">All</option>';
+                $.each(result.data, function (key, val) {
+                    const id = val.ase ? val.ase.id : val.id;
+                    const name = val.ase ? val.ase.name : val.name;
+                    const isSelected = (selectedAseId && selectedAseId == id) ? 'selected' : '';
+                    content += `<option value="${id}" ${isSelected}>${name}</option>`;
                 });
-                $(slectTag).html(content).attr('disabled', false);
+                $('select[name="ase_id"]').html(content).prop('disabled', false);
             }
         });
-    });
+    }
+});
 </script>
 
-<script>
-    $('select[name="rsm_id"]').on('change', (event) => {
-        var value = $('select[name="rsm_id"]').val();
-      
-        $.ajax({
-            url: '{{url("/")}}/asm/rsm/wise/'+value,
-            method: 'GET',
-            success: function(result) {
-                var content = '';
-                var slectTag = 'select[name="asm_id"]';
-                var displayCollection =  "All";
-
-                content += '<option value="" selected>'+displayCollection+'</option>';
-                $.each(result.data, (key, value) => {
-                    content += '<option value="'+value.asm.id+'">'+value.asm.name+'</option>';
-                });
-                $(slectTag).html(content).attr('disabled', false);
-            }
-        });
-    });
-</script>
-
-<script>
-    $('select[name="asm_id"]').on('change', (event) => {
-        var value = $('select[name="asm_id"]').val();
-      
-        $.ajax({
-            url: '{{url("/")}}/ase/asm/wise/'+value,
-            method: 'GET',
-            success: function(result) {
-                var content = '';
-                var slectTag = 'select[name="ase_id"]';
-                var displayCollection =  "All";
-
-                content += '<option value="" selected>'+displayCollection+'</option>';
-                $.each(result.data, (key, value) => {
-                    content += '<option value="'+value.ase.id+'">'+value.ase.name+'</option>';
-                });
-                $(slectTag).html(content).attr('disabled', false);
-            }
-        });
-    });
-</script>
 <script>
 
     $(document).on('click', '.brand-tab', function() {
@@ -491,7 +504,10 @@ document.addEventListener("DOMContentLoaded", function () {
             url: '{{url("/")}}/attendance/report/csv/export',
             method: 'GET',
             data: {
+                'brand_id': $('select[name="brand_id"]').val(),
+                
                 'vp_id': $('select[name="vp_id"]').val(),
+                'state_id': $('select[name="state_id"]').val(),
                 'rsm_id': $('select[name="rsm_id"]').val(),
                 
                 'asm_id': $('select[name="asm_id"]').val(),
@@ -516,7 +532,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     var a = document.createElement("a");
                     document.body.appendChild(a);
                     a.href = url;
-                    a.download = "export.xls";
+                    a.download = "attendance.xls";
                     a.click();
                     //adding some delay in removing the dynamically created link solved the problem in FireFox
                     setTimeout(function() {window.URL.revokeObjectURL(url);},0);
