@@ -2040,19 +2040,18 @@ class EmployeeController extends Controller
             $q->whereHas('user', fn($uq) => $uq->where('type', $request->type));
         });
 
-        $query->when($request->brand_selection, function ($q) use ($request) {
-            $brand = (int)$request->brand_selection;
+       
+         if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
 
-            $q->whereHas('user', function ($uq) use ($brand) {
-                if ($brand === 1) {
-                    $uq->whereIn('brand', [1, 3]);
-                } elseif ($brand === 2) {
-                    $uq->whereIn('brand', [2, 3]);
-                } elseif ($brand === 3) {
-                    $uq->where('brand', 3);
-                }
-            });
-        });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
+        }
 
         $employees = Employee::select('id', 'name')->orderBy('name')->get();
 
@@ -2081,19 +2080,17 @@ class EmployeeController extends Controller
         $query->when($request->user_name, fn($q) => $q->where('user_id', $request->user_name));
         $query->when($request->type, fn($q) => $q->whereHas('user', fn($uq) => $uq->where('type', $request->type)));
 
-        $query->when($request->brand_selection, function ($q) use ($request) {
-            $brand = (int)$request->brand_selection;
+         if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
 
-            $q->whereHas('user', function ($uq) use ($brand) {
-                if ($brand === 1) {
-                    $uq->whereIn('brand', [1, 3]);
-                } elseif ($brand === 2) {
-                    $uq->whereIn('brand', [2, 3]);
-                } elseif ($brand === 3) {
-                    $uq->where('brand', 3);
-                }
-            });
-        });
+            if ($brand == '1') {
+                $query->whereIn('brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('brand', 3);
+            }
+        }
 
         $activities = $query->with(['user', 'store'])->latest('id')->get();
 

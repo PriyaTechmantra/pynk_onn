@@ -34,13 +34,12 @@
                                                 <label class="text-muted small mb-1 fw-semibold">Brand</label>
                                                 <select name="brand_selection" class="form-control form-control-sm select2">
                                                     <option value="">Select</option>
-                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>All</option>
-                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
-                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
+                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>ALL</option>
+                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>ONN</option>
+                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>PYNK</option>
                                                 </select>
                                             </div>
 
-                                            <!-- ASE -->
                                             <div class="col-md-2 col-sm-6">
                                                 <label class="text-muted small mb-1 fw-semibold">ASE</label>
                                                 <select name="ase" class="form-control form-control-sm select2">

@@ -31,9 +31,9 @@
                                             <div class="col-3 d-flex align-items-center gap-2">
                                                 <select name="brand_selection" class="form-control form-control-sm">
                                                     <option value="">Select Brand</option>
-                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>All</option>
-                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
-                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
+                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>ALL</option>
+                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>ONN</option>
+                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>PYNK</option>
                                                 </select>
 
                                                 <select name="status" class="form-control form-control-sm">
