@@ -137,8 +137,10 @@ Route::group(['middleware' => ['auth']], function() {
 
 
     Route::get('ase/asm/wise/{id}', [EmployeeController::class, 'aseAsmWise'])->name('ase.asm.wise');
+    
     //activity
-     Route::get('activity', [ActivityController::class, 'index'])->name('activities.index');
+    Route::get('activity', [EmployeeController::class, 'activityList'])->name('activities.index');
+    Route::get('activity/exportCSV', [EmployeeController::class, 'activityExportCSV'])->name('activities.exportCSV');
     
     //distributor
     

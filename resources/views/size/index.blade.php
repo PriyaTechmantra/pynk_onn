@@ -28,18 +28,19 @@
                                         <div class="row g-2 align-items-center">
                                              
                                             <div class="col-6 d-flex align-items-center gap-2">
-                                                 <input type="search" name="term" id="term" 
+                                                 
+                                                <select name="brand_selection" class="form-control form-control-sm">
+                                                     <option value="">Select Brand</option>
+                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>All</option>
+                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
+                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
+                                                </select>
+                                                <input type="search" name="term" id="term" 
                                                     class="form-control form-control-sm" 
                                                     placeholder="Search by keyword." 
                                                     value="{{ app('request')->input('term') }}" 
                                                     autocomplete="off">
 
-                                                <select name="brand_selection" class="form-control form-control-sm">
-                                                    <option value="">Select Brand</option>
-                                                    <option value="1" {{ app('request')->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
-                                                    <option value="2" {{ app('request')->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
-                                                    <option value="3" {{ app('request')->input('brand_selection') == 3 ? 'selected' : '' }}>Both</option>
-                                                </select>
                                             </div>
 
                                             <div class="col-6 text-end">
