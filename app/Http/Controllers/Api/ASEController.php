@@ -10,6 +10,7 @@ use App\Models\UserArea;
 use App\Models\Store;
 use App\Models\Visit;
 use App\Models\Team;
+use App\Models\Cart;
 use App\Models\PrimaryOrder;
 use App\Models\SecondaryOrder;
 use App\Models\NoOrderReason;
