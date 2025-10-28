@@ -39,10 +39,10 @@
                                             <div class="col-3">
                                                  
                                                 <select name="brand_selection" class="form-control form-control-sm">
-                                                    <option value="">Select Brand</option>
-                                                    <option value="1" {{ app('request')->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
-                                                    <option value="2" {{ app('request')->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
-                                                    <option value="3" {{ app('request')->input('brand_selection') == 3 ? 'selected' : '' }}>Both</option>
+                                                     <option value="">Select Brand</option>
+                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>All</option>
+                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>Onn</option>
+                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>Pynk</option>
                                                 </select>
                                             </div>
                                             <div class="col-3">

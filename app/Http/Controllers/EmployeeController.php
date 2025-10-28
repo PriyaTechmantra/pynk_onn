@@ -11,12 +11,14 @@ use App\Models\Team;
 use App\Models\Store;
 use App\Models\Distributor;
 use App\Models\Notification;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Auth;
 use DB;
 use Hash;
@@ -1665,7 +1667,7 @@ public function attendanceReportExport(Request $request)
             return back()->with('status', 'No data found for export.');
         }
 
-        $filename = 'notifications_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        $filename = 'notifications_' . now()->format('Y-m-d') . '.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -1900,10 +1902,122 @@ public function attendanceReportExport(Request $request)
             fpassthru($f);
         }
     }
-        
+
+    public function activityList(Request $request)
+    {
+        $date_from = $request->date_from ?? '';
+        $date_to = $request->date_to ?? '';
+
+        $query = Activity::query();
+
+        $query->when($date_from, fn($q) => $q->whereDate('date', '>=', $date_from));
+        $query->when($date_to, fn($q) => $q->whereDate('date', '<=', $date_to));
+
+        $query->when($request->user_name, fn($q) => $q->where('user_id', $request->user_name));
+
+        $query->when($request->type, function ($q) use ($request) {
+            $q->whereHas('user', fn($uq) => $uq->where('type', $request->type));
+        });
+
+        $query->when($request->brand_selection, function ($q) use ($request) {
+            $brand = (int)$request->brand_selection;
+
+            $q->whereHas('user', function ($uq) use ($brand) {
+                if ($brand === 1) {
+                    $uq->whereIn('brand', [1, 3]);
+                } elseif ($brand === 2) {
+                    $uq->whereIn('brand', [2, 3]);
+                } elseif ($brand === 3) {
+                    $uq->where('brand', 3);
+                }
+            });
+        });
+
+        $employees = Employee::select('id', 'name')->orderBy('name')->get();
+
+        $userTypes = Employee::select('type')
+            ->whereNotNull('type')
+            ->distinct()
+            ->pluck('type')
+            ->toArray();
+
+        $data = $query->latest('id')->paginate(25);
+
+        return view('activity.index', compact('data', 'employees', 'userTypes', 'request'));
+    }
+
+
+    public function activityExportCSV(Request $request)
+    {
+        $date_from = $request->date_from ?? '';
+        $date_to = $request->date_to ?? '';
+
+        $query = Activity::query();
+
+        $query->when($date_from, fn($q) => $q->whereDate('date', '>=', $date_from));
+        $query->when($date_to, fn($q) => $q->whereDate('date', '<=', $date_to));
+
+        $query->when($request->user_name, fn($q) => $q->where('user_id', $request->user_name));
+        $query->when($request->type, fn($q) => $q->whereHas('user', fn($uq) => $uq->where('type', $request->type)));
+
+        $query->when($request->brand_selection, function ($q) use ($request) {
+            $brand = (int)$request->brand_selection;
+
+            $q->whereHas('user', function ($uq) use ($brand) {
+                if ($brand === 1) {
+                    $uq->whereIn('brand', [1, 3]);
+                } elseif ($brand === 2) {
+                    $uq->whereIn('brand', [2, 3]);
+                } elseif ($brand === 3) {
+                    $uq->where('brand', 3);
+                }
+            });
+        });
+
+        $activities = $query->with(['user', 'store'])->latest('id')->get();
+
+        $typeLabels = [
+            1 => 'VP',
+            2 => 'RSM',
+            3 => 'ASM',
+            4 => 'ASE',
+        ];
+
+        $response = new StreamedResponse(function () use ($activities, $typeLabels) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'S.No',
+                'User',
+                'Store',
+                'Activity',
+                'DateTime',
+                'Comment',
+                'Location',
+            ]);
+
+            $serial = 1;
+            foreach ($activities as $activity) {
+                fputcsv($handle, [
+                    $serial++,
+                    ($typeLabels[$activity->user->type ?? ''] ?? 'N/A') . ' - ' . ($activity->user->name ?? ''),
+                    $activity->store->name ?? '',
+                    $activity->type,
+                    $activity->date . ' ' . $activity->time,
+                    $activity->comment,
+                    $activity->location,
+                ]);
+            }
+
+            fclose($handle);
+        });
+
+        $filename = 'activities_' . now()->format('Y-m-d') . '.csv';
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', "attachment; filename=\"$filename\"");
+
+        return $response;
+    }
+
+
 }
-    
-
-     
-
-

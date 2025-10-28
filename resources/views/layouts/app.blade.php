@@ -76,7 +76,7 @@
                         @can('view employee hierarchy')
                         <li class="{{ ( request()->is('employees/hierarchy/details*') ) ? 'active' : '' }}"><a href="{{route('employees.hierarchy.index')}}"><i class="fi fi-br-database"></i> <span>Employee Hierarchy</span></a></li>
                         @endcan
-                        @can('view employee activities')
+                        @can('view employee')
                         <li class="{{ ( request()->is('activities*') ) ? 'active' : '' }}"><a href="{{route('activities.index')}}"><i class="fi fi-br-book"></i> <span>Activity Management</span></a></li>
                         @endcan
                         @can('view notifications')
