@@ -573,7 +573,7 @@ public function aseSalesreport(Request $request)
         // Search filter
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('contact', $search)
+                $q->where('contact', '=',$search)
                 ->orWhere('name', 'LIKE', "%{$search}%");
             });
         }
