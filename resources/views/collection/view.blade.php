@@ -3,6 +3,15 @@
 @section('page', 'Collection detail')
 
 @section('content')
+@php
+    $brandMap = [1 => 'ONN', 2 => 'PYNK', 3 => 'Both'];
+    $brandPermissions = $brandMap[$data->brand] ?? 'Unknown';
+     // Logged-in user permission (fetched from user_permission_categories table)
+    $userPermission = \App\Models\UserPermissionCategory::where('user_id', auth()->id())
+        ->value('brand'); // assuming column name is 'brand' in user_permission_categories
+
+    $userBrandPermission = $brandMap[$userPermission] ?? 'Unknown';
+@endphp
 <section class="detail-sec">
     <div class="row">
         <div class="col-sm-12">
@@ -10,6 +19,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
+                            <h2>{{ $brandPermissions }}</h2>
                             <h2 class="fw-bold">{{ $data->name }}</h2>
                             <p class="small">{{ $data->description }}</p>
                             <hr>
@@ -30,12 +40,13 @@
                             <table class="table admin-table">
                                 <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Product</th>
+                                    <th class="text-center"><i class="fi fi-br-picture"></i></th>
+                                    <th>Name</th>
                                     <th>Category</th>
                                     <th>Package</th>
                                     <th>Color+Size</th>
                                     <th>Price</th>
+                                    <th>Offer Price</th>
                                     <th>Status</th>
                                 </tr>
                                 </thead>
@@ -51,10 +62,10 @@
                                         }
                                     @endphp
                                     <tr>
-                                        {{-- <td class="text-center column-thumb">
-                                            <img src="{{asset('img/product-box.png')}}" />
-                                        </td> --}}
-										<td>{{$index+1}}</td>
+                                        <td class="text-center column-thumb">
+                                                <img src="{{ asset($item->image) }}" style="max-width: 80px;max-height: 80px;">
+                                        </td>
+										
                                         <td>
 											<p class="mb-1 text-dark">{{$item->style_no}}</p>
                                             <p class="small text-muted">{{$item->name}}</p>
@@ -68,10 +79,10 @@
 										<td>{{$item->master_pack}}</td>
 										<td>
 											@php
-											$colors = \App\Models\ProductColorSize::select('color_id')->where('product_id',$item->id)->groupBy('color_id')->with('color','size')->get();
+											$colors = \App\Models\ProductColorSize::select('color_id')->where('product_id',$item->id)->groupBy('color_id')->with('colorData','size')->get();
 											foreach($colors as $color) {
-												echo '<p class="small text-dark d-flex">'.$color->color->name.'(#'.$color->color->name.')';
-												$sizes = \App\Models\ProductColorSize::select('size_id','offer_price')->where('product_id',$item->id)->where('color_id',$color->color_id)->groupBy('size_id')->with('color','size')->get(); 
+												echo '<p class="small text-dark d-flex">'.$color->colorData->name.'(#'.$color->colorData->name.')';
+												$sizes = \App\Models\ProductColorSize::select('size_id','offer_price')->where('product_id',$item->id)->where('color_id',$color->color_id)->groupBy('size_id')->with('colorData','size')->get(); 
 												echo '<span class="ms-auto">No of sizes - ';
 												echo count($sizes);
 											echo '</span></p>';
@@ -79,14 +90,16 @@
 											echo '<tr><th class="px-0">Size</th><th class="px-0">Price</th></tr>';
 													
 												foreach($sizes as $size) {
-											echo '<tr><td class=""><p class="small text-dark mb-0">'.$size->size->name.'(#'.$size->size->name.')</p></td>';
+											echo '<tr><td class=""><p class="small text-dark mb-0">'.$size->size->name.'</p></td>';
 											echo '<td class=""><p class="small text-dark mb-0">Rs'.$size->offer_price.'</p></td></tr>';
 												}
 											echo '</table>';
 											}
 											@endphp
 										</td>
-											
+										<td>
+                                            Rs. {{$item->price}}
+                                        </td>	
                                         <td>
                                             Rs. {{$item->offer_price}}
                                         </td>

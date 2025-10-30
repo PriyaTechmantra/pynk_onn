@@ -119,7 +119,7 @@
                                         <input type="password" name="password" placeholder="" class="form-control" value="{{old('password')}}">
                                         @error('password') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="mb-3">
+                                        <div class="mb-3">
                                             <!-- Communication Medium -->
                                             <h6>Brand Permission:  <span class="text-danger">*</span></h6>
                                              @error('brand') <p class="small text-danger">{{ $message }}</p> @enderror

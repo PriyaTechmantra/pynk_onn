@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $brandMap = [1 => 'ONN', 2 => 'PYNK', 3 => 'Both'];
+    $brandPermissions = $brandMap[$data->brand] ?? 'Unknown';
+     // Logged-in user permission (fetched from user_permission_categories table)
+    $userPermission = \App\Models\UserPermissionCategory::where('user_id', auth()->id())
+        ->value('brand'); // assuming column name is 'brand' in user_permission_categories
+
+    $userBrandPermission = $brandMap[$userPermission] ?? 'Unknown';
+@endphp
 <div class="container mt-5">
         <div class="row">
             <div class="col-md-12">
@@ -17,8 +26,9 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-12">
+                                <h2>{{ $brandPermissions }}</h2>
                                 <h2>{{ $data->name }}</h2>
-                                <div class="text-muted">{{ $data->parent }}</div>
+                                
                                     <p class="">{{ $data->description }}</p>
                                 <hr>
                             </div>
@@ -54,7 +64,9 @@
                                         <th>Name</th>
                                         <th>Style No.</th>
                                         <th>Collection</th>
+                                        <th>Color+Size</th>
                                         <th>Price</th>
+                                        <th>Offer Price</th>
                                         <th>Status</th>
                                     </tr>
                                     </thead>
@@ -71,7 +83,7 @@
                                         @endphp
                                         <tr>
                                             <td class="text-center column-thumb">
-                                                <img src="{{asset('images/product-box.png')}}" />
+                                                <img src="{{ asset($item->image) }}" style="max-width: 80px;max-height: 80px;">
                                             </td>
                                             <td>
                                                 {{$item->name}}
@@ -83,8 +95,31 @@
                                             <td>{{$item->style_no}}</td>
                                             <td>{{$item->collection ? $item->collection->name : ''}}</td>
                                             <td>
-                                                <small> <del>{{$item->price}}</del> </small> Rs. {{$item->offer_price}}
-                                            </td>
+											@php
+											$colors = \App\Models\ProductColorSize::select('color_id')->where('product_id',$item->id)->groupBy('color_id')->with('colorData','size')->get();
+											foreach($colors as $color) {
+												echo '<p class="small text-dark d-flex">'.$color->colorData->name.'(#'.$color->colorData->name.')';
+												$sizes = \App\Models\ProductColorSize::select('size_id','offer_price')->where('product_id',$item->id)->where('color_id',$color->color_id)->groupBy('size_id')->with('colorData','size')->get(); 
+												echo '<span class="ms-auto">No of sizes - ';
+												echo count($sizes);
+											echo '</span></p>';
+											echo '<table class="table no-shadow">';
+											echo '<tr><th class="px-0">Size</th><th class="px-0">Price</th></tr>';
+													
+												foreach($sizes as $size) {
+											echo '<tr><td class=""><p class="small text-dark mb-0">'.$size->size->name.'</p></td>';
+											echo '<td class=""><p class="small text-dark mb-0">Rs'.$size->offer_price.'</p></td></tr>';
+												}
+											echo '</table>';
+											}
+											@endphp
+										</td>
+										<td>
+                                            Rs. {{$item->price}}
+                                        </td>	
+                                        <td>
+                                            Rs. {{$item->offer_price}}
+                                        </td>
                                             <td><span class="badge bg-{{($item->status == 1) ? 'success' : 'danger'}}">{{($item->status == 1) ? 'Active' : 'Inactive'}}</span></td>
                                         </tr>
                                         @empty

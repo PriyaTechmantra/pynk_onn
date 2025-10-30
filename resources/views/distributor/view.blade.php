@@ -48,12 +48,16 @@
                     
                      <h4 class="d-flex">Distributor Detail
                         <a href="{{ url('distributors') }}" class="btn btn-cta ms-auto">Back</a>
+                        @can('update distributor')
                         <a href="{{ url('distributors/'.$data->distributor->id.'/edit') }}" class="btn btn-cta">
                             <i class="bi bi-pencil"></i> Edit
                         </a>
-                        <a href="{{ url('distributors/'.$data->distributor->id.'/range/add') }}" class="btn btn-cta">
+                        @endcan
+                        @can('view distributor range')
+                        <a href="{{ url('distributors/'.$data->distributor->id.'/range') }}" class="btn btn-cta">
                             <i class="bi bi-pencil"></i> Range
                         </a>
+                        @endcan
                     </h4>
                 </div>
             <div class="card-body">

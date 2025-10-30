@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Distributor extends Model
 {
     use HasFactory;
-
+    protected $fillable = [
+        'name','code',  'email', 'contact', 'whatsapp',
+        'password', 'address', 'state_id', 'city', 'pin','brand','area_id'
+    ];
      public function areas() {
         return $this->belongsTo('App\Models\Area', 'area_id', 'id');
     }

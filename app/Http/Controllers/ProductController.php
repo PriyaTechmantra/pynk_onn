@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Collection;
 use App\Models\Category;
+use App\Models\ProductColorSize;
+use App\Models\Color;
+use App\Models\ProductImage;
+use App\Models\Size;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -122,6 +126,22 @@ class ProductController extends Controller
      */
     public function create(Request $request)
     {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
         $collection = Collection::whereIn('brand',$brandsToShow)->where('status', 1)->where('is_deleted',0)->orderBy('position')->get();
         $category =Category::whereIn('brand',$brandsToShow)->where('status', 1)->where('is_deleted',0)->orderBy('position')->get();
         $colors = Color::whereIn('brand',$brandsToShow)->where('status', 1)->where('is_deleted',0)->orderBy('name')->get();
@@ -149,8 +169,11 @@ class ProductController extends Controller
             "meta_keyword" => "nullable",
             "style_no" => "nullable",
             "image" => "required",
-            "color_id" => "nullable|array",
-            "size_id" => "nullable|array",
+            "color_id" => "required|array",
+             "brand" => "required",
+            "size_id" => "required|array",
+            "sizeprice" => "required|array",
+            "sizeoffer_price" => "required|array",
         ]);
 
             $collectedData = $request->except('_token');
@@ -178,12 +201,12 @@ class ProductController extends Controller
             $newEntry->slug = slugGenerate($collectedData['name'],'products');
 
             // main image handling
-            $upload_path = "public/uploads/product/";
+            $upload_path = "uploads/product/";
             $file="uploads/product/";
             if(isset($collectedData['image'])){
                 $image = $collectedData['image'];
                 $imageName = time() . "." . $image->getClientOriginalName();
-                $image->move($file, $imageName);
+                $image->move($upload_path, $imageName);
                 $uploadedImage = $imageName;
                 $newEntry->image = $upload_path . $uploadedImage;
                 
@@ -196,8 +219,8 @@ class ProductController extends Controller
                     $multipleColorData[] = [
                         'product_id' => $newEntry->id,
                         'color_id' => $colorValue,
-                        'price'=>$newEntry->price,
-                        'offer_price'=>$newEntry->offer_price,
+                        //'price'=>$newEntry->price,
+                       // 'offer_price'=>$newEntry->offer_price,
                         'created_at' =>date('Y-m-d H:i:s'),
                         'updated_at' =>date('Y-m-d H:i:s'),
                     ];
@@ -205,6 +228,12 @@ class ProductController extends Controller
 
                 foreach ($collectedData['size_id'] as $sizeKey => $sizeValue) {
                     $multipleColorData[$sizeKey]['size_id'] = $sizeValue;
+                }
+                foreach ($collectedData['sizeprice'] as $priceKey => $priceValue) {
+                    $multipleColorData[$priceKey]['price'] = $priceValue;
+                }
+                foreach ($collectedData['sizeoffer_price'] as $offerKey => $offerValue) {
+                    $multipleColorData[$offerKey]['offer_price'] = $offerValue;
                 }
 
                 // dd($multipleColorData);
@@ -221,7 +250,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(Request $request, $id)
     {
         $data=Product::where('id',$id)->with('colorSize','category','collection')->first();
         $images = ProductImage::where('product_id', $id)->latest('id')->get();
@@ -231,21 +260,39 @@ class ProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product)
+    public function edit(Request $request, $id)
     {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
         $data=Product::where('id',$id)->whereIn('brand',$brandsToShow)->with('colorSize','category','collection')->first();
         $category =Category::whereIn('brand',$brandsToShow)->where('status', 1)->where('is_deleted',0)->orderBy('position')->get();
+        $collection = Collection::whereIn('brand',$brandsToShow)->where('status', 1)->where('is_deleted',0)->orderBy('position')->get();
         $images = ProductImage::where('product_id', $id)->latest('id')->get();
         $colors = Color::whereIn('brand',$brandsToShow)->where('status', 1)->where('is_deleted',0)->orderBy('name')->get();
         $sizes = Size::whereIn('brand',$brandsToShow)->where('status', 1)->where('is_deleted',0)->get();
-        $productColorGroup = ProductColorSize::select('id', 'color_id', 'status')->where('product_id', $id)->groupBy('color_id')->orderBy('id')->get();
-        return view('product.edit', compact('data', 'category','colors','sizes','images','productColorGroup','id'));
+        $productColorSizeGroup = ProductColorSize::select('id', 'color_id', 'status')->where('product_id', $id)->groupBy('color_id')->orderBy('id')->get();
+        $productColorGroup = ProductColorSize::select('id', 'color_id', 'status')->where('product_id', $id)->where('status', 1)->groupBy('color_id')->orderBy('id')->get();
+        return view('product.edit', compact('request','data','collection', 'category','colors','sizes','images','productColorGroup','productColorSizeGroup','id'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $id)
     {
         $request->validate([
             "cat_id" => "required|integer",
@@ -258,8 +305,7 @@ class ProductController extends Controller
            
             "style_no" => "nullable",
             "image" => "nullable",
-            "color_id" => "nullable|array",
-            "size_id" => "nullable|array",
+          
         ]);
 
             $collectedData = $request->except('_token');
@@ -270,6 +316,7 @@ class ProductController extends Controller
              $newEntry->collection_id = $collectedData['collection_id'] ?? '';
             }
             $newEntry->name = $collectedData['name'] ?? '';
+             $newEntry->brand = $collectedData['brand'] ?? '';
             $newEntry->short_desc = $collectedData['short_desc'] ?? '';
             $newEntry->desc = $collectedData['desc']?? '';
             $newEntry->price = $collectedData['price']?? '';
@@ -287,12 +334,12 @@ class ProductController extends Controller
             }
 
             // main image handling
-            $upload_path = "public/uploads/product/";
+            $upload_path = "uploads/product/";
             $file="uploads/product/";
             if(isset($collectedData['image'])){
                 $image = $collectedData['image'];
                 $imageName = time() . "." . $image->getClientOriginalName();
-                $image->move($file, $imageName);
+                $image->move($upload_path, $imageName);
                 $uploadedImage = $imageName;
                 $newEntry->image = $upload_path . $uploadedImage;
                 
@@ -335,7 +382,150 @@ class ProductController extends Controller
                         ->with('success','Product status changed successfully');
     }
 
+      public function csvImport(Request $request): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+        'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
+            ], [
+                'file.mimes' => 'Please upload a valid CSV file.',
+                'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
+            ]);
 
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        if (!empty($request->file)) {
+            $file = $request->file('file');
+            $filename = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
+
+            // Validate CSV extension and file size
+            $valid_extension = ["csv"];
+            $maxFileSize = 50097152; // Max 50MB
+
+            if (in_array(strtolower($extension), $valid_extension)) {
+                if ($fileSize <= $maxFileSize) {
+                    // Upload the file to the storage location
+                    $location = 'public/uploads/csv';
+                    $file->move($location, $filename);
+                    $filepath = $location . "/" . $filename;
+
+                    // Open the CSV file and read it
+                    $file = fopen($filepath, "r");
+                    $importData_arr = [];
+                    $i = 0;
+                    $successCount=0;
+                    // Read the CSV file row by row
+                    while (($filedata = fgetcsv($file, 10000, ",")) !== false) {
+                        // Skip the header row
+                        if ($i == 0) {
+                            $i++;
+                            continue;
+                        }
+
+                         // Step 3: Extract the data from each row
+                        $rowData = [
+                            'brand' => isset($filedata[0]) ? $filedata[0] : null,
+                            'collection' => isset($filedata[1]) ? $filedata[1] : null,
+                            'category' => isset($filedata[2]) ? $filedata[2] : null,
+                            'style_no' => isset($filedata[3]) ? $filedata[3] : null,
+                            'name' => isset($filedata[4]) ? $filedata[4] : null,
+                            'price' => isset($filedata[5]) ? $filedata[5] : null,
+                            'offer_price' => isset($filedata[6]) ? $filedata[6] : null,
+                            
+                            'size_chart' => isset($filedata[7]) ? $filedata[7] : null,
+                            'pack' => isset($filedata[8]) ? $filedata[8] : null,
+                            'pack_count' => isset($filedata[9]) ? $filedata[9] : null,
+                            'master_pack' => isset($filedata[10]) ? $filedata[10] : null,
+                            'only_for' => isset($filedata[11]) ? $filedata[11] : null,
+                            
+                            
+                        ];
+                            
+                        // Step 4: Validate each row's data
+                        $validator = Validator::make($rowData, [
+                            'name' => 'required|string|max:255',
+                            'brand' => 'required',
+                            'collection' => 'required',
+                            'category' => 'required',
+                        
+                        ]);
+
+                    if ($validator->fails()) {
+                        // Accumulate errors with row number context
+                        $errors[$i] = $validator->errors()->all();
+                    } else {
+                        $collectionName=Collection::where('name',$rowData['collection'])->first();
+                        $catName=Category::where('name',$rowData['category'])->first();
+                            // Map brand text to numeric value
+                                $brandValue = null;
+                                if (!empty($rowData['brand'])) {
+                                    $brandText = strtolower(trim($rowData['brand']));
+                                    if ($brandText === 'ONN') {
+                                        $brandValue = 1;
+                                    } elseif ($brandText === 'PYNK') {
+                                        $brandValue = 2;
+                                    } elseif (in_array($brandText, ['Both', 'ONN,PYNK', 'PYNK,ONN'])) {
+                                        $brandValue = 3;
+                                    }
+                                }
+                        // Step 5: Save data if validation passes
+                        $insertData = [
+                            "name" => $rowData['name'],
+                            "style_no" => $rowData['style_no'],
+                            "price" => $rowData['price'],
+                            "offer_price" => $rowData['offer_price'],
+                            "size_chart" => $rowData['size_chart'],
+                            "pack" => $rowData['pack'],
+                            "pack_count" => $rowData['pack_count'],
+                            "collection_id" => $collectionName->id,
+                            "cat_id" => $catName->id,
+                            "master_pack" => $rowData['master_pack'],
+                             "brand" => $brandValue,
+                            "only_for" => $rowData['only_for'],
+                            
+                            "status" => 1,
+                            "is_deleted" => 0,
+                            "created_at" => date('Y-m-d H:i:s'),
+                            "updated_at" => date('Y-m-d H:i:s'),
+                        ];
+                        
+                        Product::create($insertData);
+                        
+                       
+                        
+                        $successCount++;
+
+                        
+                    }
+
+                    $i++;
+                }
+
+                fclose($file);
+                
+                if (!empty($errors)) {
+                    // Redirect back to upload page if there are row-level validation errors
+                    return redirect()->back()->with([
+                        'csv_errors' => $errors, // pass errors to display
+                    ]);
+                }else{
+
+                    return redirect()->back()->with('success', 'CSV Import Complete. Total number of entries: ' . $successCount);
+                }
+                } else {
+                    return redirect()->back()->with('failure', 'File too large. File must be less than 50MB.');
+                }
+            } else {
+                return redirect()->back()->with('failure', 'Invalid File Extension. Supported extensions are ' . implode(', ', $valid_extension));
+            }
+        } else {
+            return redirect()->back()->with('failure', 'No file found.');
+        }
+
+        // return redirect()->back();
+    }
     public function csvExport(Request $request)
     {
          $keyword = (!empty($request->keyword) && $request->keyword!='')?$request->keyword:'';
@@ -426,8 +616,8 @@ class ProductController extends Controller
         /**
          * STEP 6: Fetch data with pagination
          */
-        $data = $query->where('is_deleted',0)->with('colorSize.colorData','category','collection')->orderBy('id', 'desc')->get();
-        dd($data);
+        $data = $query->where('is_deleted',0)->with('colorSize','colorSize.colorData','colorSize.size','category','collection')->orderBy('id', 'desc')->get();
+        
         if (count($data) > 0) {
             $delimiter = ",";
             $filename = "all-products-" . date('Y-m-d') . ".csv";
@@ -442,6 +632,7 @@ class ProductController extends Controller
             $count = 1;
 
             foreach ($data as $row) {
+                foreach ($row->colorSize as $variant) {
                 $assignedPermissions = [$row->brand];
 
                     $brandMap = [
@@ -459,33 +650,33 @@ class ProductController extends Controller
                         ->map(fn($brand) => $brandMap[$brand] ?? $brand)
                         ->implode(', ');
                     }
-                $color = $row->org_color;
-                $size =  $row->org_size;
-
-                $lineData = array(
-                    $count,
-                    $brandPermissions,
-                    $row->name ?? '',
-                    $row->style_no ?? '',
-                    $row->collection->name ?? '',
-                    $row->category->name ?? '',
-                    $row->colorSize->colorData->name,
-                    $row->colorSize->size->name,
-                    'Rs. ' . number_format($row->colorSize->price) ?? '0',
-                    'Rs. ' . number_format($row->colorSize->offer_price) ?? '0',
-                    $row->short_desc ?? '',
-                    $row->size_chart ?? '',
-                    $row->pack ?? '',
-                    $row->pack_count ?? '',
-                    $row->master_pack ?? '',
-                    $row->master_pack_count ?? '',
-                    $row->only_for ?? '',
-                   
-                );
-
+                
+                 
+                    $lineData = array(
+                        $count,
+                        $brandPermissions,
+                        $row->name ?? '',
+                        $row->style_no ?? '',
+                        $row->collection->name ?? '',
+                        $row->category->name ?? '',
+                         $variant->colorData->name ?? '',
+                        $variant->size->name ?? '',
+                        'Rs. ' . number_format($variant->price ?? 0),
+                        'Rs. ' . number_format($variant->offer_price ?? 0),
+                        $row->short_desc ?? '',
+                        $row->size_chart ?? '',
+                        $row->pack ?? '',
+                        $row->pack_count ?? '',
+                        $row->master_pack ?? '',
+                        $row->master_pack_count ?? '',
+                        $row->only_for ?? '',
+                    
+                    );
+                 
                 fputcsv($f, $lineData, $delimiter);
 
                 $count++;
+              }
             }
 
             // Move back to beginning of file
@@ -553,6 +744,7 @@ class ProductController extends Controller
             DB::table('product_color_sizes')
                 ->where('id', $value)
                 ->update([
+                    'price' => $price,
                     'offer_price' => $offer_price
                 ]);
         }
@@ -675,7 +867,7 @@ class ProductController extends Controller
 
     public function variationColorAdd(Request $request)
     {
-        //dd($request->all());
+       // dd($request->all());
         $validator = Validator::make($request->all(), [
             'product_id' => 'required',
             'color_id' => 'required',
@@ -699,7 +891,8 @@ class ProductController extends Controller
                 $productImage->size_id = $request->size_id;
                 $productImage->assorted_flag = $request->assorted_flag ? $request->assorted_flag : 0;
                 $productImage->price = $request->price ?? 0;
-                $productImage->offer_price = $request->offer_price ?? $request->price;
+                $productImage->offer_price = $request->offer_price ?? $request->offer_price;
+                $productImage->code = $request->sku_code ?? 0;
                 $productImage->save();
 
                 return redirect()->back()->with('success', 'Color added successfully');
@@ -751,20 +944,21 @@ class ProductController extends Controller
 
     public function variationSizeEdit(Request $request)
     {
-        // dd($request->all());
+         //dd($request->all());
 
         $validator = Validator::make($request->all(), [
             'id' => 'required',
             'size_id' => 'nullable',
             'size_details' => 'nullable',
-            'price' => 'nullable',
+            'sizeedprice' => 'nullable',
         ]);
 
         if (!$validator->fails()) {
             if (empty($request->size_id)) {
                 ProductColorSize::where('id', $request->id)->update([
-                    'price' => $request->price,
-                    'offer_price' => $request->price,
+                    'price' => $request->sizeedprice,
+                    'offer_price' => $request->sizeedoffer_price,
+                    'code' => $request->sizeedcode,
                 ]);
             } else {
                 // check if the size exists already
@@ -777,8 +971,9 @@ class ProductController extends Controller
 
                     ProductColorSize::where('id', $request->id)->update([
                         'size_id' => $request->size_id,
-                        'price' => $request->price,
-                        'offer_price' => $request->price,
+                        'price' => $request->sizeedprice,
+                        'offer_price' => $request->sizeedoffer_price,
+                        'code' => $request->sizeedcode,
                     ]);
                 } else {
                     return redirect()->back()->with('failure', 'This color & size already exist for this product. Select a different one.')->withInput($request->all());
@@ -808,25 +1003,29 @@ class ProductController extends Controller
     public function variationStatusToggle(Request $request)
     {
         
-        $data = ProductColorSize::where('product_id', $request->productId)->where('color_id', $request->colorId)->first();
-        
+        $data = ProductColorSize::where('product_id', $request->productId)->where('color_id', $request->colorId)->get();
         if ($data) {
-            if ($data->status == 1) {
-                $status = 0;
-                $statusType = 'inactive';
-                $statusMessage = 'Color is inactive';
-            } else {
-                $status = 1;
-                $statusType = 'active';
-                $statusMessage = 'Color is active';
-            }
+            foreach($data as $item){
+            
+                if ($item->status == 1) {
+                    $status = 0;
+                    $statusType = 'inactive';
+                    $statusMessage = 'Color is inactive';
+                } else {
+                    $status = 1;
+                    $statusType = 'active';
+                    $statusMessage = 'Color is active';
+                }
 
-            $data->status = $status;
-            $data->save();
-            //dd($data);
+                $item->status = $status;
+                $item->save();
+                //dd($data);
+                
+            
+            }
             return response()->json(['status' => 200, 'type' => $statusType, 'message' => $statusMessage]);
         } else {
-            return response()->json(['status' => 400, 'message' => 'Something happened']);
+                return response()->json(['status' => 400, 'message' => 'Something happened']);
         }
     }
 
@@ -860,7 +1059,132 @@ class ProductController extends Controller
         }
     }
 
-    public function variationCSVUpload(Request $request)
+    public function variationCSVUpload(Request $request): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+        'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
+            ], [
+                'file.mimes' => 'Please upload a valid CSV file.',
+                'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
+            ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        if (!empty($request->file)) {
+            $file = $request->file('file');
+            $filename = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
+
+            // Validate CSV extension and file size
+            $valid_extension = ["csv"];
+            $maxFileSize = 50097152; // Max 50MB
+
+            if (in_array(strtolower($extension), $valid_extension)) {
+                if ($fileSize <= $maxFileSize) {
+                    // Upload the file to the storage location
+                    $location = 'public/uploads/csv';
+                    $file->move($location, $filename);
+                    $filepath = $location . "/" . $filename;
+
+                    // Open the CSV file and read it
+                    $file = fopen($filepath, "r");
+                    $importData_arr = [];
+                    $i = 0;
+                    $successCount=0;
+                    // Read the CSV file row by row
+                    while (($filedata = fgetcsv($file, 10000, ",")) !== false) {
+                        // Skip the header row
+                        if ($i == 0) {
+                            $i++;
+                            continue;
+                        }
+
+                         // Step 3: Extract the data from each row
+                        $rowData = [
+                            
+                            'style_no' => isset($filedata[3]) ? $filedata[3] : null,
+                            'color_name' => isset($filedata[4]) ? $filedata[4] : null,
+                            'size_name' => isset($filedata[4]) ? $filedata[4] : null,
+                            'price' => isset($filedata[5]) ? $filedata[5] : null,
+                            'offer_price' => isset($filedata[6]) ? $filedata[6] : null,
+                            
+                            'sku' => isset($filedata[7]) ? $filedata[7] : null,
+                            'position' => isset($filedata[8]) ? $filedata[8] : null,
+                           
+                            
+                            
+                        ];
+                            
+                        // Step 4: Validate each row's data
+                        $validator = Validator::make($rowData, [
+                            'style_no' => 'required',
+                            'color_name' => 'required',
+                            'size_name' => 'required',
+                        
+                        ]);
+
+                    if ($validator->fails()) {
+                        // Accumulate errors with row number context
+                        $errors[$i] = $validator->errors()->all();
+                    } else {
+                        $productName=Product::where('style_no',$rowData['style_no'])->first();
+                        $catName=Color::where('name',$rowData['color_name'])->first();
+                        $size=Size::where('name',$rowData['size_name'])->first();
+                            
+                        // Step 5: Save data if validation passes
+                        $insertData = [
+                            "product_id" => $productName->id,
+                            "color_id" => $catName->id,
+                            "size_id" => $size->id,
+                            "offer_price" => $rowData['offer_price'],
+                            "price" => $rowData['price'],
+                            "code" => $rowData['sku'],
+                            "position" => $rowData['position'],
+                            
+                            "status" => 1,
+                            "created_at" => date('Y-m-d H:i:s'),
+                            "updated_at" => date('Y-m-d H:i:s'),
+                        ];
+                        
+                        ProductColorSize::create($insertData);
+                        
+                       
+                        
+                        $successCount++;
+
+                        
+                    }
+
+                    $i++;
+                }
+
+                fclose($file);
+                
+                if (!empty($errors)) {
+                    // Redirect back to upload page if there are row-level validation errors
+                    return redirect()->back()->with([
+                        'csv_errors' => $errors, // pass errors to display
+                    ]);
+                }else{
+
+                    return redirect()->back()->with('success', 'CSV Import Complete. Total number of entries: ' . $successCount);
+                }
+                } else {
+                    return redirect()->back()->with('failure', 'File too large. File must be less than 50MB.');
+                }
+            } else {
+                return redirect()->back()->with('failure', 'Invalid File Extension. Supported extensions are ' . implode(', ', $valid_extension));
+            }
+        } else {
+            return redirect()->back()->with('failure', 'No file found.');
+        }
+
+        // return redirect()->back();
+    }
+
+   /* public function variationCSVUpload(Request $request)
     {
         if (!empty($request->file)) {
             $file = $request->file('file');
@@ -930,6 +1254,7 @@ class ProductController extends Controller
 
         return redirect()->back();
     }
+    */
     
     
     
@@ -937,137 +1262,8 @@ class ProductController extends Controller
     
     
     
+   
     
-    //user csv upload
-     public function productCSVUpload(Request $request)
-     {
-		 //dd($request->all());
-         if (!empty($request->file)) {
-             $file = $request->file('file');
-             $filename = $file->getClientOriginalName();
-             $extension = $file->getClientOriginalExtension();
-             $tempPath = $file->getRealPath();
-             $fileSize = $file->getSize();
-             $mimeType = $file->getMimeType();
- 
-             $valid_extension = array("csv");
-             $maxFileSize = 50097152;
-             if (in_array(strtolower($extension), $valid_extension)) {
-                 if ($fileSize <= $maxFileSize) {
-                     $location = 'public/uploads/csv';
-                     $file->move($location, $filename);
-                     // $filepath = public_path($location . "/" . $filename);
-                     $filepath = $location . "/" . $filename;
- 
-                     // dd($filepath);
- 
-                     $file = fopen($filepath, "r");
-                     $importData_arr = array();
-                     $i = 0;
-                     while (($filedata = fgetcsv($file, 10000, ",")) !== FALSE) {
-                         $num = count($filedata);
-                         // Skip first row
-                         if ($i == 0) {
-                             $i++;
-                             continue;
-                         }
-                         for ($c = 0; $c < $num; $c++) {
-                             $importData_arr[$i][] = $filedata[$c];
-                         }
-                         $i++;
-                     }
-                     fclose($file);
-                     $successCount = 0;
- 
-                     foreach ($importData_arr as $importData) {
-                        $count = $total = 0;
-                        $stateData = '';
-                        foreach (explode(',', $importData[0]) as $cateKey => $catVal) {
-                            $catExistCheck = Category::where('name', $catVal)->first();
-                            if ($catExistCheck) {
-                                $insertDirCatId = $catExistCheck->id;
-                                $stateData = $insertDirCatId;
-                            } else {
-                                $dirCat = new Category();
-                                $dirCat->name = $catVal;
-                                $dirCat->status = 1;
-                                $dirCat->save();
-                                $insertDirCatId = $dirCat->id;
-
-                                $stateData = $insertDirCatId;
-                            }
-                        }
-                        $areaData = '';
-                        foreach (explode(',', $importData[1]) as $cateKey => $catVal) {
-                            $catExistCheck = Collection::where('name', $catVal)->first();
-                            if ($catExistCheck) {
-                                $insertDirCatId = $catExistCheck->id;
-                                $areaData = $insertDirCatId;
-                            } else {
-                                $dirCat = new Collection();
-                                $dirCat->name = $catVal;
-                                $dirCat->status = 1;
-                                $dirCat->save();
-                                $insertDirCatId = $dirCat->id;
-
-                                $areaData = $insertDirCatId;
-                            }
-                        }
-                        
-                        $aseData = [];
-                        
-                         
-                         
-                         $insertData = array(
-                             "name" => isset($importData[2]) ? $importData[2] : null,
-                             "cat_id" => $stateData,
-                             "collection_id" => isset($areaData) ? $areaData : null,
-                             "image"=>'public/uploads/product/polo_tshirt_front.png',
-                             "status" => 1,
-                             "created_at" =>now(),
-                             "updated_at" => now()
-                         );
- 
-                        $resp = Product::insertData($insertData, $successCount);
-                        $successCount = $resp['successCount'];
-                        $userId = $resp['id'];
-                        foreach (explode(',', $importData[3]) as $cateKey => $catVal) {
-                            $catExistCheck = Size::where('name', $catVal)->first();
-                            if ($catExistCheck) {
-                                $insertDirCatId = $catExistCheck->id;
-                                $aseData = $insertDirCatId;
-                               
-                            } else {
-                                $dirCat = new Size();
-                                $dirCat->name = $catVal;
-                                $dirCat->save();
-                                $insertDirCatId = $dirCat->id;
-
-                                $aseData = $insertDirCatId;
-                            }
-                        
-                        $store = new ProductColorSize;
-                        $store->product_id = $userId;
-                        $store->color_id = 1;
-                        $store->size_id = $aseData;
-                        $store->status = 1;
-                        $store->save();
-                        }
-                     }
- 
-                     Session::flash('message', 'CSV Import Complete. Total no of entries: ' . count($importData_arr) . '. Successfull: ' . $successCount . ', Failed: ' . (count($importData_arr) - $successCount));
-                 } else {
-                     Session::flash('message', 'File too large. File must be less than 50MB.');
-                 }
-             } else {
-                 Session::flash('message', 'Invalid File Extension. supported extensions are ' . implode(', ', $valid_extension));
-             }
-         } else {
-             Session::flash('message', 'No file found.');
-         }
- 
-         return redirect()->back();
-     }
      
      
      

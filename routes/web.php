@@ -5,7 +5,7 @@ use App\Http\Controllers\StateController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\DistributorController;
-use App\Http\Controllers\LostBookController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DistributorNoteController;
 use App\Http\Controllers\ProductController;
@@ -88,7 +88,9 @@ Route::group(['middleware' => ['auth']], function() {
     Route::resource('users', App\Http\Controllers\UserController::class);
     Route::get('users/{userId}/delete', [App\Http\Controllers\UserController::class, 'destroy']);
     
-    
+     Route::get('dashboard/store/export/csv', [HomeController::class, 'dashboardReport']);
+     Route::get('state/store/export/csv', [HomeController::class, 'exportCSV'])->name('dashboard.store.export.csv');
+	Route::get('ase/store/export/csv', [HomeController::class, 'asestorereportexportCSV'])->name('dashboard.ase.store.export.csv');
     //states
     
     Route::resource('states', StateController::class);
@@ -123,10 +125,10 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('employee/team/{id}/delete', [EmployeeController::class, 'teamdestroy'])->name('team.delete');
 	Route::get('employee/team/export/csv/{id}', [EmployeeController::class, 'teamexportCSV'])->name('team.export.all');
 			//team create
-	Route::post('employee/team/add', [EmployeeController::class, 'userTeamAdd'])->name('team.add');
+	Route::post('employee/team/add', [DistributorController::class, 'userTeamAdd'])->name('team.add');
 			//team edit
-	Route::post('employee/team/update/{id}', [EmployeeController::class, 'userTeamEdit'])->name('team.update');
-
+	Route::post('employee/team/update/{id}', [DistributorController::class, 'userTeamEdit'])->name('team.update');
+    Route::get('employee/team/destroy/{id}', [DistributorController::class, 'userTeamDestroy'])->name('team.delete');
     //team show
     Route::get('vp/brand/wise/{id}', [EmployeeController::class, 'vpBrandWise'])->name('vp.brand.wise');
     Route::get('state/vp/wise/{id}', [EmployeeController::class, 'stateVpWise'])->name('state.vp.wise');
@@ -152,8 +154,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('distributors/hierarchy/exportCSV', [DistributorController::class, 'distributorhierarchyExportCSV'])->name('distributors.hierarchy.exportCSV');
     Route::resource('distributors', DistributorController::class);
     Route::get('distributors/{userId}/range', [DistributorController::class, 'range']);
-    Route::get('distributors/{userId}/range/add', [DistributorController::class, 'rangeSave']);
-    Route::get('distributors/{userId}/delete', [DistributorController::class, 'destroy']);
+    Route::post('distributors/{userId}/range/add', [DistributorController::class, 'rangeSave']);
+    Route::get('distributors/{userId}/range/delete', [DistributorController::class, 'rangedestroy']);
     Route::get('distributors/{userId}/status/change', [DistributorController::class, 'status']);
     Route::get('distributors/csv/export', [DistributorController::class, 'employeeExport']);
     Route::post('distributors/bulk/upload', [DistributorController::class, 'bulkUpload']);
@@ -198,7 +200,24 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('products/{userId}/status/change', [ProductController::class, 'status']);
     Route::get('products/export/csv', [ProductController::class, 'csvExport']);
     Route::post('products/upload/csv', [ProductController::class, 'csvImport']);
-    
+    // variation
+        Route::post('/products/size', [ProductController::class, 'size'])->name('products.size');
+        Route::post('/variation/color/add', [ProductController::class, 'variationColorAdd'])->name('products.variation.color.add');
+        Route::post('/variation/color/position', [ProductController::class, 'variationColorPosition'])->name('products.variation.color.position');
+        Route::post('/variation/color/status/toggle', [ProductController::class, 'variationStatusToggle'])->name('products.variation.color.status.toggle');
+        Route::post('/variation/color/edit', [ProductController::class, 'variationColorEdit'])->name('products.variation.color.edit');
+        Route::post('/variation/color/rename', [ProductController::class, 'variationColorRename'])->name('products.variation.color.rename');
+        Route::post('/variation/color/fabric/upload', [ProductController::class, 'variationFabricUpload'])->name('products.variation.color.fabric.upload');
+        Route::get('/variation/{productId}/color/{colorId}/delete', [ProductController::class, 'variationColorDestroy'])->name('products.variation.color.delete');
+        Route::post('/variation/size/add', [ProductController::class, 'variationSizeUpload'])->name('products.variation.size.add');   
+        Route::post('/variation/size/edit', [ProductController::class, 'variationSizeEdit'])->name('products.variation.size.edit');
+        Route::get('variation/{id}/size/remove', [ProductController::class, 'variationSizeDestroy'])->name('products.variation.size.delete');
+        Route::post('variation/image/add', [ProductController::class, 'variationImageUpload'])->name('products.variation.image.add');
+        Route::post('variation/image/remove', [ProductController::class, 'variationImageDestroy'])->name('products.variation.image.delete');
+        Route::post('product/bulk/upload', [ProductController::class, 'productCSVUpload'])->name('products.bulk.upload');
+        Route::post('variation/csv/upload', [ProductController::class, 'variationCSVUpload'])->name('products.variation.csv.upload');
+        Route::post('variation/bulk/edit', [ProductController::class, 'variationBulkEdit'])->name('products.variation.bulk.edit');
+        Route::post('variation/bulk/update', [ProductController::class, 'variationBulkUpdate'])->name('products.variation.bulk.update');
     
     //catalogues
      Route::resource('catalogues', CatalogueController::class);

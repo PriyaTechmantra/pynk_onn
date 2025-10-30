@@ -54,8 +54,8 @@
                                     </div>
                                     <div class="mb-3">
                                         <label class="label-control">WhatsApp Number </label>
-                                        <input type="number" name="whatsapp_no" placeholder="" class="form-control" value="{{old('whatsapp_no')}}">
-                                        @error('whatsapp_no') <p class="small text-danger">{{ $message }}</p> @enderror
+                                        <input type="number" name="whatsapp" placeholder="" class="form-control" value="{{old('whatsapp')}}">
+                                        @error('whatsapp') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     
                                     <div class="mb-3">

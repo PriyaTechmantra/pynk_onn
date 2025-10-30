@@ -63,11 +63,11 @@
                             </a>
                             @endcan
                             @can('product bulk upload')
-                            <a href="#csvModal" data-bs-toggle="modal" class="btn btn-sm btn-cta">Bulk Upload</a>
+                            <a href="#csvUploadModal" data-bs-toggle="modal" class="btn btn-sm btn-cta">Bulk Upload</a>
                             @endcan
                             
                             @can('create product')
-                            <a href="{{ url('products/create') }}" class="btn btn-sm btn-cta">Add Employee</a>
+                            <a href="{{ url('products/create') }}" class="btn btn-sm btn-cta">Add Product</a>
                             @endcan
                         </h4>
                                 <div class="search__filter mb-0">
@@ -264,25 +264,27 @@
     </div>
 
                     
-    <div class="modal action-modal fade" id="csvModal" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    Employee Details Bulk Upload
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form method="post" action="{{ url('employees/bulk/upload') }}" enctype="multipart/form-data">@csrf
+    {{-- bulk upload variation modal --}}
+<div class="modal action-modal fade" id="csvUploadModal" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                Bulk Upload Existing Product Variation with SKU code, color & size
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                    <form method="post" action="{{ url('products/upload/csv') }}" enctype="multipart/form-data">@csrf
                         <input type="file" name="file" class="form-control" accept=".csv">
                         <div class="cta-row">
-                        <a href="{{ asset('backend/csv/sample-employee.csv') }}" class="btn-cta">Download Sample CSV</a>
+                        <a href="{{ asset('backend/csv/product-sample.csv') }}" class="btn-cta">Download Sample CSV</a>
                         <button type="submit" class="btn btn-cta" id="csvImportBtn">Import <i class="fas fa-upload"></i></button>
                         </div>
                     </form>
                 </div>
-            </div>
+            
         </div>
     </div>
+</div>
 
 @endsection
 

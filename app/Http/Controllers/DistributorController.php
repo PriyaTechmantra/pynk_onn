@@ -7,11 +7,15 @@ use App\Models\State;
 use App\Models\Area;
 use App\Models\Team;
 use App\Models\Store;
+use App\Models\Employee;
+use App\Models\DistributorRange;
+use App\Models\Collection;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Auth;
 use DB;
+use Hash;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\JsonResponse;
@@ -262,13 +266,106 @@ class DistributorController extends Controller
      * @param  \App\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function edit($id): View
+    public function edit(Request $request,$id): View
     {
+        $user = auth()->user();
+
+            // Logged-in user brand permissions
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
         $data = Distributor::find($id);
-        $office=Office::all();
-        $bookshelve=Bookshelve::all();
-        $category=BookCategory::all();
-        return view('lms.book.edit',compact('data','office','bookshelve','category'));
+        $employeeBrand=$data->brand;
+        $state = State::where('status',1)->where('is_deleted',0)->orderBy('name')->get();
+        $query1=Employee::where('type',1) ->where('is_deleted', 0)
+                ->where('status', 1);
+        $query1->where(function ($q) use ($employeeBrand, $userBrands) {
+
+                // If dropdown filter selected
+                
+                    // No dropdown → apply employee + user permission logic
+                    if ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [1, 2, 3]); // Both + Both
+                    } elseif ($employeeBrand == 3) {
+                        $q->whereIn('brand', array_merge($userBrands, [3])); // Both employee, limited user
+                    } elseif (in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [$employeeBrand, 3]); // Limited employee, both user
+                    } else {
+                        $q->whereIn('brand', [$employeeBrand]); // Limited + limited
+                    }
+                
+            });
+            $data->allZSM = $query1->groupBy('name')
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+        
+                $query2=Employee::where('type',2) ->where('is_deleted', 0)
+                ->where('status', 1);
+        $query2->where(function ($q) use ($employeeBrand, $userBrands) {
+
+                // If dropdown filter selected
+               
+                
+                    // No dropdown → apply employee + user permission logic
+                    if ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [1, 2, 3]); // Both + Both
+                    } elseif ($employeeBrand == 3) {
+                        $q->whereIn('brand', array_merge($userBrands, [3])); // Both employee, limited user
+                    } elseif (in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [$employeeBrand, 3]); // Limited employee, both user
+                    } else {
+                        $q->whereIn('brand', [$employeeBrand]); // Limited + limited
+                    }
+                
+            });
+            $data->allRSM = $query2->groupBy('name')
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+       $query3=Employee::where('type',3) ->where('is_deleted', 0)
+                ->where('status', 1);
+        $query3->where(function ($q) use ($employeeBrand, $userBrands) {
+
+                // If dropdown filter selected
+                
+                    // No dropdown → apply employee + user permission logic
+                    if ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [1, 2, 3]); // Both + Both
+                    } elseif ($employeeBrand == 3) {
+                        $q->whereIn('brand', array_merge($userBrands, [3])); // Both employee, limited user
+                    } elseif (in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [$employeeBrand, 3]); // Limited employee, both user
+                    } else {
+                        $q->whereIn('brand', [$employeeBrand]); // Limited + limited
+                    }
+                
+            });
+            $data->allASM = $query3->groupBy('name')
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+        $query4=Employee::where('type',4) ->where('is_deleted', 0)
+                ->where('status', 1);
+        $query4->where(function ($q) use ($employeeBrand, $userBrands) {
+
+                
+                
+                    // No dropdown → apply employee + user permission logic
+                    if ($employeeBrand == 3 && in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [1, 2, 3]); // Both + Both
+                    } elseif ($employeeBrand == 3) {
+                        $q->whereIn('brand', array_merge($userBrands, [3])); // Both employee, limited user
+                    } elseif (in_array(3, $userBrands)) {
+                        $q->whereIn('brand', [$employeeBrand, 3]); // Limited employee, both user
+                    } else {
+                        $q->whereIn('brand', [$employeeBrand]); // Limited + limited
+                    }
+                
+            });
+            $data->allASE = $query3->groupBy('name')
+                ->orderBy('id', 'desc')
+                ->paginate(25);
+       
+        return view('distributor.edit',compact('data','state','request'));
     }
     
     /**
@@ -280,30 +377,28 @@ class DistributorController extends Controller
      */
     public function update(Request $request,  $id): RedirectResponse
     {
-         $request->validate([
-            'office_id' => [
-                'required',
-                'string'
-            ]
+         request()->validate([
+            'code' => 'required',
+            'name' => 'required',
+           
+            'contact' => 'required',
+            'brand' => 'required',
         ]);
-    
-        $data = Book::find($id);
-        $data->office_id=$request['office_id'];
-        $data->bookshelves_id=$request['bookshelves_id'];
-        $data->category_id=$request['category_id'];
-        $data->user_id=Auth::user()->id;
-        $data->title=$request['title']??'';
-        $data->book_no=$request['book_no']??'';
-        $data->author=$request['author']??'';
-        $data->publisher=$request['publisher']??'';
-        $data->edition=$request['edition']??'';
-        $data->page=$request['page']??'';
-        $data->year=$request['year']??'';
-        $data->quantity=$request['quantity']??'';
-        $data->save();
-    
-        return redirect()->back()
-                        ->with('success','Bookshelve updated successfully');
+        $data = Distributor::findOrfail($id);
+       
+        $updateData = $request->except('password','_token','_method'); // take everything except password
+        //dd($updateData);
+        // If password is present, hash it
+        if ($request->filled('password')) {
+            $updateData['password'] = Hash::make($request->password);
+        }
+       
+        
+
+        $data->update($updateData);
+        
+        return redirect()->route('distributors.index')
+                        ->with('success','distributor created successfully.');
     }
     
     /**
@@ -314,104 +409,136 @@ class DistributorController extends Controller
      */
     public function destroy($id): RedirectResponse
     {
-        $data = Book::find($id);
+        $data = Distributor::find($id);
         $data->is_deleted=1;
-        $data->deleted_at=now();
         $data->save();
     
-        return redirect()->route('books.index')
-                        ->with('success','Book deleted successfully');
+        return redirect()->route('distributors.index')
+                        ->with('success','Distributor deleted successfully');
     }
     
     public function status($id): RedirectResponse
     {
-        $data = Book::find($id);
+        $data = Distributor::find($id);
         $status = ($data->status == 1) ? 0 : 1;
         $data->status = $status;
         $data->save();
     
-        return redirect()->route('books.index')
-                        ->with('success','Book status changed successfully');
+        return redirect()->route('distributors.index')
+                        ->with('success','Distributor status changed successfully');
     }
     
     
     //csv export
     
-    public function csvExport(Request $request)
+     public function employeeExport(Request $request)
 	{
-		 $query = $request->input('keyword');
-    $officeId = $request->input('office_id');
-    $bookshelveId = $request->input('bookshelves_id');
-    $categoryId = $request->input('category_id');
-    $issueDateFrom = $request->input('issue_date_from');
-    $issueDateTo = $request->input('issue_date_to');
+       
+        
+        $state       = $request->state ?? '';
+        $area        = $request->area ?? '';
+        $keyword     = $request->keyword ?? '';
+        $brandFilter = $request->brand ?? '';
+        
+    $query = Distributor::query();
+     if ($request->filled('brand')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('distributors.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('distributors.brand', $request->brand)
+                    ->orWhere('distributors.brand', 3);
+                }
+            });
+        } else {
+            $user = auth()->user();
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
 
-    $data = Book::where(function($q) use ($query, $officeId, $bookshelveId, $categoryId, $issueDateFrom, $issueDateTo) {
-        if ($query) {
-            $q->where('title', 'LIKE', "%{$query}%")
-              ->orWhere('author', 'LIKE', "%{$query}%")
-              ->orWhere('publisher', 'LIKE', "%{$query}%")
-              ->orWhere('edition', 'LIKE', "%{$query}%")
-              ->orWhere('page', 'LIKE', "%{$query}%")
-              ->orWhere('quantity', 'LIKE', "%{$query}%")
-              ->orWhere('uid', 'LIKE', "%{$query}%");
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('distributors.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('distributors.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
         }
-        if ($officeId) {
-            $q->where('office_id', $officeId);
-        }
-        if ($bookshelveId) {
-            $q->where('bookshelves_id', $bookshelveId);
-        }
-        if ($categoryId) {
-            $q->where('category_id', $categoryId);
-        }
-        if (!empty($issueDateFrom) && !empty($issueDateTo)) {
-            $q->whereBetween('created_at', [
-                Carbon::parse($issueDateFrom)->startOfDay(),
-                Carbon::parse($issueDateTo)->endOfDay()
-            ]);
-        } elseif (!empty($issueDateFrom)) {
-            $q->whereDate('created_at', '>=', Carbon::parse($issueDateFrom)->startOfDay());
-        } elseif (!empty($issueDateTo)) {
-            $q->whereDate('created_at', '<=', Carbon::parse($issueDateTo)->endOfDay());
-        }
-    })
-    ->where('is_deleted', 0)
-    ->latest('id')->cursor();
-        $book = $data->all();
-        if (count($book) > 0) {
+    // Filters for type, state, area, keyword
+    
+    $query->when($state, fn($q) => $q->where('state_id', $state));
+    $query->when($area, fn($q) => $q->where('area_id', $area));
+
+    $query->when($keyword, function($q) use ($keyword) {
+        $q->where(function($inner) use ($keyword) {
+            $inner->where('name', 'like', '%'.$keyword.'%')
+                  ->orWhere('contact', 'like', '%'.$keyword.'%')
+                  ->orWhere('code', 'like', '%'.$keyword.'%')
+                  ->orWhere('email', 'like', '%'.$keyword.'%');
+        });
+    });
+
+    
+
+    $data = $query->where('is_deleted', 0)->with('states', 'areas')
+                  ->latest('id')
+                  ->get();
+        if (count($data) > 0) {
             $delimiter = ","; 
-            $filename = "books.csv"; 
+            $filename = "distributors.csv"; 
 
             // Create a file pointer 
             $f = fopen('php://memory', 'w'); 
 
             // Set column headers 
-            // $fields = array('SR', 'QRCODE TITLE','CODE','DISTRIBUTOR','ASE','STORE NAME','STORE MOBILE','STORE EMAIL','STORE STATE','STORE ADDRESS','POINTS','DATE'); 
-            $fields = array('SR', 'Office','Office Location','Bookshelf Number','Category','Title','Uid','Author','Publisher','Edition','Pages','Quantity','Book No','Created By','Status','DATE'); 
+            
+            $fields = array('SR','Brand Permission','Created By','Name','Employee ID','Mobile','WhatsApp Number','Official Email','Date of Joining','State','Area','Status','DATE'); 
             fputcsv($f, $fields, $delimiter); 
 
             $count = 1;
 
-            foreach($book as $row) {
+            foreach($data as $row) {
                 $datetime = date('j F, Y h:i A', strtotime($row['created_at']));
-				
+                
+				$assignedPermissions = [$row->brand];
+
+                    $brandMap = [
+                        1 => 'ONN',
+                        2 => 'PYNK',
+                        3 => 'Both',
+                    ];
+
+                    if (in_array(3, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } elseif (in_array(1, $assignedPermissions) && in_array(2, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } else {
+                        $brandPermissions = collect($assignedPermissions)
+                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                        ->implode(', ');
+                    }
+
 
                 $lineData = array(
                     $count,
-					$row['office']['name'] ?? 'NA',
-                    $row['office']['address'] ?? 'NA',
-					$row->bookshelves->number ?? 'NA',
-					$row->category->name ?? 'NA',
-					$row->title ?? 'NA',
-					$row->uid ?? 'NA',
-					$row->author ?? 'NA',
-					$row->publisher ?? 'NA',
-					$row->edition ?? 'NA',
-					$row->page ?? 'NA',
-					$row->quantity ?? 'NA',
-					$row->book_no ?? 'NA',
-					$row->user->name ?? 'NA',
+                    $brandPermissions,
+                    $row['createdBy']['name'],
+					$row['name'] ?? 'NA',
+                    $row['employee_id']?? 'NA',
+                    $row['contact'] ?? 'NA',
+                    $row['whatsapp'] ?? 'NA',
+                    $row['email'] ?? 'NA',
+					$row['date_of_joining'] ?? 'NA',
+                    $row['states']['name'] ?? 'NA',
+                    $row['areas']['name'] ?? 'NA',
 					($row->status == 1) ? 'active' : 'inactive',
 					$datetime,
                 );
@@ -435,108 +562,145 @@ class DistributorController extends Controller
 	
 	//csv upload
 	
-	public function csvImport(Request $request)
-{
-    if (!empty($request->file)) {
-        $file = $request->file('file');
-        $filename = $file->getClientOriginalName();
-        $extension = $file->getClientOriginalExtension();
-        $fileSize = $file->getSize();
+	public function bulkUpload(Request $request): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+        'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
+            ], [
+                'file.mimes' => 'Please upload a valid CSV file.',
+                'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
+            ]);
 
-        // Validate CSV extension and file size
-        $valid_extension = ["csv"];
-        $maxFileSize = 50097152; // Max 50MB
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        if (!empty($request->file)) {
+            $file = $request->file('file');
+            $filename = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
 
-        if (in_array(strtolower($extension), $valid_extension)) {
-            if ($fileSize <= $maxFileSize) {
-                // Upload the file to the storage location
-                $location = 'public/uploads/csv';
-                $file->move($location, $filename);
-                $filepath = $location . "/" . $filename;
+            // Validate CSV extension and file size
+            $valid_extension = ["csv"];
+            $maxFileSize = 50097152; // Max 50MB
 
-                // Open the CSV file and read it
-                $file = fopen($filepath, "r");
-                $importData_arr = [];
-                $i = 0;
-                
-                // Read the CSV file row by row
-                while (($filedata = fgetcsv($file, 10000, ",")) !== false) {
-                    // Skip the header row
-                    if ($i == 0) {
-                        $i++;
-                        continue;
-                    }
+            if (in_array(strtolower($extension), $valid_extension)) {
+                if ($fileSize <= $maxFileSize) {
+                    // Upload the file to the storage location
+                    $location = 'public/uploads/csv';
+                    $file->move($location, $filename);
+                    $filepath = $location . "/" . $filename;
 
-                    // Store each row in $importData_arr
-                    $importData_arr[] = $filedata;
-                    $i++;
-                }
-                fclose($file);
+                    // Open the CSV file and read it
+                    $file = fopen($filepath, "r");
+                    $importData_arr = [];
+                    $i = 0;
+                    $successCount=0;
+                    // Read the CSV file row by row
+                    while (($filedata = fgetcsv($file, 10000, ",")) !== false) {
+                        // Skip the header row
+                        if ($i == 0) {
+                            $i++;
+                            continue;
+                        }
 
-                $successCount = 0;
-                foreach ($importData_arr as $importData) {
-                    //dd($importData_arr);
-                    // Handling Office Data
-                    $office = Office::firstOrCreate(
-                        ['name' => $importData[0], 'address' => $importData[1]],
-                        ['created_at' => now(), 'updated_at' => now()]
-                    );
+                         // Step 3: Extract the data from each row
+                        $rowData = [
+                            'brand' => isset($filedata[0]) ? $filedata[0] : null,
+                            'code' => isset($filedata[3]) ? $filedata[3] : null,
+                            'name' => isset($filedata[4]) ? $filedata[4] : null,
+                            'email' => isset($filedata[5]) ? $filedata[5] : null,
+                            'contact' => isset($filedata[6]) ? $filedata[6] : null,
+                            
+                            'whatsapp' => isset($filedata[7]) ? $filedata[7] : null,
+                            'statea_id' => isset($filedata[8]) ? $filedata[8] : null,
+                            'area_id' => isset($filedata[9]) ? $filedata[9] : null,
+                            'date_of_joining' => isset($filedata[10]) ? $filedata[10] : null,
+                            'password' => isset($filedata[11]) ? $filedata[11] : null,
+                            
+                            
+                        ];
+                            
+                        // Step 4: Validate each row's data
+                        $validator = Validator::make($rowData, [
+                            'name' => 'required|string|max:255',
+                            'code' => 'required',
+                            'contact' => 'required',
+                        
+                        ]);
 
-                    // Handling Bookshelve Data
-                    $bookshelve = Bookshelve::firstOrCreate(
-                        ['number' => $importData[2]],
-                        ['office_id' => $office->id, 'user_id' => Auth::user()->id]
-                    );
-
-                    // Handling Book Category Data
-                    $bookCategory = BookCategory::firstOrCreate(
-                        ['name' => $importData[3]],
-                        ['created_at' => now(), 'updated_at' => now()]
-                    );
-
-                    // Insert the book data based on quantity
-                    $quantity = isset($importData[9]) ? $importData[9] : 1; // Default quantity 1 if not provided
-                    for ($i = 0; $i < $quantity; $i++) {
-                        $bookData = [
-                            "office_id" => $office->id,
-                            "user_id" => Auth::user()->id,
-                            "category_id" => $bookCategory->id,
-                            "bookshelves_id" => $bookshelve->id,
-                            "title" => isset($importData[4]) ? $importData[4] : null,
-                            "uid" => strtoupper(generateUniqueAlphaNumericValue(10)),
-                            "author" => isset($importData[5]) ? $importData[5] : null,
-                            "publisher" => isset($importData[6]) ? $importData[6] : null,
-                            "edition" => isset($importData[7]) ? $importData[7] : null,
-                            "year" => isset($importData[8]) ? $importData[8] : null,
-                            "quantity" => 1, // Inserting single entry per loop iteration
-                            "page" => isset($importData[10]) ? $importData[10] : null,
-                            "book_no" => isset($importData[11]) ? $importData[11] : null,
+                    if ($validator->fails()) {
+                        // Accumulate errors with row number context
+                        $errors[$i] = $validator->errors()->all();
+                    } else {
+                        $stateName=State::where('name',$rowData['state_id'])->first();
+                        $areaName=Area::where('name',$rowData['area_id'])->first();
+                            // Map brand text to numeric value
+                                $brandValue = null;
+                                if (!empty($rowData['brand'])) {
+                                    $brandText = strtolower(trim($rowData['brand']));
+                                    if ($brandText === 'ONN') {
+                                        $brandValue = 1;
+                                    } elseif ($brandText === 'PYNK') {
+                                        $brandValue = 2;
+                                    } elseif (in_array($brandText, ['Both', 'ONN,PYNK', 'PYNK,ONN'])) {
+                                        $brandValue = 3;
+                                    }
+                                }
+                        // Step 5: Save data if validation passes
+                        $insertData = [
+                            "code" => $rowData['code'],
+                            "name" => $rowData['name'],
+                            "email" => $rowData['email'],
+                            "contact" => $rowData['contact'],
+                            "whatsapp" => $rowData['whatsapp'],
+                            "state_id" => $stateName->id,
+                            "area_id" => $areaName->id,
+                            "date_of_joining" => $rowData['date_of_joining'],
+                             "brand" => $brandValue,
+                            "password" => $rowData['password'],
+                            
                             "status" => 1,
                             "is_deleted" => 0,
-                            "qrcode" => strtoupper(generateUniqueAlphaNumericValue(10)),
-                            "created_at" => now(),
-                            "updated_at" => now(),
+                            "created_at" => date('Y-m-d H:i:s'),
+                            "updated_at" => date('Y-m-d H:i:s'),
                         ];
-
-                        // Insert the book data
-                        Book::create($bookData);
+                        
+                        Distributor::create($insertData);
+                        
+                       
+                        
                         $successCount++;
+
+                        
                     }
+
+                    $i++;
                 }
 
-                Session::flash('message', 'CSV Import Complete. Total number of entries: ' . $successCount);
+                fclose($file);
+                
+                if (!empty($errors)) {
+                    // Redirect back to upload page if there are row-level validation errors
+                    return redirect()->back()->with([
+                        'csv_errors' => $errors, // pass errors to display
+                    ]);
+                }else{
+
+                    return redirect()->back()->with('success', 'CSV Import Complete. Total number of entries: ' . $successCount);
+                }
+                } else {
+                    return redirect()->back()->with('failure', 'File too large. File must be less than 50MB.');
+                }
             } else {
-                Session::flash('message', 'File too large. File must be less than 50MB.');
+                return redirect()->back()->with('failure', 'Invalid File Extension. Supported extensions are ' . implode(', ', $valid_extension));
             }
         } else {
-            Session::flash('message', 'Invalid File Extension. Supported extensions are ' . implode(', ', $valid_extension));
+            return redirect()->back()->with('failure', 'No file found.');
         }
-    } else {
-        Session::flash('message', 'No file found.');
-    }
 
-    return redirect()->back();
-}
+        // return redirect()->back();
+    }
      
      
    public function distributorHierarchy(Request $request)
@@ -750,12 +914,12 @@ class DistributorController extends Controller
                 ->toArray();
         
            
-		$data = DB::table('distributor_ranges')->where('distributor_id', $id)->get();
+		$data = DistributorRange::where('distributor_id', $id)->where('is_deleted',0)->with('range','ase')->paginate(25);
 		$collections = Collection::where('status', 1)->where('is_deleted',0)->orderBy('position')->get();
         $distributor = Distributor::findOrFail($id);
-        $aseList = RetailerListOfOcc::where('distributor_name',$distributor->name)->orderBy('ase')->groupby('ase')->get();
+        $aseList = Team::where('distributor_id',$distributor->id)->with('ase')->orderBy('ase_id')->groupby('ase_id')->get();
 		
-        return view('admin.distributor.collection', compact('data', 'collections', 'id', 'distributor', 'aseList'));
+        return view('distributor.range', compact('request','data', 'collections', 'id', 'distributor', 'aseList'));
     }
 
 	public function rangeSave(Request $request, $id)
@@ -764,10 +928,9 @@ class DistributorController extends Controller
 			"collection_id" => "required|integer|min:1",
 			"distributor_id" => "required|integer|min:1",
 			"user_id" => "required|integer|min:1",
-			"user_name" => "required|string|min:1"
 		]);
 
-		$check = DB::table('distributor_ranges')->where('distributor_id', $request->distributor_id)->where('collection_id', $request->collection_id)->first();
+		$check = DB::table('distributor_ranges')->where('distributor_id', $request->distributor_id)->where('collection_id', $request->collection_id)->where('is_deleted',0)->first();
 
 		if($check) {
 			return redirect()->back()->with('failure', 'This Range already exists to this Distributor');
@@ -776,17 +939,84 @@ class DistributorController extends Controller
                 'distributor_id' => $request->distributor_id, 
                 'collection_id' => $request->collection_id,
                 'user_id' => $request->user_id,
-                'user_name' => $request->user_name
+                'brand' => $request->brand,
             ]);
 		}
 
 		return redirect()->back()->with('success', 'Range Added to this Distributor');
     }
 
-	public function collectionDelete(Request $request, $id)
+	public function rangedestroy(Request $request, $id)
     {
-		$data = DB::table('distributor_ranges')->where('id', $id)->delete();
+		$data = DistributorRange::where('id', $id)->first();
+        $data->is_deleted=1;
+        $data->save();
         return redirect()->back()->with('success', 'Range Deleted for this Distributor');
+    }
+
+
+    public function userTeamAdd(Request $request)
+    {
+        //dd($request->all());
+		$request->validate([
+			"distributor_id" => "required|integer",
+			"ase_id" => "required|integer",
+            "stateId" => "required",
+            "areaId" => "required",
+		]);
+        $state_id=State::where('id',$request->stateId)->first();
+        $area_id=Area::where('id',$request->areaId)->first();
+		$newEntry = new Team;
+        $newEntry->brand = $request->brand;
+        $newEntry->state_id = $request->stateId;
+        $newEntry->area_id = $request->areaId;
+		$newEntry->distributor_id = $request['distributor_id'];
+        $newEntry->vp_id = $request['vp_id'];
+        $newEntry->rsm_id = $request['rsm_id'];
+        $newEntry->asm_id = $request['asm_id'];
+        $newEntry->ase_id = $request['ase_id'];
+		$newEntry->save();
+		//dd($newEntry);
+        if($newEntry){
+		    return redirect()->back()->with('success', 'Team Added to this Distributor');
+        }
+    }
+
+     //team update
+     public function userTeamEdit(Request $request,$id)
+     {
+         //dd($request->all());
+         $request->validate([
+             "distributor_id" => "required|integer",
+             "ase_id" => "required|integer",
+             "stateId" => "required",
+             "areaId" => "required",
+         ]);
+         $state_id=State::where('id',$request->stateId)->first();
+         $area_id=Area::where('id',$request->areaId)->first();
+         $newEntry = Team::findOrfail($id);
+         $newEntry->state_id = $state_id->id ?? '';
+		 if(!empty($request->areaId)){
+        	 $newEntry->area_id = $area_id->id ?? '';
+		 } 
+         $newEntry->distributor_id = $request['distributor_id'] ?? '';
+         $newEntry->vp_id = $request['vp_id'] ?? '';
+         $newEntry->rsm_id = $request['rsm_id'] ?? '';
+         $newEntry->asm_id = $request['asm_id'] ?? '';
+         $newEntry->ase_id = $request['ase_id'] ?? '';
+         $newEntry->save();
+         if($newEntry){
+             return redirect()->back()->with('success', 'Team Updated to this Distributor');
+         }
+     }
+
+    //team delete
+    public function userTeamDestroy(Request $request,$id)
+    {
+		$data = Team::where('id', $id)->first();
+        $data->is_deleted=1;
+        $data->save();
+        return redirect()->back()->with('success', 'Team data Deleted for this Distributor');
     }
 
 

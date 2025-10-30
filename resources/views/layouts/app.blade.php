@@ -277,15 +277,15 @@
 		})
 
         // click to select all checkbox
-        function headerCheckFunc() {
-            if ($('#flexCheckDefault').is(':checked')) {
-                $('.tap-to-delete').prop('checked', true);
-                clickToRemove();
-            } else {
-                $('.tap-to-delete').prop('checked', false);
-                clickToRemove();
-            }
-        }
+        // function headerCheckFunc() {
+        //     if ($('#flexCheckDefault').is(':checked')) {
+        //         $('.tap-to-delete').prop('checked', true);
+        //         clickToRemove();
+        //     } else {
+        //         $('.tap-to-delete').prop('checked', false);
+        //         clickToRemove();
+        //     }
+        // }
 
         // sweetalert fires | type = success, error, warning, info, question
         function toastFire(type = 'success', title, body = '') {
