@@ -849,10 +849,10 @@ public function aseSalesreport(Request $request)
         ]);
 
         if(!$validator->fails()){
-            $imageName = mt_rand().'.'.$request->image->extension();
+            $imageName = mt_rand().'.'.$request->pan->extension();
 			$uploadPath = 'public/uploads/store';
             $filePath='uploads/store';
-			$request->image->move($uploadPath, $imageName);
+			$request->pan->move($uploadPath, $imageName);
 			$total_path = $uploadPath.'/'.$imageName;
             
 			return response()->json(['status' => true, 'message' => 'Image added', 'data' => $total_path]);
