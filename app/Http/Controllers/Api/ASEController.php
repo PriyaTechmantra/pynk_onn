@@ -1620,8 +1620,13 @@ public function aseSalesreport(Request $request)
             }
             $cart_count = Cart::where('store_id', $collectedData['store_id'])->where('user_id',$collectedData['user_id'])->where('brand',$brandValue)->get();
             if (!empty($cart_count) ) {
-			    $order_no = generateOrderNumber('secondary', $collectedData['store_id'])[0];
-                $sequence_no = generateOrderNumber('secondary', $collectedData['store_id'])[1];
+                if($cart_count->brand==1){
+                    $order_no = generateONNOrderNumber('secondary', $collectedData['store_id'])[0];
+                    $sequence_no = generateONNOrderNumber('secondary', $collectedData['store_id'])[1];
+                }else{
+                    $order_no = generatePYNKOrderNumber('secondary', $collectedData['store_id'])[0];
+                    $sequence_no = generatePYNKOrderNumber('secondary', $collectedData['store_id'])[1];
+                }
                 // 1 order
                 $newEntry = new Order;
                 $newEntry->sequence_no = $sequence_no;

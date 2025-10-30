@@ -425,3 +425,94 @@ if (!function_exists('slugGenerate')) {
     }
 }
 
+
+
+if (!function_exists('generateONNOrderNumber')) {
+    function generateONNOrderNumber(string $type, int $id) {
+        if ($type == "secondary") {
+            $shortOrderCode = "SC";
+            $orderData = Order::select('sequence_no')->latest('id')->first();
+             
+            if (!empty($orderData)) {
+                if (!empty($orderData->sequence_no)) {
+                    $new_sequence_no = (int) $orderData->sequence_no + 1;
+                } else {
+                    $new_sequence_no = 1;
+                }
+
+                $ordNo = sprintf("%'.07d", $new_sequence_no);
+
+                $store_id = $id;
+                $storeData = Store::where('id', $store_id)->with('states:id,name','areas:id,name')->first();
+               
+                if (!empty($storeData)) {
+                    $state = $storeData->states->name;
+                    
+                    if ($state != "UP CENTRAL" || $state != "UP East" || $state != "UP WEST") {
+                        $stateCodeData = State::where('name', $state)->first();
+                        $stateCode = $stateCodeData->code;
+                    } else {
+                        if ($state == "UP CENTRAL") $stateCode = "UPC";
+                        elseif ($state == "UP East") $stateCode = "UPE";
+                        elseif ($state == "UP WEST") $stateCode = "UPW";
+                    }
+
+                    $order_no = "ONN-".date('Y').'-'.$shortOrderCode.'-'.$stateCode.'-'.$ordNo;
+                   
+                    return [$order_no, $new_sequence_no];
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            $shortOrderCode = "PR";
+            
+        }
+    }
+}
+
+
+if (!function_exists('generatePYNKOrderNumber')) {
+    function generatePYNKOrderNumber(string $type, int $id) {
+        if ($type == "secondary") {
+            $shortOrderCode = "SC";
+            $orderData = Order::select('sequence_no')->latest('id')->first();
+             
+            if (!empty($orderData)) {
+                if (!empty($orderData->sequence_no)) {
+                    $new_sequence_no = (int) $orderData->sequence_no + 1;
+                } else {
+                    $new_sequence_no = 1;
+                }
+
+                $ordNo = sprintf("%'.07d", $new_sequence_no);
+
+                $store_id = $id;
+                $storeData = Store::where('id', $store_id)->with('states:id,name','areas:id,name')->first();
+               
+                if (!empty($storeData)) {
+                    $state = $storeData->states->name;
+                    
+                    if ($state != "UP CENTRAL" || $state != "UP East" || $state != "UP WEST") {
+                        $stateCodeData = State::where('name', $state)->first();
+                        $stateCode = $stateCodeData->code;
+                    } else {
+                        if ($state == "UP CENTRAL") $stateCode = "UPC";
+                        elseif ($state == "UP East") $stateCode = "UPE";
+                        elseif ($state == "UP WEST") $stateCode = "UPW";
+                    }
+
+                    $order_no = "PYNK-".date('Y').'-'.$shortOrderCode.'-'.$stateCode.'-'.$ordNo;
+                   
+                    return [$order_no, $new_sequence_no];
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            $shortOrderCode = "PR";
+            
+        }
+    }
+}
+
