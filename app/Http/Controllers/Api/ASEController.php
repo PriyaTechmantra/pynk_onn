@@ -63,7 +63,7 @@ class ASEController extends Controller
         $data = UserArea::where('user_id', $request->ase_id)
                 ->where('is_deleted', 0)
                 ->groupby('area_id')
-                ->with('area')
+                ->with('area','state')
                 ->get();
 
             
