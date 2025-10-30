@@ -1472,7 +1472,7 @@ public function aseSalesreport(Request $request)
         }
     }
 
-    public function qtyUpdate(Request $request)
+    public function cartqtyUpdate(Request $request)
     {
         $cart = Cart::findOrFail($request->cartId);
         

@@ -84,7 +84,7 @@ Route::get('search/product', [ASEController::class, 'searchProduct']);
 
 
 Route::post('bulkAddTocart', [ASEController::class, 'bulkAddTocart']);
-Route::get('cart/qty/update', [ASEController::class, 'qtyUpdate']);
+Route::get('cart/qty/update', [ASEController::class, 'cartqtyUpdate']);
 Route::get('cart/preview/pdf/url', [ASEController::class, 'cartPreviewPDF_URL']);
 Route::get('cart/preview/pdf/view', [ASEController::class, 'cartPreviewPDF_view']);
 Route::get('cart/clear/{id}', [ASEController::class, 'clearCart']);
@@ -112,24 +112,3 @@ Route::get('scheme', [ASEController::class, 'schemeList']);
 Route::get('news', [ASEController::class, 'newsList']);
 
 
-//cave
-Route::get('cave-search', [CaveController::class, 'search']);
-
-Route::get('cave-list/{id}', [CaveController::class, 'index']);
-
-Route::get('cave-detail/{id}', [CaveController::class, 'detail']);
-
-Route::post('take-in', [CaveController::class, 'store']);
-
-Route::post('received', [CaveController::class, 'received']);
-
-
-Route::post('/take-out-request-send', [CaveController::class, 'takeOutRequest']);
-Route::get('/my/request/vault/{id}', [CaveController::class, 'myrequestedvaultList']);
-Route::get('/requested/vaults/by/user/{id}', [CaveController::class, 'requestedvaultList']);
-
-Route::get('/issued-vaults/list-by-user/{id}', [CaveController::class, 'listByUser']);
-Route::get('/scanned-vaults/list-by-authorized-user', [CaveController::class, 'scannedlistByUser']);
-Route::post('/scan/to/accept/requested/vaults', [CaveController::class, 'statuschangeforRequestedvaults']);
-
-Route::get('/vault/history/{id}', [CaveController::class, 'vaultHistory']);
