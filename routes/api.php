@@ -90,7 +90,7 @@ Route::get('cart/preview/pdf/view', [ASEController::class, 'cartPreviewPDF_view'
 Route::get('cart/clear/{id}', [ASEController::class, 'clearCart']);
 Route::get('cart/delete/{id}', [ASEController::class, 'cartDelete']);
 //return book
-Route::get('cart/user/{id}', [ASEController::class, 'showByUser']);
+Route::get('cart/user', [ASEController::class, 'showByUser']);
 
 Route::post('place-order-update', [ASEController::class, 'placeOrderUpdate']);
 
