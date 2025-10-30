@@ -1504,7 +1504,7 @@ public function aseSalesreport(Request $request)
         $brandId = $brandMap[$brandName] ?? null;
 
         // Base query
-        $query = Cart::where('store_id', $request->id)
+        $query = Cart::where('store_id', $request->storeId)
             ->where('user_id', $request->userId)
             ->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details']);
 
