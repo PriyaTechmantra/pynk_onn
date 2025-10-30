@@ -30,6 +30,31 @@ use DB;
 use Illuminate\Support\Facades\Log;
 class ASEController extends Controller
 {
+
+    public function stateList(Request $request)
+    {
+        $data = State::where('status',1)->where('is_deleted', 0)
+                ->orderby('name')
+                
+                ->get();
+
+            
+
+            if ($data->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'State list not found'
+                ], 404);
+            }
+
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'List of states',
+                'data' => $data
+            ], 200);
+
+    }
     public function areaList(Request $request)
     {
         $data = UserArea::where('user_id', $request->ase_id)

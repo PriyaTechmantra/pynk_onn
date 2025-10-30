@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //ase
 Route::post('login', [AuthController::class, 'sendOtp']);
 Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
+Route::get('state/list', [ASEController::class, 'stateList']);
 Route::get('area/list', [ASEController::class, 'areaList']);
 Route::post('activity/store', [ASEController::class, 'activityStore']);
 Route::post('day/start', [ASEController::class, 'dayStart']);
