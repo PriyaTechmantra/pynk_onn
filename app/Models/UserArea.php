@@ -14,4 +14,8 @@ class UserArea extends Model
      {
          return $this->belongsTo(Area::class);
      }
+      public function state()
+     {
+         return $this->belongsTo(State::class);
+     }
 }

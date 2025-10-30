@@ -34,10 +34,12 @@ class ASEController extends Controller
 
     public function stateList(Request $request)
     {
-        $data = State::where('status',1)->where('is_deleted', 0)
-                ->orderby('name')
-                
+         $data = UserArea::where('user_id', $request->ase_id)
+                ->where('is_deleted', 0)
+                ->groupby('state_id')
+                ->with('state')
                 ->get();
+
 
             
 
