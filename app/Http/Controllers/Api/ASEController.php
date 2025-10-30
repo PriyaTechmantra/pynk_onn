@@ -1673,7 +1673,7 @@ public function aseSalesreport(Request $request)
         return view('api.order-pdf', compact('orderData','id'));
     }
 
-    public function orderList(Request $request)
+    public function orderList(Request $request,$id,$userId)
     {
         $brandMap = [
                 'ONN' => 1,
