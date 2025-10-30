@@ -3,6 +3,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Team;
 use App\Models\UserAttendance;
 use App\Models\Employee;
+use App\Models\Order;
 use App\Models\Notification;
 if (!function_exists('generateUniqueAlphaNumericValue')) {
     function generateUniqueAlphaNumericValue($length = 10) {
