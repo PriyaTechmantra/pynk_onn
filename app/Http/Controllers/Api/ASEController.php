@@ -1475,7 +1475,7 @@ public function aseSalesreport(Request $request)
     public function qtyUpdate(Request $request, $cartId,$q)
     {
         $cart = Cart::findOrFail($cartId);
-
+        dd($cart);
         if ($cart) {
 			 $cart->qty = $q;
 			 $cart->save();
