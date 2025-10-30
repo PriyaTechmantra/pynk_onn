@@ -1544,12 +1544,12 @@ public function aseSalesreport(Request $request)
         }
     }
 
-    public function cartPreviewPDF_URL(Request $request, $id,$userId)
+    public function cartPreviewPDF_URL(Request $request, $id,$userId,$brand)
     {
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/cart/pdf/view/'.$id.'/'.$userId,
+            'data' => url('/').'/api/cart/pdf/view/'.$id.'/'.$userId.'/'.$brand,
         ]);
     }
 

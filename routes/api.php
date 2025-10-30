@@ -85,8 +85,8 @@ Route::get('search/product', [ASEController::class, 'searchProduct']);
 
 Route::post('bulkAddTocart', [ASEController::class, 'bulkAddTocart']);
 Route::get('cart/qty/update/{cartId}/{q}', [ASEController::class, 'qtyUpdate']);
-Route::get('cart/preview/pdf/url/{userId}', [ASEController::class, 'cartPreviewPDF_URL']);
-Route::get('cart/preview/pdf/view/{userId}', [ASEController::class, 'cartPreviewPDF_view']);
+Route::get('cart/preview/pdf/url/{id}/{userId}/{brand}', [ASEController::class, 'cartPreviewPDF_URL']);
+Route::get('cart/preview/pdf/view/{userId}/{brand}', [ASEController::class, 'cartPreviewPDF_view']);
 Route::get('cart/clear/{id}', [ASEController::class, 'clearCart']);
 Route::get('cart/delete/{id}', [ASEController::class, 'cartDelete']);
 //return book
