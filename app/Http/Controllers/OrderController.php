@@ -37,10 +37,10 @@ class OrderController extends Controller
             $ase = $request->ase ?? '';
 			$distributor = $request->distributor ?? '';
             // all order products
-            $query1 = OrderProductDistributor::select('orders_distributors.brand','order_product_distributors.id AS id','products.style_no AS product_style_no','products.name AS product_name','order_product_distributors.color_id AS color_id','order_product_distributors.size_id AS size_id','order_product_distributors.qty AS qty','orders_distributors.order_no AS order_no','retailer_list_of_occ.state AS state','retailer_list_of_occ.area AS area','orders_distributors.fname AS fname','orders_distributors.lname AS lname','distributors.name AS distributor_name','orders_distributors.created_at AS created_at','order_product_distributors.status AS status')->join('products', 'products.id', 'order_product_distributors.product_id')
-            ->join('orders_distributors', 'orders_distributors.id', 'order_product_distributors.order_id')->join('teams', 'teams.distributor_id', 'orders_distributors.distributor_id')->join('distributors', 'distributors.id', 'orders_distributors.distributor_id')->whereBetween('orders_distributors.created_at', [$from, $to])->where('orders_distributors.status', 1);
+            $query1 = OrderProductDistributor::select('order_distributors.brand','order_product_distributors.id AS id','products.style_no AS product_style_no','products.name AS product_name','order_product_distributors.color_id AS color_id','order_product_distributors.size_id AS size_id','order_product_distributors.qty AS qty','order_distributors.order_no AS order_no','retailer_list_of_occ.state AS state','retailer_list_of_occ.area AS area','order_distributors.fname AS fname','order_distributors.lname AS lname','distributors.name AS distributor_name','order_distributors.created_at AS created_at','order_product_distributors.status AS status')->join('products', 'products.id', 'order_product_distributors.product_id')
+            ->join('order_distributors', 'order_distributors.id', 'order_product_distributors.order_id')->join('teams', 'teams.distributor_id', 'order_distributors.distributor_id')->join('distributors', 'distributors.id', 'order_distributors.distributor_id')->whereBetween('order_distributors.created_at', [$from, $to])->where('order_distributors.status', 1);
             $query1->when($ase, function($query1) use ($ase) {
-                $query1->join('employees', 'employees.id', 'orders_distributors.user_id')->where('employees.id', $ase);
+                $query1->join('employees', 'employees.id', 'order_distributors.user_id')->where('employees.id', $ase);
             });
             $query1->when($product, function($query1) use ($product) {
                 $query1->where('order_product_distributors.product_id', $product);
@@ -52,18 +52,18 @@ class OrderController extends Controller
                 $query1->where('teams.area_id', $area);
             });
 			$query1->when($distributor, function($query1) use ($distributor) {
-                $query1->where('orders_distributors.distributor_id', $distributor);
+                $query1->where('order_distributors.distributor_id', $distributor);
             });
             $query1->when($orderNo, function($query1) use ($orderNo) {
-                $query1->Where('orders_distributors.order_no', 'like', '%' . $orderNo . '%');
-            })->whereBetween('orders_distributors.created_at', [$from, $to]);
+                $query1->Where('order_distributors.order_no', 'like', '%' . $orderNo . '%');
+            })->whereBetween('order_distributors.created_at', [$from, $to]);
 
-            $data->all_orders = $query1->groupby('order_product_distributors.id')->latest('orders_distributors.id')
+            $data->all_orders = $query1->groupby('order_product_distributors.id')->latest('order_distributors.id')
             ->paginate(25);
             // dd($data->all_orders);
         }else{
-            $data->all_orders = OrderProductDistributor::select('orders_distributors.brand','order_product_distributors.id AS id','products.style_no AS product_style_no','products.name AS product_name','order_product_distributors.color_id AS color_id','order_product_distributors.size_id AS size_id','order_product_distributors.qty AS qty','orders_distributors.order_no AS order_no','teams.state_id AS state_id','teams.area_id AS area_id','orders_distributors.fname AS fname','orders_distributors.lname AS lname','distributors.name AS distributor_name','orders_distributors.created_at AS created_at','order_product_distributors.status AS status')->join('products', 'products.id', 'order_product_distributors.product_id')
-            ->join('orders_distributors', 'orders_distributors.id', 'order_product_distributors.order_id')->join('teams', 'teams.distributor_id', 'orders_distributors.distributor_id')->join('distributors', 'distributors.id', 'orders_distributors.distributor_id')->whereBetween('orders_distributors.created_at', [$from, $to])->where('orders_distributors.status', 1)->groupby('order_product_distributors.id')->latest('orders_distributors.id')->paginate(25);
+            $data->all_orders = OrderProductDistributor::select('order_distributors.brand','order_product_distributors.id AS id','products.style_no AS product_style_no','products.name AS product_name','order_product_distributors.color_id AS color_id','order_product_distributors.size_id AS size_id','order_product_distributors.qty AS qty','order_distributors.order_no AS order_no','teams.state_id AS state_id','teams.area_id AS area_id','order_distributors.fname AS fname','order_distributors.lname AS lname','distributors.name AS distributor_name','order_distributors.created_at AS created_at','order_product_distributors.status AS status')->join('products', 'products.id', 'order_product_distributors.product_id')
+            ->join('order_distributors', 'order_distributors.id', 'order_product_distributors.order_id')->join('teams', 'teams.distributor_id', 'order_distributors.distributor_id')->join('distributors', 'distributors.id', 'order_distributors.distributor_id')->whereBetween('order_distributors.created_at', [$from, $to])->where('order_distributors.status', 1)->groupby('order_product_distributors.id')->latest('order_distributors.id')->paginate(25);
             //dd($data->all_orders[1]);
         }
         $allASEs = Employee::where('type',4)->where('name', '!=', null)->where('status',1)->where('is_deleted',0)->orderBy('name')->get();

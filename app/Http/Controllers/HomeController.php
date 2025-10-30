@@ -107,6 +107,163 @@ class HomeController extends Controller
 		//dd($inactiveASE);
            return view('home', compact('data','dayStoreReport','monthStoreReport','aseWiseReport','stateWiseReport','inactiveASE','request'));
     }
+
+
+/*public function index(Request $request)
+{
+    $user = auth()->user();
+    $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
+            /// ✅ Brand map
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        // ✅ Handle multiple brands dynamically
+        $brandNames = array_map(function ($id) use ($brandMap) {
+            return $brandMap[$id] ?? 'Unknown';
+        }, $brandsToShow);
+
+        // Optional: Convert to a readable string (e.g. "ONN, PYNK")
+        $brandNameString = implode(', ', $brandNames);
+    // 🔹 Employee hierarchy counts (brand-wise)
+    $dashboardData = [
+        'brand' => $brandNameString,
+        'vp' => Employee::where('type', 1)->where('is_deleted', 0)->where('brand', $brandsToShow)->count(),
+        'rsm' => Employee::where('type', 2)->where('is_deleted', 0)->where('brand', $brandsToShow)->count(),
+        'asm' => Employee::where('type', 3)->where('is_deleted', 0)->where('brand', $brandsToShow)->count(),
+        'ase' => Employee::where('type', 4)->where('is_deleted', 0)->where('brand', $brandsToShow)->count(),
+        'distributors' => Distributor::where('is_deleted', 0)->where('brand', $brandsToShow)->count(),
+        'stores' => Store::where('status', 1)->where('brand', $brandsToShow)->count(),
+        'primaryOrders' => OrderDistributor::where('brand',$brandsToShow)
+            ->whereDate('created_at', today())->sum('final_amount'),
+        'secondaryOrders' => OrderProduct::join('orders','orders.id', '=', 'order_products.order_id')->where('orders.brand',$brandsToShow)
+            ->whereDate('order_products.created_at', today())->sum('qty'),
+    ];
+
+    // 🔹 Weekly store report (daywise)
+    $dayStoreReport = Store::selectRaw('COUNT(*) as count, DAYNAME(created_at) as dayname')
+        ->where('brand', $brandsToShow)
+        ->whereBetween('created_at', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])
+        ->groupBy('dayname')
+        ->orderBy('created_at')
+        ->get();
+
+    // 🔹 Monthly store report
+    $monthStoreReport = Store::selectRaw('COUNT(*) as count, MONTHNAME(created_at) as monthname')
+        ->where('brand', $brandsToShow)
+        ->whereYear('created_at', now()->year)
+        ->groupBy('monthname')
+        ->orderByRaw('MIN(created_at)')
+        ->get();
+
+    // 🔹 ASE-wise report (brand-wise + optional keyword)
+    if ($request->filled('keyword')) {
+    $aseWiseReport = DB::select("
+        SELECT 
+            u.id, 
+            u.name, 
+            st.name AS state_name, 
+            COUNT(*) AS count
+        FROM stores s
+        JOIN employees u ON FIND_IN_SET(u.id, s.user_id)
+        JOIN states st ON st.id = u.state
+        WHERE u.name = ? 
+          AND s.brand IN (" . implode(',', $brandsToShow) . ")
+        GROUP BY u.id 
+        ORDER BY count DESC
+    ", [$request->keyword]);
+} else {
+    $aseWiseReport = DB::select("
+        SELECT 
+            u.id, 
+            u.name, 
+            st.name AS state_name, 
+            COUNT(*) AS count
+        FROM stores s
+        JOIN employees u ON FIND_IN_SET(u.id, s.user_id)
+        JOIN states st ON st.id = u.state
+        WHERE s.brand IN (" . implode(',', $brandsToShow) . ")
+        GROUP BY u.id 
+        ORDER BY count DESC
+    ");
+}
+
+
+    // 🔹 State-wise report
+   $stateWiseReport = DB::table('stores as st')
+    ->join('states as s', DB::raw('FIND_IN_SET(s.id, st.state_id)'), '>', DB::raw('0'))
+    ->select('s.name', DB::raw('COUNT(*) as count'))
+    ->whereIn('st.brand', $brandsToShow)
+    ->groupBy('st.state_id', 's.name')
+    ->orderBy('s.name')
+    ->get();
+
+    // 🔹 Active / inactive ASEs
+    $aseIds = Employee::where('type', 4)->where('brand', $brandsToShow)->pluck('id');
+    $activeASEIds = Activity::where('type', 'Visit Started')
+        ->whereDate('created_at', today())
+        ->whereIn('user_id', $aseIds)
+        ->pluck('user_id');
+    $inactiveASE = Employee::where('type', 4)
+        ->where('brand', $brandsToShow)
+        ->whereNotIn('id', $activeASEIds)
+        ->get();
+
+    // 🔹 Monthly secondary (for last 6 months)
+    $monthlySecondary = OrderProduct::join('orders','orders.id', '=', 'order_products.order_id')->selectRaw("
+            DATE_FORMAT(orders.created_at, '%M') as month_name, SUM(order_products.qty) as total_qty
+        ")
+        ->where('orders.brand', $brandsToShow)
+        ->where('orders.created_at', '>=', now()->subMonths(5)->startOfMonth())
+        ->groupBy('month_name')
+        ->orderByRaw('MIN(orders.created_at)')
+        ->get();
+
+    // 🔹 Chart data arrays
+    $dashboardData['charts'] = [
+        'daily' => [
+            'labels' => $dayStoreReport->pluck('dayname'),
+            'data' => $dayStoreReport->pluck('count'),
+        ],
+        'monthly' => [
+            'labels' => $monthStoreReport->pluck('monthname'),
+            'data' => $monthStoreReport->pluck('count'),
+        ],
+        'stateWise' => [
+            'labels' => collect($stateWiseReport)->pluck('name'),
+            'data' => collect($stateWiseReport)->pluck('count'),
+        ],
+    ];
+
+    // 🔹 Return to Blade
+    return view('home', compact(
+        'dashboardData',
+        'dayStoreReport',
+        'monthStoreReport',
+        'aseWiseReport',
+        'stateWiseReport',
+        'inactiveASE',
+        'brandNameString',
+        'request'
+       
+    ));
+}*/
   
     
        

@@ -1,9 +1,8 @@
- @extends('layouts.app')
+{{-- @extends('layouts.app')
 
 @section('content')
 <div class="container">
      @can('onn daily dashboard')
-     <h3>ONN Dashboard</h3>
     <div class="row">
         <div class="col-sm-6 col-lg-3">
             <div class="card home__card bg-gradient-danger">
@@ -269,7 +268,6 @@
 
 
     @can('pynk dashboard')
-    <h3>PYNK Dashboard</h3>
     <div class="row">
         <div class="col-sm-6 col-lg-3">
             <div class="card home__card bg-gradient-danger">
@@ -721,4 +719,4 @@
             $('#aseCard').css('maxHeight', '100%');
         });
 </script>
-@endsection 
+@endsection --}}
