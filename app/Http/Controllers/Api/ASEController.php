@@ -1472,12 +1472,12 @@ public function aseSalesreport(Request $request)
         }
     }
 
-    public function qtyUpdate(Request $request, $cartId,$q)
+    public function qtyUpdate(Request $request)
     {
-        $cart = Cart::findOrFail($cartId);
+        $cart = Cart::findOrFail($request->cartId);
         
         if ($cart) {
-			 $cart->qty = $q;
+			 $cart->qty = $request->qty;
 			 $cart->save();
             return response()->json([
                 'error' => false,
@@ -1491,7 +1491,7 @@ public function aseSalesreport(Request $request)
         }
     }
 
-    public function showByUser(Request $request, $id, $userId)
+    public function showByUser(Request $request)
     {
         // Brand mapping
         $brandMap = [
@@ -1504,8 +1504,8 @@ public function aseSalesreport(Request $request)
         $brandId = $brandMap[$brandName] ?? null;
 
         // Base query
-        $query = Cart::where('store_id', $id)
-            ->where('user_id', $userId)
+        $query = Cart::where('store_id', $request->id)
+            ->where('user_id', $request->userId)
             ->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details']);
 
         // Apply brand filter if provided
@@ -1544,18 +1544,18 @@ public function aseSalesreport(Request $request)
         }
     }
 
-    public function cartPreviewPDF_URL(Request $request, $id,$userId,$brand)
+    public function cartPreviewPDF_URL(Request $request)
     {
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/cart/pdf/view/'.$id.'/'.$userId.'/'.$brand,
+            'data' => url('/').'/api/cart/pdf/view/'.$request->id.'/'.$request->userId.'/'.$request->brand,
         ]);
     }
 
     
 
-    public function cartPreviewPDF_view(Request $request, $id, $userId, $brand)
+    public function cartPreviewPDF_view(Request $request)
     {
         // Map brand name to code
         $brandMap = [
@@ -1564,11 +1564,11 @@ public function aseSalesreport(Request $request)
             'Both' => 3,
         ];
 
-        $brandCode = $brandMap[$brand] ?? null;
+        $brandCode = $brandMap[$request->brand] ?? null;
 
         // Base query
-        $query = Cart::where('store_id', $id)
-            ->where('user_id', $userId)
+        $query = Cart::where('store_id', $request->id)
+            ->where('user_id', $request->userId)
             ->with(['product', 'stores', 'color', 'size']);
 
         // Apply brand filter
