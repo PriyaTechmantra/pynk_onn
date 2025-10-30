@@ -92,15 +92,16 @@ Route::get('cart/user/{id}', [ASEController::class, 'showByUser']);
 
 Route::post('place-order-update', [ASEController::class, 'placeOrderUpdate']);
 
-Route::post('order/list/{id}/{user_id}', [ASEController::class, 'orderList']);
+Route::get('order/list/{id}/{user_id}', [ASEController::class, 'orderList']);
 
-Route::post('order/details/{id}', [ASEController::class, 'orderDetails']);
+Route::get('order/details/{id}', [ASEController::class, 'orderDetails']);
 
-Route::post('order/pdf/url/{id}', [ASEController::class, 'orderPDF_URL']);
+Route::get('order/pdf/url/{id}', [ASEController::class, 'orderPDF_URL']);
 
 
-Route::post('order/pdf/view/{id}', [ASEController::class, 'orderPDF_view']);
+Route::get('order/pdf/view/{id}', [ASEController::class, 'orderPDF_view']);
 Route::get('my-orders', [ASEController::class, 'myOrdersFilter']);
+
 Route::post('store-wise-report-ase', [ASEController::class, 'storeReportASE']);
 
 Route::get('product-wise-report-ase', [ASEController::class, 'productReportASE']);

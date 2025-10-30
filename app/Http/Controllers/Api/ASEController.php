@@ -21,6 +21,8 @@ use App\Models\ProductImage;
 use App\Models\Product;
 use App\Models\ProductColorSize;
 use App\Models\UserNoOrderReason;
+use App\Models\Order;
+use App\Models\OrderProduct;
 use Str;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserPermissionCategory;
@@ -1801,6 +1803,9 @@ public function aseSalesreport(Request $request)
             'data' => $data,
         ]);
     }
+
+
+   
 
 
 

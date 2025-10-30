@@ -91,6 +91,7 @@ Route::group(['middleware' => ['auth']], function() {
      Route::get('dashboard/store/export/csv', [HomeController::class, 'dashboardReport']);
      Route::get('state/store/export/csv', [HomeController::class, 'exportCSV'])->name('dashboard.store.export.csv');
 	Route::get('ase/store/export/csv', [HomeController::class, 'asestorereportexportCSV'])->name('dashboard.ase.store.export.csv');
+    Route::get('order/filter/report/data',[HomeController::class, 'filterReport'])->name('order.filter.report');
     //states
     
     Route::resource('states', StateController::class);
