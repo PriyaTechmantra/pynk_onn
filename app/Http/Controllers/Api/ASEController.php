@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Employee;
+use App\Models\State;
 use App\Models\Area;
 use App\Models\UserArea;
 use App\Models\Store;
