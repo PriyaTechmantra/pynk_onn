@@ -765,6 +765,9 @@ public function aseSalesreport(Request $request)
         if (!empty($request['image'])) {
         				$store->image= $request->image;
         }
+        if (!empty($request['pan'])) {
+        				$store->pan= $request->pan;
+        }
         $store->status = 0;
         
         $store->save();
@@ -820,6 +823,29 @@ public function aseSalesreport(Request $request)
 
         $validator = Validator::make($request->all(),[
             'image' => ['required', 'image', 'max:1000000']
+        ]);
+
+        if(!$validator->fails()){
+            $imageName = mt_rand().'.'.$request->image->extension();
+			$uploadPath = 'public/uploads/store';
+            $filePath='uploads/store';
+			$request->image->move($uploadPath, $imageName);
+			$total_path = $uploadPath.'/'.$imageName;
+            
+			return response()->json(['status' => true, 'message' => 'Image added', 'data' => $total_path]);
+
+        }else {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+        
+    }
+
+
+    public function storepanimageUpdate(Request $request)
+    {
+
+        $validator = Validator::make($request->all(),[
+            'pan' => ['required', 'image', 'max:1000000']
         ]);
 
         if(!$validator->fails()){
