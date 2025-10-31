@@ -1623,7 +1623,13 @@ public function aseSalesreport(Request $request)
                     'message' => 'Invalid brand value.',
                 ]);
             }
-            $cart_count = Cart::where('store_id', $collectedData['store_id'])->where('user_id',$collectedData['user_id'])->where('brand',$brandValue)->with('product')->get();
+            $cart_count = Cart::where('store_id', $collectedData['store_id'])
+            ->where('user_id',$collectedData['user_id'])
+            ->where('brand',$brandValue)
+            ->with(['product' => function ($query) {
+                $query->where('status', 1)
+                    ->where('is_deleted', 0);
+            }])->get();
             //dd($cart_count);
             if ($cart_count->isNotEmpty()) {
 
@@ -1658,13 +1664,13 @@ public function aseSalesreport(Request $request)
                 
                 $subtotal = $totalOrderQty = 0;
                 foreach ($cart_count as $cartValue) {
-                    if ($cartValue->product && isset($cartValue->product->offer_price)) {
+                    if ($cartValue->product) {
                         $totalOrderQty += $cartValue->qty;
                         $subtotal += $cartValue->product->offer_price * $cartValue->qty;
                         $store_id = $cartValue->store_id;
                         $order_type = $cartValue->order_type;
                     } else {
-                        return response()->json(['error' => true, 'resp' => 'Product not exist or missing price']);
+                        return response()->json(['error' => true, 'resp' => 'Product not exist or inactive/deleted']);
                     }
                 }
                 $newEntry->amount = $subtotal;
