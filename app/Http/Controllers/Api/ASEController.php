@@ -92,7 +92,7 @@ class ASEController extends Controller
         if (empty($area)) {
             return response()->json(['status'=>false, 'message'=>'Start Your Visit']);
         } else {
-            return response()->json(['status'=>true, 'message'=>'Visit already started','area'=>$area->areas->id,'area'=>$area->areas->name,'visit_id'=>$area->id,'data'=>$user],200);
+            return response()->json(['status'=>true, 'message'=>'Visit already started','area_id'=>$area->areas->id,'area'=>$area->areas->name,'visit_id'=>$area->id,'data'=>$user],200);
         } 
 		
 	}
