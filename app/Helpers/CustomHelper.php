@@ -433,44 +433,40 @@ if (!function_exists('generateONNOrderNumber')) {
         if ($type == "secondary") {
             $shortOrderCode = "SC";
             $orderData = Order::select('sequence_no')->latest('id')->first();
-             
-            if (!empty($orderData)) {
-                if (!empty($orderData->sequence_no)) {
-                    $new_sequence_no = (int) $orderData->sequence_no + 1;
+
+            // ✅ Handle empty case properly
+            $new_sequence_no = !empty($orderData) && !empty($orderData->sequence_no)
+                ? (int) $orderData->sequence_no + 1
+                : 1;
+
+            $ordNo = sprintf("%'.07d", $new_sequence_no);
+
+            $storeData = Store::where('id', $id)->with('states:id,name')->first();
+
+            if (!empty($storeData) && !empty($storeData->states)) {
+                $state = $storeData->states->name;
+
+                if (in_array($state, ["UP CENTRAL", "UP East", "UP WEST"])) {
+                    $stateCode = match ($state) {
+                        "UP CENTRAL" => "UPC",
+                        "UP East" => "UPE",
+                        "UP WEST" => "UPW",
+                    };
                 } else {
-                    $new_sequence_no = 1;
+                    $stateCodeData = State::where('name', $state)->first();
+                    $stateCode = $stateCodeData->code ?? 'NA';
                 }
 
-                $ordNo = sprintf("%'.07d", $new_sequence_no);
+                $order_no = "ONN-" . date('Y') . '-' . $shortOrderCode . '-' . $stateCode . '-' . $ordNo;
 
-                $store_id = $id;
-                $storeData = Store::where('id', $store_id)->with('states:id,name','areas:id,name')->first();
-               
-                if (!empty($storeData)) {
-                    $state = $storeData->states->name;
-                    
-                    if ($state != "UP CENTRAL" || $state != "UP East" || $state != "UP WEST") {
-                        $stateCodeData = State::where('name', $state)->first();
-                        $stateCode = $stateCodeData->code;
-                    } else {
-                        if ($state == "UP CENTRAL") $stateCode = "UPC";
-                        elseif ($state == "UP East") $stateCode = "UPE";
-                        elseif ($state == "UP WEST") $stateCode = "UPW";
-                    }
-
-                    $order_no = "ONN-".date('Y').'-'.$shortOrderCode.'-'.$stateCode.'-'.$ordNo;
-                   
-                    return [$order_no, $new_sequence_no];
-                } else {
-                    return false;
-                }
+                return [$order_no, $new_sequence_no];
             }
-        } else {
-            $shortOrderCode = "PR";
-            
+
+            return [null, null]; // fallback
         }
     }
 }
+
 
 
 if (!function_exists('generatePYNKOrderNumber')) {
@@ -478,42 +474,38 @@ if (!function_exists('generatePYNKOrderNumber')) {
         if ($type == "secondary") {
             $shortOrderCode = "SC";
             $orderData = Order::select('sequence_no')->latest('id')->first();
-             
-            if (!empty($orderData)) {
-                if (!empty($orderData->sequence_no)) {
-                    $new_sequence_no = (int) $orderData->sequence_no + 1;
+
+            // ✅ Handle empty case properly
+            $new_sequence_no = !empty($orderData) && !empty($orderData->sequence_no)
+                ? (int) $orderData->sequence_no + 1
+                : 1;
+
+            $ordNo = sprintf("%'.07d", $new_sequence_no);
+
+            $storeData = Store::where('id', $id)->with('states:id,name')->first();
+
+            if (!empty($storeData) && !empty($storeData->states)) {
+                $state = $storeData->states->name;
+
+                if (in_array($state, ["UP CENTRAL", "UP East", "UP WEST"])) {
+                    $stateCode = match ($state) {
+                        "UP CENTRAL" => "UPC",
+                        "UP East" => "UPE",
+                        "UP WEST" => "UPW",
+                    };
                 } else {
-                    $new_sequence_no = 1;
+                    $stateCodeData = State::where('name', $state)->first();
+                    $stateCode = $stateCodeData->code ?? 'NA';
                 }
 
-                $ordNo = sprintf("%'.07d", $new_sequence_no);
+                $order_no = "PYNK-" . date('Y') . '-' . $shortOrderCode . '-' . $stateCode . '-' . $ordNo;
 
-                $store_id = $id;
-                $storeData = Store::where('id', $store_id)->with('states:id,name','areas:id,name')->first();
-               
-                if (!empty($storeData)) {
-                    $state = $storeData->states->name;
-                    
-                    if ($state != "UP CENTRAL" || $state != "UP East" || $state != "UP WEST") {
-                        $stateCodeData = State::where('name', $state)->first();
-                        $stateCode = $stateCodeData->code;
-                    } else {
-                        if ($state == "UP CENTRAL") $stateCode = "UPC";
-                        elseif ($state == "UP East") $stateCode = "UPE";
-                        elseif ($state == "UP WEST") $stateCode = "UPW";
-                    }
-
-                    $order_no = "PYNK-".date('Y').'-'.$shortOrderCode.'-'.$stateCode.'-'.$ordNo;
-                   
-                    return [$order_no, $new_sequence_no];
-                } else {
-                    return false;
-                }
+                return [$order_no, $new_sequence_no];
             }
-        } else {
-            $shortOrderCode = "PR";
-            
+
+            return [null, null]; // fallback
         }
     }
 }
+
 
