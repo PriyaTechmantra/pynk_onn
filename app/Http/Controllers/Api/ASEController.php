@@ -1619,15 +1619,15 @@ public function aseSalesreport(Request $request)
                 ]);
             }
             $cart_count = Cart::where('store_id', $collectedData['store_id'])->where('user_id',$collectedData['user_id'])->where('brand',$brandValue)->get();
-            if (!empty($cart_count) ) {
-                if($cart_count[0]->brand==1){
-                    $order_no = generateONNOrderNumber('secondary', $collectedData['store_id'])[0];
-                    $sequence_no = generateONNOrderNumber('secondary', $collectedData['store_id'])[1];
-                }else{
-                    $order_no = generatePYNKOrderNumber('secondary', $collectedData['store_id'])[0];
-                    $sequence_no = generatePYNKOrderNumber('secondary', $collectedData['store_id'])[1];
+            if ($cart_count->isNotEmpty()) {
+                $firstCart = $cart_count->first();
+
+                if ($firstCart->brand == 1) {
+                    [$order_no, $sequence_no] = generateONNOrderNumber('secondary', $collectedData['store_id']);
+                } else {
+                    [$order_no, $sequence_no] = generatePYNKOrderNumber('secondary', $collectedData['store_id']);
                 }
-                // 1 order
+                            // 1 order
                 $newEntry = new Order;
                 $newEntry->sequence_no = $sequence_no;
                 $newEntry->order_no = $order_no;
@@ -1862,6 +1862,7 @@ public function aseSalesreport(Request $request)
             'data' => $data,
         ]);
     }
+    
 
 
    
