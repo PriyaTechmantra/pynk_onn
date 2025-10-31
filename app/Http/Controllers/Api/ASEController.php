@@ -1618,7 +1618,7 @@ public function aseSalesreport(Request $request)
                     'message' => 'Invalid brand value.',
                 ]);
             }
-            $cart_count = Cart::where('store_id', $collectedData['store_id'])->where('user_id',$collectedData['user_id'])->where('brand',$brandValue)->get();
+            $cart_count = Cart::where('store_id', $collectedData['store_id'])->where('user_id',$collectedData['user_id'])->where('brand',$brandValue)->with('product')->get();
             //dd($cart_count);
             if ($cart_count->isNotEmpty()) {
                 $firstCart = $cart_count->first();
