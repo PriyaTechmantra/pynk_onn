@@ -1626,6 +1626,7 @@ public function aseSalesreport(Request $request)
             $cart_count = Cart::where('store_id', $collectedData['store_id'])->where('user_id',$collectedData['user_id'])->where('brand',$brandValue)->with('product')->get();
             //dd($cart_count);
             if ($cart_count->isNotEmpty()) {
+
                 $firstCart = $cart_count->first();
 
                 if ($firstCart->brand == 1) {
@@ -1656,11 +1657,15 @@ public function aseSalesreport(Request $request)
                 // fetch cart details
                 
                 $subtotal = $totalOrderQty = 0;
-                foreach($cart_count as $cartValue) {
-                    $totalOrderQty += $cartValue->qty;
-                    $subtotal += $cartValue->product->offer_price * $cartValue->qty;
-                    $store_id = $cartValue->store_id;
-                    $order_type = $cartValue->order_type;
+                foreach ($cart_count as $cartValue) {
+                    if ($cartValue->product && isset($cartValue->product->offer_price)) {
+                        $totalOrderQty += $cartValue->qty;
+                        $subtotal += $cartValue->product->offer_price * $cartValue->qty;
+                        $store_id = $cartValue->store_id;
+                        $order_type = $cartValue->order_type;
+                    } else {
+                        return response()->json(['error' => true, 'resp' => 'Product not exist or missing price']);
+                    }
                 }
                 $newEntry->amount = $subtotal;
                 $newEntry->comment = $collectedData['comment'] ?? null;
