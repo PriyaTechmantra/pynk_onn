@@ -1443,6 +1443,7 @@ public function aseSalesreport(Request $request)
                 if ($cartExists) {
                         $cartExists->qty = $cartExists->qty + $qtys[$i];
                         $cartExists->save();
+                        return response()->json(['error'=>false, 'resp'=>'Product qty updated','data'=>$cartExists]);
                 } else {
                     if ($collectedData['order_type']) {
                         if ($collectedData['order_type'] == 'store-visit') {
@@ -1466,7 +1467,11 @@ public function aseSalesreport(Request $request)
                     $newEntry->save();
                 }
             }
-            return response()->json(['error'=>false, 'resp'=>'Product added to cart successfully','data'=>$newEntry]);
+            if($newEntry){
+                return response()->json(['error'=>false, 'resp'=>'Product added to cart successfully','data'=>$newEntry]);
+            }else{
+                return response()->json(['error'=>false, 'resp'=>'Something happend']);
+            }
         }else {
             return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
         }
@@ -1752,7 +1757,7 @@ public function aseSalesreport(Request $request)
 
     public function orderDetails(Request $request,$id)
     {
-        $order=OrderProduct::where('order_id',$id)->with('product','color','size','orders')->get();
+        $order=OrderProduct::where('order_id',$id)->with('product','product.collection','product.category','color','size','orders')->get();
         if ($order) {
             return response()->json(['error'=>false, 'resp'=>'order details fetched successfully','data'=>$order]);
         } else {
