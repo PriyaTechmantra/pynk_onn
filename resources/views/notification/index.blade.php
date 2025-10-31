@@ -114,7 +114,7 @@
                                                 <p class="small">{{$item->senderDetails->name ?? ''}}</p>
                                             </td>
                                             <td>
-                                                <p class="small">{{$item->receiverDetails->name ?? ''}}</p>
+                                                <p class="small">{{$item->receiverDetails->name ?? 'Admin'}}</p>
                                             </td>
                                             <td>
                                                 <p class="small">{{$item->title}}</p>

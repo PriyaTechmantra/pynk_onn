@@ -4,6 +4,8 @@ use App\Models\Team;
 use App\Models\UserAttendance;
 use App\Models\Employee;
 use App\Models\Order;
+use App\Models\Store;
+use App\Models\State;
 use App\Models\Notification;
 if (!function_exists('generateUniqueAlphaNumericValue')) {
     function generateUniqueAlphaNumericValue($length = 10) {
@@ -441,10 +443,10 @@ if (!function_exists('generateONNOrderNumber')) {
 
             $ordNo = sprintf("%'.07d", $new_sequence_no);
 
-            $storeData = Store::where('id', $id)->with('states:id,name')->first();
+            $storeData = Store::where('id', $id)->with('state:id,name')->first();
 
-            if (!empty($storeData) && !empty($storeData->states)) {
-                $state = $storeData->states->name;
+            if (!empty($storeData) && !empty($storeData->state)) {
+                $state = $storeData->state->name;
 
                 if (in_array($state, ["UP CENTRAL", "UP East", "UP WEST"])) {
                     $stateCode = match ($state) {
@@ -482,10 +484,10 @@ if (!function_exists('generatePYNKOrderNumber')) {
 
             $ordNo = sprintf("%'.07d", $new_sequence_no);
 
-            $storeData = Store::where('id', $id)->with('states:id,name')->first();
+            $storeData = Store::where('id', $id)->with('state:id,name')->first();
 
-            if (!empty($storeData) && !empty($storeData->states)) {
-                $state = $storeData->states->name;
+            if (!empty($storeData) && !empty($storeData->state)) {
+                $state = $storeData->state->name;
 
                 if (in_array($state, ["UP CENTRAL", "UP East", "UP WEST"])) {
                     $stateCode = match ($state) {
