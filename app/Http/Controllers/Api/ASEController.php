@@ -1733,7 +1733,7 @@ public function aseSalesreport(Request $request)
         return view('api.order-pdf', compact('orderData','id'));
     }
 
-    public function orderList(Request $request,$id,$userId)
+    public function orderList(Request $request)
     {
         $brandMap = [
                 'ONN' => 1,
@@ -1742,7 +1742,7 @@ public function aseSalesreport(Request $request)
             ];
 
         $brandCode = $brandMap[$request->brand] ?? null;
-        $order=Order::where('store_id',$id)->where('user_id',$userId)->where('brand',$brandCode)->orderby('id','desc')->with('stores:id,name')->get();
+        $order=Order::where('store_id',$request->storeId)->where('user_id',$request->userId)->where('brand',$brandCode)->orderby('id','desc')->with('stores:id,name')->get();
         if ($order) {
             return response()->json(['error'=>false, 'resp'=>'order List fetched successfully','data'=>$order]);
         } else {

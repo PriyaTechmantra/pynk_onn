@@ -94,7 +94,7 @@ Route::get('cart/user', [ASEController::class, 'showByUser']);
 
 Route::post('place-order-update', [ASEController::class, 'placeOrderUpdate']);
 
-Route::get('order/list/{id}/{user_id}', [ASEController::class, 'orderList']);
+Route::get('order/list', [ASEController::class, 'orderList']);
 
 Route::get('order/details/{id}', [ASEController::class, 'orderDetails']);
 
