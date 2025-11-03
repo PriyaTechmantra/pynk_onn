@@ -1795,7 +1795,12 @@ public function aseSalesreport(Request $request)
         }
 
         $orders = $orderQuery->get();
-
+        // ✅ Add total quantity field to each order
+        $orders->map(function ($order) {
+            $order->total_qty = $order->orderProducts->sum('qty');
+            unset($order->orderProducts); // optional: remove detailed items if not needed
+            return $order;
+        });
         if ($orders->isNotEmpty()) {
             return response()->json([
                 'error' => false,
@@ -1952,7 +1957,12 @@ public function aseSalesreport(Request $request)
         }
 
         $orders = $orderQuery->get();
-
+        // ✅ Add total quantity field to each order
+        $orders->map(function ($order) {
+            $order->total_qty = $order->orderProducts->sum('qty');
+            unset($order->orderProducts); // optional: remove detailed items if not needed
+            return $order;
+        });
         if ($orders->isNotEmpty()) {
             return response()->json([
                 'error' => false,

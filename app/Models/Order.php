@@ -12,7 +12,7 @@ class Order extends Model
     public function stores() {
         return $this->belongsTo('App\Models\Store', 'store_id', 'id');
     }
-     public function users() {
+    public function users() {
         return $this->belongsTo('App\Models\Employee', 'user_id', 'id');
     }
     public function distributors() {
