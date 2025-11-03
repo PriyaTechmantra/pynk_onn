@@ -1594,7 +1594,7 @@ public function aseSalesreport(Request $request)
 
         // Base query
         $query = Cart::where('store_id', $request->storeId)
-            ->where('user_id', $request->userId)
+            ->where('user_id', $request->userId)->whereHas('product')
             ->with(['product', 'stores', 'color', 'size']);
 
         // Apply brand filter
@@ -1609,7 +1609,7 @@ public function aseSalesreport(Request $request)
         }
 
         $cartData = $query->get();
-        
+
         return view('api.cart-pdf', compact('cartData'));
     }
 
@@ -1765,7 +1765,7 @@ public function aseSalesreport(Request $request)
 
     public function orderPDF_view(Request $request, $id)
     {
-        $orderData =OrderProduct::where('order_id',$id)->with('product','color','size','orders')->get();
+        $orderData =OrderProduct::where('order_id',$id)->whereHas('product')->with('product','color','size','orders')->get();
 		
         return view('api.order-pdf', compact('orderData','id'));
     }
@@ -1817,7 +1817,7 @@ public function aseSalesreport(Request $request)
 
     public function orderDetails(Request $request,$id)
     {
-        $order=OrderProduct::where('order_id',$id)->with('product','product.collection','product.category','color','size','orders')->get();
+        $order=OrderProduct::where('order_id',$id)->whereHas('product')->with('product','product.collection','product.category','color','size','orders')->get();
         if ($order) {
             return response()->json(['error'=>false, 'resp'=>'order details fetched successfully','data'=>$order]);
         } else {
@@ -1979,7 +1979,7 @@ public function aseSalesreport(Request $request)
 
     public function primaryorderDetails(Request $request,$id)
     {
-        $order=OrderProductDistributor::where('order_id',$id)->with('product','product.collection','product.category','color','size','orders')->get();
+        $order=OrderProductDistributor::where('order_id',$id)->whereHas('product')->with('product','product.collection','product.category','color','size','orders')->get();
         if ($order) {
             return response()->json(['error'=>false, 'resp'=>'order details fetched successfully','data'=>$order]);
         } else {
@@ -2257,7 +2257,7 @@ public function aseSalesreport(Request $request)
 
         // Base query
         $query = CartDistributor::where('distributor_id', $request->distributorId)
-            ->where('user_id', $request->userId)
+            ->where('user_id', $request->userId)->whereHas('product')
             ->with(['product', 'stores', 'color', 'size']);
 
         // Apply brand filter
@@ -2429,7 +2429,7 @@ public function aseSalesreport(Request $request)
 
     public function distributororderPDF_view(Request $request, $id)
     {
-        $orderData =OrderProductDistributor::where('order_id',$id)->with('product','color','size','orders')->get()->toArray();
+        $orderData =OrderProductDistributor::where('order_id',$id)->whereHas('product')->with('product','color','size','orders')->get()->toArray();
 		
         return view('api.distributor-order-pdf', compact('orderData','id'));
     }
