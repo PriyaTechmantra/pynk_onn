@@ -606,8 +606,8 @@ if (!function_exists('generateprimaryPYNKOrderNumber')) {
 
 if (!function_exists('orderProductsUpdatedMatrix')) {
     function orderProductsUpdatedMatrix($productsArr) {
-         dd($productsArr);
-        if (count($productsArr) > 0) {
+         //dd($productsArr);
+        if ($productsArr->isNotEmpty()) {
             $newProductArr = [];
             $childrenSizes = ['1-2', '2-3', '3-4', '5-6', '7-8', '9-10', '11-12', '13-14'];
 
@@ -658,7 +658,7 @@ if (!function_exists('orderProductsUpdatedMatrix')) {
 if (!function_exists('orderProductsUpdatedMatrixChild')) {
     function orderProductsUpdatedMatrixChild($productsArr) {
         // dd($productsArr);
-        if (count($productsArr) > 0) {
+        if ($productsArr->isNotEmpty()) {
             $newProductArr = [];
             $childrenSizes = ['1-2', '2-3', '3-4', '5-6', '7-8', '9-10', '11-12', '13-14'];
 
@@ -713,7 +713,7 @@ if (!function_exists('orderProductsUpdatedMatrixChild')) {
 
 if (!function_exists('orderProductsUpdatedMatrixUpdated')) {
     function orderProductsUpdatedMatrixUpdated($productsArr) {
-        if (count($productsArr) > 0) {
+       if ($productsArr->isNotEmpty()) {
             $newProductArr = $newProductArr2 = [];
             foreach($productsArr as $key => $product) {
                 $matchString = $product->product->style_no.'-'.$product->color->name;
