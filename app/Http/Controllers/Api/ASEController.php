@@ -1765,7 +1765,7 @@ public function aseSalesreport(Request $request)
 
     public function orderPDF_view(Request $request, $id)
     {
-        $orderData =OrderProduct::where('order_id',$id)->with('product','color','size','orders')->get()->toArray();
+        $orderData =OrderProduct::where('order_id',$id)->with('product','color','size','orders')->get();
 		
         return view('api.order-pdf', compact('orderData','id'));
     }

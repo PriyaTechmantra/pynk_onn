@@ -9,6 +9,14 @@ use App\Models\Distributor;
 use App\Models\Store;
 use App\Models\State;
 use App\Models\Notification;
+
+if (!function_exists('in_array_r')) {
+   
+    function in_array_r($item , $array){
+        return preg_match('/"'.preg_quote($item, '/').'"/i' , json_encode($array));
+    }
+}
+
 if (!function_exists('generateUniqueAlphaNumericValue')) {
     function generateUniqueAlphaNumericValue($length = 10) {
         $random_string = '';
@@ -594,6 +602,264 @@ if (!function_exists('generateprimaryPYNKOrderNumber')) {
         }
     }
 }
+
+
+if (!function_exists('orderProductsUpdatedMatrix')) {
+    function orderProductsUpdatedMatrix($productsArr) {
+        // dd($productsArr);
+        if (count($productsArr) > 0) {
+            $newProductArr = [];
+            $childrenSizes = ['1-2', '2-3', '3-4', '5-6', '7-8', '9-10', '11-12', '13-14'];
+
+            foreach($productsArr as $key => $product) {
+                if (!in_array($product->size_id, $childrenSizes)) {
+                    $matchString = $product->product->style_no.'-'.$product->color->name;
+
+                    if (!in_array_r($matchString, $newProductArr)) {
+                        $newProductArr[] = [
+                            'match_string' => $matchString,
+                            'product_name' => $product->product->name,
+                            'product_style_no' => $product->product->style_no,
+                            'color_id' => $product->color->id,
+                            'color' => $product->color->name,
+                            '0XS' => ($product->size->name == "XS") ? $product->qty : 0,
+                            '00S' => ($product->size->name == "S") ? $product->qty : 0,
+                            '00M' => ($product->size->name == "M") ? $product->qty : 0,
+                            '00L' => ($product->size->name == "L") ? $product->qty : 0,
+                            '0XL' => ($product->size->name == "XL") ? $product->qty : 0,
+                            '2XL' => ($product->size->name == "2XL") ? $product->qty : 0,
+                            '3XL' => ($product->size->name == "3XL") ? $product->qty : 0,
+                            '4XL' => ($product->size->name == "4XL") ? $product->qty : 0,
+                            'FREE SIZE' => ($product->size->name == "FREE SIZE") ? $product->qty : 0,
+                            'total' => $product->qty,
+                        ];
+                    } else {
+                        $i = array_search($matchString, array_column($newProductArr, 'match_string'));
+    
+                        ($product->size->name == "XS") ? $newProductArr[$i]['0XS'] += $product->qty : $newProductArr[$i]['0XS'] += 0;
+                        ($product->size->name == "S") ? $newProductArr[$i]['00S'] += $product->qty : $newProductArr[$i]['00S'] += 0;
+                        ($product->size->name == "M") ? $newProductArr[$i]['00M'] += $product->qty : $newProductArr[$i]['00M'] += 0;
+                        ($product->size->name == "L") ? $newProductArr[$i]['00L'] += $product->qty : $newProductArr[$i]['00L'] += 0;
+                        ($product->size->name == "XL") ? $newProductArr[$i]['0XL'] += $product->qty : $newProductArr[$i]['0XL'] += 0;
+                        ($product->size->name == "2XL") ? $newProductArr[$i]['2XL'] += $product->qty : $newProductArr[$i]['2XL'] += 0;
+                        ($product->size->name == "3XL") ? $newProductArr[$i]['3XL'] += $product->qty : $newProductArr[$i]['3XL'] += 0;
+                        ($product->size->name == "4XL") ? $newProductArr[$i]['4XL'] += $product->qty : $newProductArr[$i]['4XL'] += 0;
+                        ($product->size->name == "FREE SIZE") ? $newProductArr[$i]['FREE SIZE'] += $product->qty : $newProductArr[$i]['FREE SIZE'] += 0;
+                        $newProductArr[$i]['total'] += $product->qty;
+                    }
+                }
+            }
+        }
+
+        return $newProductArr;
+    }
+}
+
+if (!function_exists('orderProductsUpdatedMatrixChild')) {
+    function orderProductsUpdatedMatrixChild($productsArr) {
+        // dd($productsArr);
+        if (count($productsArr) > 0) {
+            $newProductArr = [];
+            $childrenSizes = ['1-2', '2-3', '3-4', '5-6', '7-8', '9-10', '11-12', '13-14'];
+
+            foreach($productsArr as $key => $product) {
+                if (in_array($product->size->name, $childrenSizes)) {
+                    $matchString = $product->product->style_no.'-'.$product->color->name;
+
+                    if (!in_array_r($matchString, $newProductArr)) {
+                        $newProductArr[] = [
+                            'match_string' => $matchString,
+                            'product_name' => $product->product->name,
+                            'product_style_no' => $product->product->style_no,
+                            'color_id' => $product->color->id,
+                            'color' => $product->color->name,
+                            '1-2' => ($product->size->name == "1-2") ? $product->qty : 0,
+                            '2-3' => ($product->size->name == "2-3") ? $product->qty : 0,
+                            '3-4' => ($product->size->name == "3-4") ? $product->qty : 0,
+                            '5-6' => ($product->size->name == "5-6") ? $product->qty : 0,
+                            '7-8' => ($product->size->name == "7-8") ? $product->qty : 0,
+                            '9-10' => ($product->size->name == "9-10") ? $product->qty : 0,
+                            '11-12' => ($product->size->name == "11-12") ? $product->qty : 0,
+                            '13-14' => ($product->size->name == "13-14") ? $product->qty : 0,
+                            'total' => $product->qty,
+                        ];
+                    } else {
+                        $i = array_search($matchString, array_column($newProductArr, 'match_string'));
+    
+                        ($product->size->name == "1-2") ? $newProductArr[$i]['1-2'] += $product->qty : $newProductArr[$i]['1-2'] += 0;
+                        ($product->size->name == "2-3") ? $newProductArr[$i]['2-3'] += $product->qty : $newProductArr[$i]['2-3'] += 0;
+                        ($product->size->name == "3-4") ? $newProductArr[$i]['3-4'] += $product->qty : $newProductArr[$i]['3-4'] += 0;
+                        ($product->size->name == "5-6") ? $newProductArr[$i]['5-6'] += $product->qty : $newProductArr[$i]['5-6'] += 0;
+                        ($product->size->name == "7-8") ? $newProductArr[$i]['7-8'] += $product->qty : $newProductArr[$i]['7-8'] += 0;
+                        ($product->size->name == "9-10") ? $newProductArr[$i]['9-10'] += $product->qty : $newProductArr[$i]['9-10'] += 0;
+                        ($product->size->name == "11-12") ? $newProductArr[$i]['11-12'] += $product->qty : $newProductArr[$i]['11-12'] += 0;
+                        ($product->size->name == "13-14") ? $newProductArr[$i]['13-14'] += $product->qty : $newProductArr[$i]['13-14'] += 0;
+                        // ($product->size == "S") ? $newProductArr[$i]['00S'] += $product->qty : $newProductArr[$i]['00S'] += 0;
+                        // ($product->size == "M") ? $newProductArr[$i]['00M'] += $product->qty : $newProductArr[$i]['00M'] += 0;
+                        // ($product->size == "L") ? $newProductArr[$i]['00L'] += $product->qty : $newProductArr[$i]['00L'] += 0;
+                        // ($product->size == "XL") ? $newProductArr[$i]['0XL'] += $product->qty : $newProductArr[$i]['0XL'] += 0;
+                        // ($product->size == "2XL") ? $newProductArr[$i]['2XL'] += $product->qty : $newProductArr[$i]['2XL'] += 0;
+                        // ($product->size == "3XL") ? $newProductArr[$i]['3XL'] += $product->qty : $newProductArr[$i]['3XL'] += 0;
+                        // ($product->size == "4XL") ? $newProductArr[$i]['4XL'] += $product->qty : $newProductArr[$i]['4XL'] += 0;
+                        $newProductArr[$i]['total'] += $product->qty;
+                    }
+                }
+            }
+        }
+
+        return $newProductArr;
+    }
+}
+
+if (!function_exists('orderProductsUpdatedMatrixUpdated')) {
+    function orderProductsUpdatedMatrixUpdated($productsArr) {
+        if (count($productsArr) > 0) {
+            $newProductArr = $newProductArr2 = [];
+            foreach($productsArr as $key => $product) {
+                $matchString = $product->product->style_no.'-'.$product->color->name;
+
+                $childrenSizes = ['1-2', '2-3', '3-4', '5-6', '7-8', '9-10', '11-12', '13-14'];
+
+                if (!in_array($product->size, $childrenSizes)) {
+                    if (!in_array_r($matchString, $newProductArr)) {
+                        $newProductArr[] = [
+                            'match_string' => $matchString,
+                            'product_name' => $product->product->name,
+                            'product_style_no' => $product->product->style_no,
+                            'color_id' => $product->color->id,
+                            'color' => $product->color->name,
+                            '0XS' => ($product->size->name == "XS") ? $product->qty : 0,
+                            '00S' => ($product->size->name == "S") ? $product->qty : 0,
+                            '00M' => ($product->size->name == "M") ? $product->qty : 0,
+                            '00L' => ($product->size->name == "L") ? $product->qty : 0,
+                            '0XL' => ($product->size->name == "XL") ? $product->qty : 0,
+                            '2XL' => ($product->size->name == "2XL") ? $product->qty : 0,
+                            '3XL' => ($product->size->name == "3XL") ? $product->qty : 0,
+                            '4XL' => ($product->size->name == "4XL") ? $product->qty : 0,
+                            'FREE SIZE' => ($product->size->name == "FREE SIZE") ? $product->qty : 0,
+                            'total' => $product->qty ? $product->qty : 0,
+                        ];
+                    } else {
+                        $i = array_search($matchString, array_column($newProductArr, 'match_string'));
+
+                        ($product->size->name == "XS") ? $newProductArr[$i]['0XS'] += $product->qty : $newProductArr[$i]['0XS'] += 0;
+                        ($product->size->name == "S") ? $newProductArr[$i]['00S'] += $product->qty : $newProductArr[$i]['00S'] += 0;
+                        ($product->size->name == "M") ? $newProductArr[$i]['00M'] += $product->qty : $newProductArr[$i]['00M'] += 0;
+                        ($product->size->name == "L") ? $newProductArr[$i]['00L'] += $product->qty : $newProductArr[$i]['00L'] += 0;
+                        ($product->size->name == "XL") ? $newProductArr[$i]['0XL'] += $product->qty : $newProductArr[$i]['0XL'] += 0;
+                        ($product->size->name == "2XL") ? $newProductArr[$i]['2XL'] += $product->qty : $newProductArr[$i]['2XL'] += 0;
+                        ($product->size->name == "3XL") ? $newProductArr[$i]['3XL'] += $product->qty : $newProductArr[$i]['3XL'] += 0;
+                        ($product->size->name == "4XL") ? $newProductArr[$i]['4XL'] += $product->qty : $newProductArr[$i]['4XL'] += 0;
+                        ($product->size->name == "FREE SIZE") ? $newProductArr[$i]['FREE SIZE'] += $product->qty : $newProductArr[$i]['FREE SIZE'] += 0;
+                        $newProductArr[$i]['total'] += $product->qty ? $product->qty : 0;
+                    }
+                } else {
+                    if (!in_array_r($matchString, $newProductArr2)) {
+                        $newProductArr2[] = [
+                            'match_string' => $matchString,
+                            'product_name' => $product->product->name,
+                            'product_style_no' => $product->product->style_no,
+                            'color' => $product->color->name,
+                            '1-2' => ($product->size->name == "1-2") ? $product->qty : 0,
+                            '2-3' => ($product->size->name == "2-3") ? $product->qty : 0,
+                            '3-4' => ($product->size->name == "3-4") ? $product->qty : 0,
+                            '5-6' => ($product->size->name == "5-6") ? $product->qty : 0,
+                            '7-8' => ($product->size->name == "7-8") ? $product->qty : 0,
+                            '9-10' => ($product->size->name == "9-10") ? $product->qty : 0,
+                            '11-12' => ($product->size->name == "11-12") ? $product->qty : 0,
+                            '13-14' => ($product->size->name == "13-14") ? $product->qty : 0,
+                            'total' => $product->qty ? $product->qty : 0,
+                        ];
+                    } else {
+                        ($product->size->name == "1-2") ? $newProductArr2[$i]['1-2'] += $product->qty : $newProductArr2[$i]['1-2'] += 0;
+                        ($product->size->name == "2-3") ? $newProductArr2[$i]['2-3'] += $product->qty : $newProductArr2[$i]['2-3'] += 0;
+                        ($product->size->name == "3-4") ? $newProductArr2[$i]['3-4'] += $product->qty : $newProductArr2[$i]['3-4'] += 0;
+                        ($product->size->name == "5-6") ? $newProductArr2[$i]['5-6'] += $product->qty : $newProductArr2[$i]['5-6'] += 0;
+                        ($product->size->name == "7-8") ? $newProductArr2[$i]['7-8'] += $product->qty : $newProductArr2[$i]['7-8'] += 0;
+                        ($product->size->name == "9-10") ? $newProductArr2[$i]['9-10'] += $product->qty : $newProductArr2[$i]['9-10'] += 0;
+                        ($product->size->name == "11-12") ? $newProductArr2[$i]['11-12'] += $product->qty : $newProductArr2[$i]['11-12'] += 0;
+                        ($product->size->name == "13-14") ? $newProductArr2[$i]['13-14'] += $product->qty : $newProductArr2[$i]['13-14'] += 0;
+                        $newProductArr2[$i]['total'] += $product->qty ? $product->qty : 0;
+                    }
+                }
+
+                // if($key == 3) dd($newProductArr, $newProductArr2);
+            }
+        }
+
+        //dd($newProductArr, $newProductArr2);
+
+        $content = '<table class="table table-sm table-bordered" >
+        <thead>
+            <tr>
+                <th style="color: #6c757d; font-size: 13px; min-width:200px; border-bottom:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">0XS</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">00S</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">00M</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">00L</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">0XL</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">2XL</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">3XL</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">4XL</th>
+                <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">Total</th>
+            </tr>
+        </thead>
+        <tbody>';
+
+        $finalTotal = 0;
+        foreach($newProductArr as $productKey => $productValue) {
+            $XS = $productValue["0XS"] ? $productValue["0XS"] : '';
+            $S = $productValue["00S"] ? $productValue["00S"] : '';
+            $M = $productValue["00M"] ? $productValue["00M"] : '';
+            $L = $productValue["00L"] ? $productValue["00L"] : '';
+            $XL = $productValue["0XL"] ? $productValue["0XL"] : '';
+            $XXL = $productValue["2XL"] ? $productValue["2XL"] : '';
+            $XXXL = $productValue["3XL"] ? $productValue["3XL"] : '';
+            $XXXXL = $productValue["4XL"] ? $productValue["4XL"] : '';
+
+            $content .= '<tr>
+                <td style="; border-bottom:2px solid #000;">
+                    <p class="small text-dark fw-bold mb-0">'.$productValue["product"]["name"].'</p>
+                    <p class="small text-dark fw-bold mb-0">'.$productValue["product"]["style_no"].'</p>
+                    <p class="small text-dark fw-bold mb-0">'.$productValue["color"]["name"].'</p>
+                </td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$XS.'</p></td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$S.'</p></td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$M.'</p></td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$L.'</p></td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$XL.'</p></td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$XXL.'</p></td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$XXXL.'</p></td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$XXXXL.'</p></td>
+                <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">'.$productValue["total"].'</p></td>
+            </tr>';
+
+            $finalTotal += $productValue["total"];
+        }
+
+        $content .= '<tr>
+                    <td style="">
+                        <p class="small text-muted  mb-0">Total</p>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td style="border-left:2px solid #000;"><p class="small text-muted fw-bold mb-0">'.$finalTotal.'</p></td>
+                </tr>
+            </tbody>
+        </table>';
+
+        // dd($content);
+
+        return $content;
+    }
+}
+
 
 
 
