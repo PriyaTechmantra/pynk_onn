@@ -606,7 +606,7 @@ if (!function_exists('generateprimaryPYNKOrderNumber')) {
 
 if (!function_exists('orderProductsUpdatedMatrix')) {
     function orderProductsUpdatedMatrix($productsArr) {
-         //dd($productsArr);
+         dd($productsArr);
         if (count($productsArr) > 0) {
             $newProductArr = [];
             $childrenSizes = ['1-2', '2-3', '3-4', '5-6', '7-8', '9-10', '11-12', '13-14'];
