@@ -2238,7 +2238,7 @@ public function aseSalesreport(Request $request)
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/distributor/cart/pdf/view/'.$request->distributorId.'/'.$request->userId.'/'.$brandId,
+            'data' => url('/').'/api/distributor/cart/pdf/view/?distributorId='.$request->distributorId.'&userId='.$request->userId.'&brand='.$brandId,
         ]);
     }
 
