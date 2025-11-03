@@ -8,4 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class CartDistributor extends Model
 {
     use HasFactory;
+
+    public function product() {
+        return $this->belongsTo('App\Models\Product', 'product_id', 'id');
+    }
+    public function users() {
+        return $this->belongsTo('App\Models\User', 'user_id', 'id');
+    }
+    public function distributors() {
+        return $this->belongsTo('App\Models\Distributor', 'distributor_id', 'id');
+    }
+    public function color() {
+        return $this->belongsTo('App\Models\Color', 'color_id', 'id');
+    }
+    public function size() {
+        return $this->belongsTo('App\Models\Size', 'size_id', 'id');
+    }
 }
