@@ -134,7 +134,7 @@ class ASEController extends Controller
     $attendance = [
         
         "user_id" => $request->user_id,
-        "entry_date" => $request->entry_date,
+        "entry_date" => $request->start_date,
         "start_time" => $request->start_time,
         "type" => 'P',
          "created_at" => now(),
