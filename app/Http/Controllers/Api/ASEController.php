@@ -2258,7 +2258,7 @@ public function aseSalesreport(Request $request)
         // Base query
         $query = CartDistributor::where('distributor_id', $request->distributorId)
             ->where('user_id', $request->userId)->whereHas('product')
-            ->with(['product', 'stores', 'color', 'size']);
+            ->with(['product', 'distributors', 'color', 'size']);
 
         // Apply brand filter
         if ($brandCode) {
