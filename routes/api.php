@@ -123,7 +123,7 @@ Route::post('distributor/mom/store', [ASEController::class, 'momStore']);
 Route::post('distributor/bulkAddTocart', [ASEController::class, 'distributorbulkAddTocart']);
 Route::get('distributor/cart/qty/update', [ASEController::class, 'distributorcartqtyUpdate']);
 Route::get('distributor/cart/preview/pdf/url', [ASEController::class, 'distributorcartPreviewPDF_URL']);
-Route::get('distributor/cart/preview/pdf/view', [ASEController::class, 'distributorcartPreviewPDF_view']);
+Route::get('distributor/cart/pdf/view', [ASEController::class, 'distributorcartPreviewPDF_view']);
 Route::get('distributor/cart/clear/{id}', [ASEController::class, 'distributorclearCart']);
 Route::get('distributor/cart/delete/{id}', [ASEController::class, 'distributorcartDelete']);
 //return book
