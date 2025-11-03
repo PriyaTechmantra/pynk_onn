@@ -102,7 +102,7 @@ Route::get('order/pdf/url/{id}', [ASEController::class, 'orderPDF_URL']);
 
 
 Route::get('order/pdf/view/{id}', [ASEController::class, 'orderPDF_view']);
-Route::get('my-orders', [ASEController::class, 'myOrdersFilter']);
+Route::post('my-orders', [ASEController::class, 'myOrdersFilter']);
 
 Route::post('store-wise-report-ase', [ASEController::class, 'storeReportASE']);
 
@@ -135,3 +135,6 @@ Route::get('distributor/order/pdf/url/{id}', [ASEController::class, 'distributor
 
 
 Route::get('distributor/order/pdf/view/{id}', [ASEController::class, 'distributororderPDF_view']);
+
+
+
