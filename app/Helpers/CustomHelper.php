@@ -516,8 +516,8 @@ if (!function_exists('generatePYNKOrderNumber')) {
 
 if (!function_exists('generateprimaryONNOrderNumber')) {
     function generateprimaryONNOrderNumber(string $type, int $id) {
-        if ($type == "secondary") {
-            $shortOrderCode = "SC";
+        if ($type == "primary") {
+            $shortOrderCode = "PR";
             $orderData = OrderDistributor::select('sequence_no')->latest('id')->first();
 
             // ✅ Handle empty case properly
