@@ -72,7 +72,7 @@
                                         <p><strong>Print Date:</strong> <u>{{date('d.m.Y')}}</u></p>
                                         <p><strong>From:</strong></p>
                                         <p><strong>M/S: </strong> <u>{{$data->distributors ? $data->distributors->name : ''}}</u></p>
-                                        @if ($data->stores)
+                                        @if ($data->distributors)
                                             <p><u>{{ $data->distributors->address.' '.$data->distributors->areas->name.' '.$data->distributors->states->name.' '.$data->distributors->city.' '.$data->distributors->pin }}</u></p>
                                             <p><strong>Booking Place:</strong> <u>{{ $data->distributors->city ? $data->distributors->city : $data->distributors->areas->name }}</u></p>
                                         @endif
