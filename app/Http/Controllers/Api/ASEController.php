@@ -1646,7 +1646,7 @@ public function aseSalesreport(Request $request)
             }
             $cart_count = Cart::where('store_id', $collectedData['store_id'])
             ->where('user_id',$collectedData['user_id'])
-            ->where('brand',$brandValue)
+            ->where('brand',$brandValue)->whereHas('product')
             ->with(['product' => function ($query) {
                 $query->where('status', 1)
                     ->where('is_deleted', 0);
@@ -2297,7 +2297,7 @@ public function aseSalesreport(Request $request)
             }
             $cart_count = CartDistributor::where('distributor_id', $collectedData['distributor_id'])
             ->where('user_id',$collectedData['user_id'])
-            ->where('brand',$brandValue)
+            ->where('brand',$brandValue)->whereHas('product')
             ->with(['product' => function ($query) {
                 $query->where('status', 1)
                     ->where('is_deleted', 0);
