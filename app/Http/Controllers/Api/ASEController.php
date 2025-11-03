@@ -1608,7 +1608,7 @@ public function aseSalesreport(Request $request)
             }
         }
 
-        $cartData = $query->get()->toArray();
+        $cartData = $query->get();
 
         return view('api.cart-pdf', compact('cartData'));
     }
