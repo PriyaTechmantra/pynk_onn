@@ -1962,7 +1962,7 @@ public function aseSalesreport(Request $request)
         //dd($request->all);
          $validator = Validator::make($request->all(), [
             'distributor_id' => ['required'],
-            'user_id' => ['required'],
+            'ase_id' => ['required'],
             'comment' => ['nullable', 'string', 'min:1'],
             'brand'  => ['required'],
            
@@ -1973,10 +1973,18 @@ public function aseSalesreport(Request $request)
                 'error' => $validator->errors()
             ], 400);
         }
+        // ✅ Convert brand name to code
+            $brandMap = [
+                'ONN' => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+        $brandCode = $brandMap[$request['brand']] ?? null;
         $data = new DistributorMom;
         $data->user_id = $request->ase_id;
         $data->distributor_id = $request->distributor_id;
-        $data->brand = $request->brand;
+        $data->brand = $brandCode;
         $data->comment = $request->comment;
         $data->save();
         if($data){
