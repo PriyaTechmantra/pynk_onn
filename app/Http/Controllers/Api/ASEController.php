@@ -1609,7 +1609,7 @@ public function aseSalesreport(Request $request)
         }
 
         $cartData = $query->get();
-
+        dd($cartData);
         return view('api.cart-pdf', compact('cartData'));
     }
 
@@ -1766,7 +1766,7 @@ public function aseSalesreport(Request $request)
     public function orderPDF_view(Request $request, $id)
     {
         $orderData =OrderProduct::where('order_id',$id)->whereHas('product')->with('product','color','size','orders')->get();
-		dd($orderData);
+		
         return view('api.order-pdf', compact('orderData','id'));
     }
 
