@@ -63,7 +63,7 @@
 
                                 @php
                                     $order_id = $orderData[0]->order_id;
-                                    $data = \App\Models\Order::findOrFail($order_id);
+                                    $data = \App\Models\OrderDistributor::findOrFail($order_id);
                                 @endphp
 
                                 <div class="col-6">
