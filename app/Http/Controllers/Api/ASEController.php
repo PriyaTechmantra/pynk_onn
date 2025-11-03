@@ -1575,7 +1575,7 @@ public function aseSalesreport(Request $request)
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/cart/pdf/view/'.$request->storeId.'/'.$request->userId.'/'.$brandId,
+            'data' => url('/').'/api/cart/pdf/view/?storeId='.$request->storeId.'&userId='.$request->userId.'&brand='.$brandId,
         ]);
     }
 
