@@ -4,6 +4,7 @@ use App\Models\Team;
 use App\Models\UserAttendance;
 use App\Models\Employee;
 use App\Models\Order;
+use App\Models\OrderDistributor;
 use App\Models\Store;
 use App\Models\State;
 use App\Models\Notification;
@@ -509,5 +510,89 @@ if (!function_exists('generatePYNKOrderNumber')) {
         }
     }
 }
+
+
+
+
+if (!function_exists('generateprimaryONNOrderNumber')) {
+    function generateprimaryONNOrderNumber(string $type, int $id) {
+        if ($type == "secondary") {
+            $shortOrderCode = "SC";
+            $orderData = OrderDistributor::select('sequence_no')->latest('id')->first();
+
+            // ✅ Handle empty case properly
+            $new_sequence_no = !empty($orderData) && !empty($orderData->sequence_no)
+                ? (int) $orderData->sequence_no + 1
+                : 1;
+
+            $ordNo = sprintf("%'.07d", $new_sequence_no);
+
+            $storeData = Distributor::where('id', $id)->with('states:id,name')->first();
+
+            if (!empty($storeData) && !empty($storeData->states)) {
+                $state = $storeData->states->name;
+
+                if (in_array($state, ["UP CENTRAL", "UP East", "UP WEST"])) {
+                    $stateCode = match ($state) {
+                        "UP CENTRAL" => "UPC",
+                        "UP East" => "UPE",
+                        "UP WEST" => "UPW",
+                    };
+                } else {
+                    $stateCodeData = State::where('name', $state)->first();
+                    $stateCode = $stateCodeData->code ?? 'NA';
+                }
+
+                $order_no = "ONN-" . date('Y') . '-' . $shortOrderCode . '-' . $stateCode . '-' . $ordNo;
+
+                return [$order_no, $new_sequence_no];
+            }
+
+            return [null, null]; // fallback
+        }
+    }
+}
+
+
+
+if (!function_exists('generateprimaryPYNKOrderNumber')) {
+    function generateprimaryPYNKOrderNumber(string $type, int $id) {
+        if ($type == "primary") {
+            $shortOrderCode = "PR";
+            $orderData = OrderDistributor::select('sequence_no')->latest('id')->first();
+
+            // ✅ Handle empty case properly
+            $new_sequence_no = !empty($orderData) && !empty($orderData->sequence_no)
+                ? (int) $orderData->sequence_no + 1
+                : 1;
+
+            $ordNo = sprintf("%'.07d", $new_sequence_no);
+
+            $storeData = Distributor::where('id', $id)->with('states:id,name')->first();
+
+            if (!empty($storeData) && !empty($storeData->states)) {
+                $state = $storeData->states->name;
+
+                if (in_array($state, ["UP CENTRAL", "UP East", "UP WEST"])) {
+                    $stateCode = match ($state) {
+                        "UP CENTRAL" => "UPC",
+                        "UP East" => "UPE",
+                        "UP WEST" => "UPW",
+                    };
+                } else {
+                    $stateCodeData = State::where('name', $state)->first();
+                    $stateCode = $stateCodeData->code ?? 'NA';
+                }
+
+                $order_no = "PYNK-" . date('Y') . '-' . $shortOrderCode . '-' . $stateCode . '-' . $ordNo;
+
+                return [$order_no, $new_sequence_no];
+            }
+
+            return [null, null]; // fallback
+        }
+    }
+}
+
 
 
