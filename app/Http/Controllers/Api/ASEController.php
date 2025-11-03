@@ -2271,7 +2271,7 @@ public function aseSalesreport(Request $request)
             }
         }
 
-        $cartData = $query->get()->toArray();
+        $cartData = $query->get();
 
         return view('api.distributor-cart-pdf', compact('cartData'));
     }

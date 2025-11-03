@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
-    <title>Secondary Order Form</title>
+    <title>Cart Preview</title>
 
     <style>
         .bg-dark-new {
@@ -19,8 +19,8 @@
     </style>
 </head>
 <body class="bg-dark">
-    @if ($orderData->isNotEmpty())
-    
+
+    @if ($cartData->isNotEmpty())
         <nav class="navbar bg-dark-new">
             <div class="container">
                 <div class="w-100">
@@ -43,55 +43,14 @@
             <div class="card rounded-0">
                 <div class="card-body">
                     <div id="DivIdToPrint">
-                        <div class="mb-3" style="border:2px solid #000; padding: 0px 27px;">
-                            <div class="row">
-                                <div class="col-12 text-center">
-                                    <h3 style="margin: 28px 0;">Order Form</h3>
-                                </div>
-                            </div>
-
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <div style="padding:0 15px;">
-                                        <h4 style="font-weight: 500;">Lux Industries Limited</h4>
-                                        <p style="margin-bottom:4px;">17th floor, North Wing</p>
-                                        <p style="margin-bottom:4px;">Adventz Infinity</p>
-                                        <p style="margin-bottom:4px;">BN - 5, Sector V</p>
-                                        <p>Kolkata - 700091, W.B., India</p>
-                                    </div>
-                                </div>
-
-                                @php
-                                    $order_id = $orderData[0]->order_id;
-                                    $data = \App\Models\Order::findOrFail($order_id);
-                                @endphp
-
-                                <div class="col-6">
-                                    <div style="padding: 0 15px 14px; border-left:2px solid #000;">
-                                        <p><strong>Order no./ Date:</strong> <u>{{$data->order_no}}/ {{date('d.m.Y', strtotime($data->created_at))}}</u></p>
-                                        <p><strong>Print Date:</strong> <u>{{date('d.m.Y')}}</u></p>
-                                        <p><strong>From:</strong></p>
-                                        <p><strong>M/S: </strong> <u>{{$data->stores ? $data->stores->name : ''}}</u></p>
-                                        @if ($data->stores)
-                                            <p><u>{{ $data->stores->address.' '.$data->stores->area->name.' '.$data->stores->state->name.' '.$data->stores->city.' '.$data->stores->pin }}</u></p>
-                                            <p><strong>Booking Place:</strong> <u>{{ $data->stores->city ? $data->stores->city : $data->stores->area->name }}</u></p>
-                                        @endif
-										@if(!empty($data->users))
-                                        <p style="margin-bottom:0;"><strong>ASE:</strong> <u>{{$data->users ? $data->users->name : ''}}</u></p>
-										@else
-										<p style="margin-bottom:0;"><strong>ASE:</strong> <u>{{$data->users ? $data->users->name : ''}}</u></p>
-										@endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        
 
                         
 
                         <div class="table-responsive">
                             <table class="table table-sm" style="border-left:2px solid #000; border-bottom:2px solid #000;">
                                 <thead>
-                                    @if(count(orderProductsUpdatedMatrix($orderData)) > 0)
+                                    @if(count(orderProductsUpdatedMatrix($cartData)) > 0)
                                     <tr>
                                         <th style="font-size: 13px; min-width:200px; border-top:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
                                         <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">0XS</th>
@@ -112,7 +71,7 @@
                                     @php
                                         $totalCOunt = 0;
                                     @endphp
-                                    @foreach(orderProductsUpdatedMatrix($orderData) as $productKey => $productValue)
+                                    @foreach(orderProductsUpdatedMatrix($cartData) as $productKey => $productValue)
 									
                                     @php
 									    $color=\App\Models\Color::where('id',$productValue['color_id'])->first();
@@ -140,7 +99,7 @@
                                     </tr>
                                     @endforeach
                                     @endif
-                                    @if(count(orderProductsUpdatedMatrixChild($orderData)) > 0)
+                                    @if(count(orderProductsUpdatedMatrixChild($cartData)) > 0)
                                     <thead>
                                         <tr>
                                             <th style="color: #6c757d; font-size: 13px; min-width:200px; border-bottom:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
@@ -160,7 +119,7 @@
                                         @php
                                             $totalProductCount = 0;
                                         @endphp
-                                        @foreach(orderProductsUpdatedMatrixChild($orderData) as $productKey => $productOrderValue)
+                                        @foreach(orderProductsUpdatedMatrixChild($cartData) as $productKey => $productOrderValue)
                                         @php
 										 $color=\App\Models\Color::where('id',$productValue['color_id'])->first();
                                             $totalCOunt += $productOrderValue['total'];
@@ -214,7 +173,7 @@
             </div>
         </div>
     @else
-    <p>No order items found.</p>
+    <p>No cart items found.</p>
     @endif
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
