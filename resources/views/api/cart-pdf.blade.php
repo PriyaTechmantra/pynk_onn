@@ -20,7 +20,7 @@
 </head>
 <body class="bg-dark">
 
-    @if ($cartData)
+    @if ($cartData->isNotEmpty())
         <nav class="navbar bg-dark-new">
             <div class="container">
                 <div class="w-100">
@@ -172,6 +172,8 @@
                 </div>
             </div>
         </div>
+    @else
+    <p>No cart items found.</p>
     @endif
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
