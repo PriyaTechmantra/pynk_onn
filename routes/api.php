@@ -111,4 +111,10 @@ Route::get('catalogue', [ASEController::class, 'catalogueList']);
 Route::get('scheme', [ASEController::class, 'schemeList']);
 Route::get('news', [ASEController::class, 'newsList']);
 
+Route::get('primary/order/list', [ASEController::class, 'primaryorderList']);
 
+Route::get('primary/order/details/{id}', [ASEController::class, 'primaryorderDetails']);
+//mom
+Route::post('distributor/note/list', [ASEController::class, 'momList']);
+
+Route::post('distributor/mom/store', [ASEController::class, 'momStore']);

@@ -24,6 +24,9 @@ use App\Models\ProductColorSize;
 use App\Models\UserNoOrderReason;
 use App\Models\Order;
 use App\Models\OrderProduct;
+use App\Models\OrderProductDistributor;
+use App\Models\OrderDistributor;
+use App\Models\DistributorMom;
 use Str;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserPermissionCategory;
@@ -1752,17 +1755,40 @@ public function aseSalesreport(Request $request)
     public function orderList(Request $request)
     {
         $brandMap = [
-                'ONN' => 1,
-                'PYNK' => 2,
-                'Both' => 3,
-            ];
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
 
         $brandCode = $brandMap[$request->brand] ?? null;
-        $order=Order::where('store_id',$request->storeId)->where('user_id',$request->userId)->where('brand',$brandCode)->orderby('id','desc')->with('stores:id,name')->get();
-        if ($order) {
-            return response()->json(['error'=>false, 'resp'=>'order List fetched successfully','data'=>$order]);
+
+        $orderQuery = Order::where('store_id', $request->storeId)
+            ->where('user_id', $request->userId)
+            ->where('brand', $brandCode)
+            ->with('stores:id,name')
+            ->orderBy('id', 'desc');
+
+        // ✅ Apply date filters only if provided
+        if ($request->filled('from') && $request->filled('to')) {
+            $fromDate = date('Y-m-d 00:00:00', strtotime($request->from));
+            $toDate = date('Y-m-d 23:59:59', strtotime($request->to));
+
+            $orderQuery->whereBetween('created_at', [$fromDate, $toDate]);
+        }
+
+        $orders = $orderQuery->get();
+
+        if ($orders->isNotEmpty()) {
+            return response()->json([
+                'error' => false,
+                'resp' => 'Order list fetched successfully',
+                'data' => $orders
+            ]);
         } else {
-            return response()->json(['error' => true, 'resp' => 'Something happened']);
+            return response()->json([
+                'error' => true,
+                'resp' => 'No orders found for the given filters'
+            ]);
         }
     }
 
@@ -1879,6 +1905,130 @@ public function aseSalesreport(Request $request)
             'data' => $data,
         ]);
     }
+
+    //primary order
+    public function primaryorderList(Request $request)
+    {
+        $brandMap = [
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandCode = $brandMap[$request->brand] ?? null;
+
+        $orderQuery = OrderDistributor::where('distributor_id', $request->distributorId)
+            ->where('brand', $brandCode)
+            ->with('distributors:id,name')
+            ->orderBy('id', 'desc');
+
+        // ✅ Apply date filters only if provided
+        if ($request->filled('from') && $request->filled('to')) {
+            $fromDate = date('Y-m-d 00:00:00', strtotime($request->from));
+            $toDate = date('Y-m-d 23:59:59', strtotime($request->to));
+
+            $orderQuery->whereBetween('created_at', [$fromDate, $toDate]);
+        }
+
+        $orders = $orderQuery->get();
+
+        if ($orders->isNotEmpty()) {
+            return response()->json([
+                'error' => false,
+                'resp' => 'Order list fetched successfully',
+                'data' => $orders
+            ]);
+        } else {
+            return response()->json([
+                'error' => true,
+                'resp' => 'No orders found for the given filters'
+            ]);
+        }
+    }
+
+    public function primaryorderDetails(Request $request,$id)
+    {
+        $order=OrderProductDistributor::where('order_id',$id)->with('product','product.collection','product.category','color','size','orders')->get();
+        if ($order) {
+            return response()->json(['error'=>false, 'resp'=>'order details fetched successfully','data'=>$order]);
+        } else {
+            return response()->json(['error' => true, 'resp' => 'Something happened']);
+        }
+    }
+
+    public function momStore(Request $request): JsonResponse
+    {
+        //dd($request->all);
+         $validator = Validator::make($request->all(), [
+            'distributor_id' => ['required'],
+            'user_id' => ['required'],
+            'comment' => ['nullable', 'string', 'min:1'],
+            'brand'  => ['required'],
+           
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'error' => $validator->errors()
+            ], 400);
+        }
+        $data = new DistributorMom;
+        $data->user_id = $request->ase_id;
+        $data->distributor_id = $request->distributor_id;
+        $data->brand = $request->brand;
+        $data->comment = $request->comment;
+        $data->save();
+        if($data){
+            return response()->json(['error'=>false, 'resp'=>'MOM added successfully','data'=>$data]);
+        } else {
+            return response()->json([
+                'error' => true,
+                'resp' => 'Something Happened'
+            ]);
+        }
+    }
+
+
+    public function momList(Request $request)
+    {
+        $brandMap = [
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandCode = $brandMap[$request->brand] ?? null;
+
+        $orderQuery = DistributorMom::where('distributor_id', $request->distributorId)->where('user_id', $request->user_id)
+            ->where('brand', $brandCode)
+            ->with('distributors:id,name')
+            ->orderBy('id', 'desc');
+
+        // ✅ Apply date filters only if provided
+        if ($request->filled('from') && $request->filled('to')) {
+            $fromDate = date('Y-m-d 00:00:00', strtotime($request->from));
+            $toDate = date('Y-m-d 23:59:59', strtotime($request->to));
+
+            $orderQuery->whereBetween('created_at', [$fromDate, $toDate]);
+        }
+
+        $orders = $orderQuery->get();
+
+        if ($orders->isNotEmpty()) {
+            return response()->json([
+                'error' => false,
+                'resp' => 'Mom list fetched successfully',
+                'data' => $orders
+            ]);
+        } else {
+            return response()->json([
+                'error' => true,
+                'resp' => 'No mom found for the given filters'
+            ]);
+        }
+    }
+
+
     
 
 
