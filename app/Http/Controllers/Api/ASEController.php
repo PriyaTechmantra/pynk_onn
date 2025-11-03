@@ -392,7 +392,7 @@ public function aseSalesreport(Request $request)
         ->where('status', 1)
         ->where('is_deleted', 0)
         ->get();
-    dd($stores);
+    dd($brandsToCheck);
     foreach ($stores as $store) {
         $qty = SecondaryOrder::where('retailer_id', $store->id)
             ->whereIn('brand', $brandsToCheck)
