@@ -1828,7 +1828,9 @@ public function aseSalesreport(Request $request)
                 'date_to' => ['nullable'],
                 'brand' => ['required'],
             ]);
-    
+            if ($validator->fails()) {
+                return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+            }
             $user_id = $request->user_id;
             $brandMap = [
                 'ONN' => 1,
@@ -1876,7 +1878,7 @@ public function aseSalesreport(Request $request)
                         $user_id = $o->user_id;
                         $order_id = $o->id;
     
-                        $storesData = Store::where('id',$store_id)->with('states','areas')->first();
+                        $storesData = Store::where('id',$store_id)->with('state','area')->first();
                         $usersData = Employee::where('id',$user_id)->first();
                         $orderResult = OrderProduct::select(DB::raw("IFNULL(SUM(qty),0) as product_count"))->where('order_id',$order_id)->get();
                         $o->stores = $storesData;
