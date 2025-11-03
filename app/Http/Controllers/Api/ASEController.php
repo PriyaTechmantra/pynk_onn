@@ -2555,6 +2555,34 @@ public function productReportASE(Request $request)
     ]);
 }
 
+//activity log
+    public function activityList(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            "user_id" => "required|integer",
+            "date" => "required|date",
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+        }
+    
+        $user_id = $request->input('user_id');
+        $date = $request->input('date');
+    
+        // Fetch activities directly without unnecessary object casting
+        $activities = Activity::where('user_id', $user_id)
+            ->whereDate('date', $date)
+            ->latest('id')
+            ->get();
+    
+        if ($activities->isEmpty()) {
+            return response()->json(['error' => true, 'resp' => 'No data found']);
+        }
+    
+        return response()->json(['error' => false, 'resp' => 'Activity List', 'data' => $activities]);
+    }
+
 
 
 

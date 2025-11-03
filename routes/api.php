@@ -136,5 +136,5 @@ Route::get('distributor/order/pdf/url/{id}', [ASEController::class, 'distributor
 
 Route::get('distributor/order/pdf/view/{id}', [ASEController::class, 'distributororderPDF_view']);
 
-
+Route::get('activity', [ASEController::class, 'activityList']);
 
