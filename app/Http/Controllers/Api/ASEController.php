@@ -2250,7 +2250,7 @@ public function aseSalesreport(Request $request)
     public function distributorplaceOrderUpdate(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'store_id' => ['required'],
+            'distributor_id' => ['required'],
             'user_id' => ['required'],
             'brand' => ['required'],
             'order_type' => ['required', 'string', 'min:1'],
@@ -2277,7 +2277,7 @@ public function aseSalesreport(Request $request)
                     'message' => 'Invalid brand value.',
                 ]);
             }
-            $cart_count = Cart::where('store_id', $collectedData['store_id'])
+            $cart_count = CartDistributor::where('distributor_id', $collectedData['distributor_id'])
             ->where('user_id',$collectedData['user_id'])
             ->where('brand',$brandValue)
             ->with(['product' => function ($query) {
@@ -2290,22 +2290,23 @@ public function aseSalesreport(Request $request)
                 $firstCart = $cart_count->first();
 
                 if ($firstCart->brand == 1) {
-                    [$order_no, $sequence_no] = generateONNOrderNumber('secondary', $collectedData['store_id']);
+                    [$order_no, $sequence_no] = generateprimaryONNOrderNumber('primary', $collectedData['distributor_id']);
                 } else {
-                    [$order_no, $sequence_no] = generatePYNKOrderNumber('secondary', $collectedData['store_id']);
+                    [$order_no, $sequence_no] = generateprimaryPYNKOrderNumber('primary', $collectedData['distributor_id']);
                 }
                             // 1 order
-                $newEntry = new Order;
+                $newEntry = new OrderDistributor;
                 $newEntry->sequence_no = $sequence_no;
                 $newEntry->order_no = $order_no;
-                $newEntry->store_id = $collectedData['store_id'];
+                $newEntry->distributor_id = $collectedData['distributor_id'];
                 $newEntry->brand = $brandValue;
                 $newEntry->user_id = $collectedData['user_id'];
+                $newEntry->order_placed_by = 'ase';
                 //$newEntry->distributor_id = $collectedData['distributor_id'] ?? '';
                 $aseDetails=DB::select("select * from employees where id='".$collectedData['user_id']."'");
                 $aseName=$aseDetails[0]->name;
-                $user=$newEntry->store_id;
-    			$result = DB::select("select * from stores where id='".$user."'");
+                $user=$newEntry->distributor_id;
+    			$result = DB::select("select * from distributors where id='".$user."'");
                 $item=$result[0];
                 $name = $item->name;
                 $newEntry->order_type = $collectedData['order_type'] ?? null;
@@ -2345,19 +2346,19 @@ public function aseSalesreport(Request $request)
                         "updated_at" => date('Y-m-d H:i:s'),
                     ];
                 }
-                $orderProductsNewEntry = OrderProduct::insert($orderProducts);
-                  Cart::where('store_id', $newEntry->store_id)->where('user_id',$newEntry->user_id)->where('brand',$brandValue)->delete();
+                $orderProductsNewEntry = OrderProductDistributor::insert($orderProducts);
+                  CartDistributor::where('distributor_id', $newEntry->distributor_id)->where('user_id',$newEntry->user_id)->where('brand',$brandValue)->delete();
     
     			// notification: sender, receiver, type, route, title
                 // notification to ASE
-                sendNotification($collectedData['user_id'], 'admin', 'secondary-order-place', 'front.user.order', $totalOrderQty.' New order placed',$totalOrderQty.' new order placed  '.$name);
+                sendNotification($collectedData['user_id'], 'admin', 'primary-order-place', 'front.user.order', $totalOrderQty.' New order placed',$totalOrderQty.' new order placed  '.$name);
     
     
     			// notification to ASM
     			$loggedInUser = $aseName;
     				$asm = DB::select("SELECT u.id as asm_id FROM `teams` t  INNER JOIN employees u ON u.id = t.asm_id where t.ase_id = '".$collectedData['user_id']."' GROUP BY t.asm_id");
     			foreach($asm as $value){
-    				sendNotification($collectedData['user_id'], $value->asm_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
+    				sendNotification($collectedData['user_id'], $value->asm_id, 'primary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
     			}
     
                
@@ -2365,14 +2366,14 @@ public function aseSalesreport(Request $request)
     			$loggedInUser = $aseName;
     			$rsm = DB::select("SELECT u.id as rsm_id FROM `teams` t  INNER JOIN employees u ON u.id = t.rsm_id where t.ase_id = '".$collectedData['user_id']."' GROUP BY t.rsm_id");
     			foreach($rsm as $value){
-    				sendNotification($collectedData['user_id'], $value->rsm_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
+    				sendNotification($collectedData['user_id'], $value->rsm_id, 'primary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
     			}
     			
     			// notification to vp
     			$loggedInUser = $aseName;
     			$zsm = DB::select("SELECT u.id as vp_id FROM `teams` t  INNER JOIN employees u ON u.id = t.vp_id where t.ase_id = '".$collectedData['user_id']."' GROUP BY t.vp_id");
     			foreach($zsm as $value){
-    				sendNotification($collectedData['user_id'], $value->vp_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
+    				sendNotification($collectedData['user_id'], $value->vp_id, 'primary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
     			}
     
     
@@ -2390,7 +2391,7 @@ public function aseSalesreport(Request $request)
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/order/pdf/view/'.$id,
+            'data' => url('/').'/api/distributor/order/pdf/view/'.$id,
         ]);
     }
 
@@ -2398,9 +2399,9 @@ public function aseSalesreport(Request $request)
 
     public function distributororderPDF_view(Request $request, $id)
     {
-        $orderData =OrderProduct::where('order_id',$id)->with('product','color','size','orders')->get()->toArray();
+        $orderData =OrderProductDistributor::where('order_id',$id)->with('product','color','size','orders')->get()->toArray();
 		
-        return view('api.order-pdf', compact('orderData','id'));
+        return view('api.distributor-order-pdf', compact('orderData','id'));
     }
 
     
