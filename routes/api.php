@@ -118,3 +118,20 @@ Route::get('primary/order/details/{id}', [ASEController::class, 'primaryorderDet
 Route::get('distributor/mom/list', [ASEController::class, 'momList']);
 
 Route::post('distributor/mom/store', [ASEController::class, 'momStore']);
+//primary order
+
+Route::post('distributor/bulkAddTocart', [ASEController::class, 'distributorbulkAddTocart']);
+Route::get('distributor/cart/qty/update', [ASEController::class, 'distributorcartqtyUpdate']);
+Route::get('distributor/cart/preview/pdf/url', [ASEController::class, 'distributorcartPreviewPDF_URL']);
+Route::get('distributor/cart/preview/pdf/view', [ASEController::class, 'distributorcartPreviewPDF_view']);
+Route::get('distributor/cart/clear/{id}', [ASEController::class, 'distributorclearCart']);
+Route::get('distributor/cart/delete/{id}', [ASEController::class, 'distributorcartDelete']);
+//return book
+Route::get('distributor/cart/list', [ASEController::class, 'showBydistributor']);
+
+Route::post('distributor-place-order', [ASEController::class, 'distributorplaceOrderUpdate']);
+
+Route::get('distributor/order/pdf/url/{id}', [ASEController::class, 'distributororderPDF_URL']);
+
+
+Route::get('distributor/order/pdf/view/{id}', [ASEController::class, 'distributororderPDF_view']);
