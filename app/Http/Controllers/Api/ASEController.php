@@ -323,80 +323,7 @@ class ASEController extends Controller
 
     //ase wise primary and secondary report on dashboard
     
-    
-/*public function aseSalesreport(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        "ase_id" => "required",
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
-    }
-
-    $ase = $request->ase_id;
-    $respArrd = [];
-    $respArr = [];
-
-    // Date range
-    if ($request->filled('from') || $request->filled('to')) {
-        $from = !empty($request->from) ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
-        $to   = !empty($request->to) ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
-    } else {
-        $from = date('Y-m-01');
-        $to   = date('Y-m-d');
-    }
-
-    // ✅ Primary (Distributor-wise)
-    $distributors = Team::where('ase_id', $ase)
-        ->whereNull('store_id')
-        ->whereHas('distributor', function ($q) {
-            $q->where('status', 1)
-              ->where('is_deleted', 0);
-        })
-        ->with('distributor')
-        ->get();
-
-    foreach ($distributors as $item) {
-        $qty = PrimaryOrder::where('distributor_id', $item->distributor_id)
-            ->whereBetween('order_date', [$from, $to])
-            ->sum('qty');
-
-        $respArrd[] = [
-            'distributor_id'   => $item->distributor_id ?? 0,
-            'distributor_name' => $item->distributor->name ?? '',
-            'amount'           => 0,
-            'qty'              => $qty ?? 0,
-        ];
-    }
-
-    // ✅ Secondary (Retailer-wise)
-    $stores = Store::where('user_id', $ase)
-        ->where('status', 1)
-        ->where('is_deleted', 0)
-        ->get();
-
-    foreach ($stores as $value) {
-        $qty = SecondaryOrder::where('retailer_id', $value->id)
-            ->whereBetween('order_date', [$from, $to])
-            ->sum('qty');
-
-        $respArr[] = [
-            'retailer_id' => $value->id,
-            'store_name'  => $value->name,
-            'amount'      => 0,
-            'qty'         => $qty ?? 0,
-        ];
-    }
-
-    return response()->json([
-        'status' => true,
-        'message' => 'ASE wise Primary & Secondary Sales Report',
-        'Primary Sales | Distributor wise Daily Report' => $respArrd,
-        'Secondary Sales | Retailer wise Daily Report' => $respArr,
-    ],200);
-}*/
-
+ 
 
 public function aseSalesreport(Request $request)
 {
@@ -431,10 +358,15 @@ public function aseSalesreport(Request $request)
         2 => 'PYNK',
         3 => 'Both',
     ];
-    $distributors = Team::where('ase_id', $ase)
+    $brandCode = $request->brand;
+    $brandName = $brandMap[$brandCode] ?? '';
+        
+        // Handle "Both" case
+    $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+    $distributors = Team::where('ase_id', $ase)->whereIN('brand', $brandsToCheck)
         ->whereNull('store_id')
         ->whereHas('distributor', function ($q) {
-            $q->where('status', 1)
+            $q->whereIN('brand', $brandsToCheck)->where('status', 1)
               ->where('is_deleted', 0);
         })
         ->with('distributor')
@@ -445,11 +377,11 @@ public function aseSalesreport(Request $request)
         // $brandPermissions = DB::table('user_permission_categories')
         //     ->where('distributor_id', $item->distributor_id)
         //     ->value('brand');
-        $brandCode = $request->brand;
-        $brandName = $brandMap[$brandCode] ?? '';
+        //$brandCode = $request->brand;
+       // $brandName = $brandMap[$brandCode] ?? '';
         
         // Handle "Both" case
-        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+        //$brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
         
         //foreach ($brandsToCheck  as $brand) {
             $qty = PrimaryOrder::where('distributor_id', $item->distributor_id)
@@ -471,24 +403,29 @@ public function aseSalesreport(Request $request)
      * ✅ Secondary (Retailer-wise, Brand-wise)
      */
 
-    $brandMap = [
+    /*$brandMap = [
         1 => 'ONN',
         2 => 'PYNK',
         3 => 'Both',
     ];
-    $stores = Store::where('user_id', $ase)
+    $brandCode = $request->brand;
+    $brandName = $brandMap[$brandCode] ?? '';
+        
+        // Handle "Both" case
+    $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];*/
+    $stores = Store::where('user_id', $ase)->whereIN('brand', $brandsToCheck)
         ->where('status', 1)
         ->where('is_deleted', 0)
         ->get();
 
     foreach ($stores as $value) {
-        $brandCode = $request->brand;
+        //$brandCode = $request->brand;
 
         // Convert numeric to readable brand
-        $brandName = $brandMap[$brandCode] ?? null;
+        //$brandName = $brandMap[$brandCode] ?? null;
 
         // Handle "Both" case
-         $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+        // $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
             //foreach ($brandsToCheck as $brand) {
                 $qty = SecondaryOrder::where('retailer_id', $value->id)
                     ->whereIN('brand', $brandsToCheck)
@@ -2477,8 +2414,12 @@ public function aseSalesreport(Request $request)
             2 => 'PYNK',
             3 => 'Both',
         ];
+        $brandCode = $request->brand;
+        $brandName = $brandMap[$brandCode] ?? null;
+        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
 
         $stores = Store::where('user_id', $request->ase_id)
+            ->whereIn('brand', $brandsToCheck)
             ->where('status', 1)
             ->where('is_deleted', 0)
             ->orderBy('name')
@@ -2487,14 +2428,16 @@ public function aseSalesreport(Request $request)
         $respArr = [];
 
         foreach ($stores as $store) {
-            $brandCode = $request->brand;
-            $brandName = $brandMap[$brandCode] ?? null;
-            $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+           // $brandCode = $request->brand;
+           // $brandName = $brandMap[$brandCode] ?? null;
+           // $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
 
             // 🔹 If style_no is provided, get product IDs first
             $productIds = [];
             if (!empty($styleNoQuery)) {
                 $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
                     ->pluck('id')
                     ->toArray();
             }
