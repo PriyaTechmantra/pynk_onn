@@ -1515,7 +1515,11 @@ public function aseSalesreport(Request $request)
         // Base query
         $query = Cart::where('store_id', $request->storeId)
             ->where('user_id', $request->userId)
-            ->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details']);
+            ->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details' => function ($query) {
+                $query->where('status', 1)
+                    ->where('is_deleted', 0);
+            }]);
+            //->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details']);
 
         // Apply brand filter if provided
         if ($brandId) {
@@ -2157,8 +2161,11 @@ public function aseSalesreport(Request $request)
 
         // Base query
         $query = CartDistributor::where('distributor_id', $request->distributorId)
-            ->where('user_id', $request->userId)
-            ->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details']);
+            ->where('user_id', $request->userId)->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details' => function ($query) {
+                $query->where('status', 1)
+                    ->where('is_deleted', 0);
+            }]);
+            //->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details']);
 
         // Apply brand filter if provided
         if ($brandId) {
