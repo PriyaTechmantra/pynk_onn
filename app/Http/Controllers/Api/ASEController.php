@@ -1918,6 +1918,7 @@ public function aseSalesreport(Request $request)
         $brandCode = $brandMap[$request->brand] ?? null;
 
         $orderQuery = OrderDistributor::where('distributor_id', $request->distributorId)
+            ->where('user_id', $request->userId)
             ->where('brand', $brandCode)
             ->with('distributors:id,name')
             ->orderBy('id', 'desc');
