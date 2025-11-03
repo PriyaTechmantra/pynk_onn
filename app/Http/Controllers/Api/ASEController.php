@@ -339,16 +339,17 @@ public function aseSalesreport(Request $request)
     $ase = $request->ase_id;
     $from = $request->filled('from') ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
     $to   = $request->filled('to') ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
-
+    
     $brandMap = [
-        1 => 'ONN',
-        2 => 'PYNK',
-        3 => 'Both',
+        'ONN'  => 1,
+        'PYNK' => 2,
+        'Both' => 3,
     ];
     $brandCode = $request->brand;
-    $brandName = $brandMap[$brandCode] ?? '';
+    $brandName = $brandMap[$request->brand] ?? '';
     
-
+    
+    
     $respArrd = [];
     $respArr  = [];
 
@@ -392,12 +393,13 @@ public function aseSalesreport(Request $request)
         ->where('status', 1)
         ->where('is_deleted', 0)
         ->get();
-   
+    
     foreach ($stores as $store) {
         $qty = SecondaryOrder::where('retailer_id', $store->id)
             ->where('brand', $brandName)
             ->whereBetween('order_date', [$from, $to])
             ->sum('qty');
+            
 
         // 🚫 Skip if no quantity (no orders)
         if ($qty <= 0) continue;
@@ -2378,11 +2380,11 @@ public function aseSalesreport(Request $request)
             'qty_desc' => 'qty DESC',
             default    => 'id DESC',
         };
-
+        
         $brandMap = [
-            1 => 'ONN',
-            2 => 'PYNK',
-            3 => 'Both',
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
         ];
         $brandCode = $request->brand;
         $brandName = $brandMap[$brandCode] ?? null;
