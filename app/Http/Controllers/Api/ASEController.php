@@ -1554,10 +1554,18 @@ public function aseSalesreport(Request $request)
 
     public function cartPreviewPDF_URL(Request $request)
     {
+        $brandMap = [
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandName = $request->brand; // e.g. ONN, PYNK, Both
+        $brandId = $brandMap[$brandName] ?? null;
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/cart/pdf/view/'.$request->storeId.'/'.$request->userId.'/'.$request->brand,
+            'data' => url('/').'/api/cart/pdf/view/'.$request->storeId.'/'.$request->userId.'/'.$brandId,
         ]);
     }
 
@@ -2189,10 +2197,18 @@ public function aseSalesreport(Request $request)
 
     public function distributorcartPreviewPDF_URL(Request $request)
     {
+        $brandMap = [
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandName = $request->brand; // e.g. ONN, PYNK, Both
+        $brandId = $brandMap[$brandName] ?? null;
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/distributor/cart/pdf/view/'.$request->distributorId.'/'.$request->userId.'/'.$request->brand,
+            'data' => url('/').'/api/distributor/cart/pdf/view/'.$request->distributorId.'/'.$request->userId.'/'.$brandId,
         ]);
     }
 
