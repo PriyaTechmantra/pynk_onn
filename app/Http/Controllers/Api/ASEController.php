@@ -2347,8 +2347,8 @@ public function aseSalesreport(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'ase_id' => ['required'],
-            'date_from' => ['required'],
-            'date_to' => ['required'],
+            'from' => ['required'],
+            'to' => ['required'],
             'collection' => ['nullable'],
             'category' => ['nullable'],
             'orderBy' => ['nullable'],
