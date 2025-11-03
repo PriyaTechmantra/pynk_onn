@@ -356,10 +356,10 @@ public function aseSalesreport(Request $request)
      * ✅ PRIMARY (Distributor-wise)
      */
     $distributors = Team::where('ase_id', $ase)
-        ->whereIn('brand', $brandName)
+        ->where('brand', $brandName)
         ->whereNull('store_id')
         ->whereHas('distributor', function ($q) use ($brandName) {
-            $q->whereIn('brand', $brandName)
+            $q->where('brand', $brandName)
               ->where('status', 1)
               ->where('is_deleted', 0);
         })
@@ -368,7 +368,7 @@ public function aseSalesreport(Request $request)
 
     foreach ($distributors as $item) {
         $qty = PrimaryOrder::where('distributor_id', $item->distributor_id)
-            ->whereIn('brand', $brandName)
+            ->where('brand', $brandName)
             ->whereBetween('order_date', [$from, $to])
             ->sum('qty');
 
@@ -388,14 +388,14 @@ public function aseSalesreport(Request $request)
      * ✅ SECONDARY (Retailer-wise)
      */
     $stores = Store::where('user_id', $ase)
-        ->whereIn('brand', $brandName)
+        ->where('brand', $brandName)
         ->where('status', 1)
         ->where('is_deleted', 0)
         ->get();
    
     foreach ($stores as $store) {
         $qty = SecondaryOrder::where('retailer_id', $store->id)
-            ->whereIn('brand', $brandName)
+            ->where('brand', $brandName)
             ->whereBetween('order_date', [$from, $to])
             ->sum('qty');
 
@@ -2386,10 +2386,10 @@ public function aseSalesreport(Request $request)
         ];
         $brandCode = $request->brand;
         $brandName = $brandMap[$brandCode] ?? null;
-        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+        //$brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
 
         $stores = Store::where('user_id', $request->ase_id)
-            ->whereIn('brand', $brandName)
+            ->where('brand', $brandName)
             ->where('status', 1)
             ->where('is_deleted', 0)
             ->orderBy('name')
@@ -2414,7 +2414,7 @@ public function aseSalesreport(Request $request)
 
             // 🔹 Build base query
             $query = SecondaryOrder::where('retailer_id', $store->id)
-                ->whereIn('brand', $brandName)
+                ->where('brand', $brandName)
                 ->whereBetween('order_date', [$from, $to]);
 
             // 🔹 Handle filters with comma-separated columns
