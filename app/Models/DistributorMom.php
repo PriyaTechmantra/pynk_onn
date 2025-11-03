@@ -13,4 +13,8 @@ class DistributorMom extends Model
      public function distributors() {
         return $this->belongsTo('App\Models\Distributor', 'distributor_id', 'id');
     }
+
+    public function ase() {
+        return $this->belongsTo('App\Models\Employee', 'user_id', 'id');
+    }
 }

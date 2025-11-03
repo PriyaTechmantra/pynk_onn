@@ -2011,6 +2011,7 @@ public function aseSalesreport(Request $request)
         $orderQuery = DistributorMom::where('distributor_id', $request->distributorId)->where('user_id', $request->user_id)
             ->where('brand', $brandCode)
             ->with('distributors:id,name')
+            ->with('ase:id,name')
             ->orderBy('id', 'desc');
 
         // ✅ Apply date filters only if provided
