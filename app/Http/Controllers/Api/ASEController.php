@@ -2172,7 +2172,7 @@ public function aseSalesreport(Request $request)
         }
 
         $cart = $query->get();
-
+        dd($cart);
         // Total quantity
         $total_quantity = $cart->sum('qty');
 
