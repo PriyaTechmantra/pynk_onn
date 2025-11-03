@@ -5,6 +5,7 @@ use App\Models\UserAttendance;
 use App\Models\Employee;
 use App\Models\Order;
 use App\Models\OrderDistributor;
+use App\Models\Distributor;
 use App\Models\Store;
 use App\Models\State;
 use App\Models\Notification;
