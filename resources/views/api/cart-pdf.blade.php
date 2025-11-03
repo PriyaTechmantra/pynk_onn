@@ -72,7 +72,7 @@
                                         $totalCOunt = 0;
                                     @endphp
                                     @foreach(orderProductsUpdatedMatrix($cartData) as $productKey => $productValue)
-									{{dd($productValue)}}
+									
                                     @php
 									    $color=\App\Models\Color::where('id',$productValue['color_id'])->first();
                                         $totalCOunt += $productValue['total'];
