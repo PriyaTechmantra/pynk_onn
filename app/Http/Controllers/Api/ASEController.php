@@ -2429,7 +2429,7 @@ public function aseSalesreport(Request $request)
 
     public function distributororderPDF_view(Request $request, $id)
     {
-        $orderData =OrderProductDistributor::where('order_id',$id)->whereHas('product')->with('product','color','size','orders')->get()->toArray();
+        $orderData =OrderProductDistributor::where('order_id',$id)->whereHas('product')->with('product','color','size','orders')->get();
 		
         return view('api.distributor-order-pdf', compact('orderData','id'));
     }
