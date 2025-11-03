@@ -402,6 +402,7 @@ public function aseSalesreport(Request $request)
 {
     $validator = Validator::make($request->all(), [
         "ase_id" => "required",
+        "brand" => "required",
     ]);
     
     if ($validator->fails()) {
@@ -444,7 +445,7 @@ public function aseSalesreport(Request $request)
         // $brandPermissions = DB::table('user_permission_categories')
         //     ->where('distributor_id', $item->distributor_id)
         //     ->value('brand');
-        $brandCode = $item->distributor->brand;
+        $brandCode = $request->brand;
         $brandName = $brandMap[$brandCode] ?? '';
         
         // Handle "Both" case
@@ -481,7 +482,7 @@ public function aseSalesreport(Request $request)
         ->get();
 
     foreach ($stores as $value) {
-        $brandCode = $value->brand;
+        $brandCode = $request->brand;
 
         // Convert numeric to readable brand
         $brandName = $brandMap[$brandCode] ?? null;
@@ -2439,15 +2440,15 @@ public function aseSalesreport(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'ase_id' => ['required'],
-            'date_from' => ['nullable'],
-            'date_to' => ['nullable'],
+            'date_from' => ['required'],
+            'date_to' => ['required'],
             'collection' => ['nullable'],
             'category' => ['nullable'],
             'orderBy' => ['nullable'],
             'style_no' => ['nullable'],
+            'brand' => ['required'],
         ]);
-         DB::enableQueryLog();
-        
+
         if ($validator->fails()) {
             return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
@@ -2455,91 +2456,80 @@ public function aseSalesreport(Request $request)
         $user = Employee::findOrFail($request->ase_id);
         $userName = $user->name;
 
-       
-        $retailerResp = $resp = [];
-        
-        // Date range
-        if ($request->filled('from') || $request->filled('to')) {
-            $from = !empty($request->from) ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
-            $to   = !empty($request->to) ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
-        } else {
-            $from = date('Y-m-01');
-            $to   = date('Y-m-d');
-        }
+        $from = $request->filled('from') ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
+        $to   = $request->filled('to') ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
 
-        // collection
-            if (!isset($request->collection) || $request->collection == '10000') {
-                $collectionQuery = "";
-            } else {
-                $collectionQuery = $request->collection;
-            }
+        // 🔹 Filter values
+        $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
+        $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
+        $styleNoQuery    = $request->style_no;
 
-            // category
-            if ($request->category == '10000' || !isset($request->category)) {
-                $categoryQuery = "";
-            } else {
-                $categoryQuery = $request->category;
-            }
-
-            // style no
-            if (!isset($request->style_no)) {
-                $styleNoQuery = "";
-            } else {
-                $styleNoQuery = $request->style_no;
-            }
-
-            // order by
-            if ($request->orderBy == 'date_asc') {
-                $orderByQuery = "id ASC";
-            } elseif ($request->orderBy == 'qty_asc') {
-                $orderByQuery = "qty ASC";
-            } elseif ($request->orderBy == 'qty_desc') {
-                $orderByQuery = "qty DESC";
-            } else {
-                $orderByQuery = "id DESC";
-            }
-        
-        
-        /**
-         * ✅ Secondary (Retailer-wise, Brand-wise)
-         */
+        // 🔹 Handle orderBy
+        $orderByQuery = match ($request->orderBy) {
+            'date_asc' => 'id ASC',
+            'qty_asc'  => 'qty ASC',
+            'qty_desc' => 'qty DESC',
+            default    => 'id DESC',
+        };
 
         $brandMap = [
             1 => 'ONN',
             2 => 'PYNK',
             3 => 'Both',
         ];
+
         $stores = Store::where('user_id', $request->ase_id)
             ->where('status', 1)
             ->where('is_deleted', 0)
-            ->orderby('name')
+            ->orderBy('name')
             ->get();
 
-        foreach ($stores as $value) {
-            $brandCode = $value->brand;
+        $respArr = [];
 
-            // Convert numeric to readable brand
+        foreach ($stores as $store) {
+            $brandCode = $request->brand;
             $brandName = $brandMap[$brandCode] ?? null;
-
-            // Handle "Both" case
             $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
-                //foreach ($brandsToCheck as $brand) {
-                    $qty = SecondaryOrder::where('retailer_id', $value->id)
-                        ->whereIN('brand', $brandsToCheck)
-                        ->whereIN('collection_id', $collectionQuery)
-                        ->whereIN('cat_id', $categoryQuery)
-                        ->whereIN('product_id', $styleNoQuery)
-                        ->whereBetween('order_date', [$from, $to])
-                        ->sum('qty');
 
-                    $respArr[] = [
-                        'retailer_id' => $value->id,
-                        'store_name'  => $value->name,
-                        'brand'       => $brandName,
-                        'amount'      => 0,
-                        'qty'         => $qty ?? 0,
-                    ];
-                //}
+            // 🔹 If style_no is provided, get product IDs first
+            $productIds = [];
+            if (!empty($styleNoQuery)) {
+                $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                    ->pluck('id')
+                    ->toArray();
+            }
+
+            // 🔹 Build base query
+            $query = SecondaryOrder::where('retailer_id', $store->id)
+                ->whereIn('brand', $brandsToCheck)
+                ->whereBetween('order_date', [$from, $to]);
+
+            // 🔹 Handle filters with comma-separated columns
+            if (!empty($collectionQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+            }
+
+            if (!empty($categoryQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+            }
+
+            if (!empty($productIds)) {
+                $query->where(function ($q) use ($productIds) {
+                    foreach ($productIds as $pid) {
+                        $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                    }
+                });
+            }
+
+            $qty = $query->sum('qty');
+
+            $respArr[] = [
+                'retailer_id' => $store->id,
+                'store_name'  => $store->name,
+                'brand'       => $brandName,
+                'amount'      => 0,
+                'qty'         => $qty ?? 0,
+            ];
         }
 
         return response()->json([
@@ -2548,6 +2538,7 @@ public function aseSalesreport(Request $request)
             'SecondarySales' => $respArr,
         ], 200);
     }
+
 
 
 
