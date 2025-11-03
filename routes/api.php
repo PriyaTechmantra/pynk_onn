@@ -106,7 +106,7 @@ Route::post('my-orders', [ASEController::class, 'myOrdersFilter']);
 
 Route::post('store-wise-report-ase', [ASEController::class, 'storeReportASE']);
 
-Route::get('product-wise-report-ase', [ASEController::class, 'productReportASE']);
+Route::post('product-wise-report-ase', [ASEController::class, 'productReportASE']);
 Route::get('catalogue', [ASEController::class, 'catalogueList']);
 Route::get('scheme', [ASEController::class, 'schemeList']);
 Route::get('news', [ASEController::class, 'newsList']);
