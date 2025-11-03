@@ -1817,7 +1817,7 @@ public function aseSalesreport(Request $request)
 
     public function orderDetails(Request $request,$id)
     {
-        $order=OrderProduct::where('order_id',$id)->whereHas('product')->with('product','product.collection','product.category','color','size','orders')->get();
+        $order=OrderProduct::where('order_id',$id)->whereHas('product')->with('product','product.collection','product.category','color','size','orders','orders.stores')->get();
         if ($order) {
             return response()->json(['error'=>false, 'resp'=>'order details fetched successfully','data'=>$order]);
         } else {
@@ -1979,7 +1979,7 @@ public function aseSalesreport(Request $request)
 
     public function primaryorderDetails(Request $request,$id)
     {
-        $order=OrderProductDistributor::where('order_id',$id)->whereHas('product')->with('product','product.collection','product.category','color','size','orders')->get();
+        $order=OrderProductDistributor::where('order_id',$id)->whereHas('product')->with('product','product.collection','product.category','color','size','orders','orders.distributors')->get();
         if ($order) {
             return response()->json(['error'=>false, 'resp'=>'order details fetched successfully','data'=>$order]);
         } else {
@@ -2433,6 +2433,123 @@ public function aseSalesreport(Request $request)
 		
         return view('api.distributor-order-pdf', compact('orderData','id'));
     }
+
+
+    public function storeReportASE(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ase_id' => ['required'],
+            'date_from' => ['nullable'],
+            'date_to' => ['nullable'],
+            'collection' => ['nullable'],
+            'category' => ['nullable'],
+            'orderBy' => ['nullable'],
+            'style_no' => ['nullable'],
+        ]);
+         DB::enableQueryLog();
+        
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $user = Employee::findOrFail($request->ase_id);
+        $userName = $user->name;
+
+       
+        $retailerResp = $resp = [];
+        
+        // Date range
+        if ($request->filled('from') || $request->filled('to')) {
+            $from = !empty($request->from) ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
+            $to   = !empty($request->to) ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
+        } else {
+            $from = date('Y-m-01');
+            $to   = date('Y-m-d');
+        }
+
+        // collection
+            if (!isset($request->collection) || $request->collection == '10000') {
+                $collectionQuery = "";
+            } else {
+                $collectionQuery = $request->collection;
+            }
+
+            // category
+            if ($request->category == '10000' || !isset($request->category)) {
+                $categoryQuery = "";
+            } else {
+                $categoryQuery = $request->category;
+            }
+
+            // style no
+            if (!isset($request->style_no)) {
+                $styleNoQuery = "";
+            } else {
+                $styleNoQuery = $request->style_no;
+            }
+
+            // order by
+            if ($request->orderBy == 'date_asc') {
+                $orderByQuery = "id ASC";
+            } elseif ($request->orderBy == 'qty_asc') {
+                $orderByQuery = "qty ASC";
+            } elseif ($request->orderBy == 'qty_desc') {
+                $orderByQuery = "qty DESC";
+            } else {
+                $orderByQuery = "id DESC";
+            }
+        
+        
+        /**
+         * ✅ Secondary (Retailer-wise, Brand-wise)
+         */
+
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+        $stores = Store::where('user_id', $request->ase_id)
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->orderby('name')
+            ->get();
+
+        foreach ($stores as $value) {
+            $brandCode = $value->brand;
+
+            // Convert numeric to readable brand
+            $brandName = $brandMap[$brandCode] ?? null;
+
+            // Handle "Both" case
+            $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+                //foreach ($brandsToCheck as $brand) {
+                    $qty = SecondaryOrder::where('retailer_id', $value->id)
+                        ->whereIN('brand', $brandsToCheck)
+                        ->whereIN('collection_id', $collectionQuery)
+                        ->whereIN('cat_id', $categoryQuery)
+                        ->whereIN('product_id', $styleNoQuery)
+                        ->whereBetween('order_date', [$from, $to])
+                        ->sum('qty');
+
+                    $respArr[] = [
+                        'retailer_id' => $value->id,
+                        'store_name'  => $value->name,
+                        'brand'       => $brandName,
+                        'amount'      => 0,
+                        'qty'         => $qty ?? 0,
+                    ];
+                //}
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Store wise Secondary Sales Report',
+            'SecondarySales' => $respArr,
+        ], 200);
+    }
+
+
 
     
 
