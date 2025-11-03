@@ -43,48 +43,7 @@
             <div class="card rounded-0">
                 <div class="card-body">
                     <div id="DivIdToPrint">
-                        <div class="mb-3" style="border:2px solid #000; padding: 0px 27px;">
-                            <div class="row">
-                                <div class="col-12 text-center">
-                                    <h3 style="margin: 28px 0;">Order Form</h3>
-                                </div>
-                            </div>
-
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <div style="padding:0 15px;">
-                                        <h4 style="font-weight: 500;">Lux Industries Limited</h4>
-                                        <p style="margin-bottom:4px;">17th floor, North Wing</p>
-                                        <p style="margin-bottom:4px;">Adventz Infinity</p>
-                                        <p style="margin-bottom:4px;">BN - 5, Sector V</p>
-                                        <p>Kolkata - 700091, W.B., India</p>
-                                    </div>
-                                </div>
-
-                                @php
-                                    $order_id = $cartData[0]->order_id;
-                                    $data = \App\Models\Order::findOrFail($order_id);
-                                @endphp
-
-                                <div class="col-6">
-                                    <div style="padding: 0 15px 14px; border-left:2px solid #000;">
-                                        <p><strong>Order no./ Date:</strong> <u>{{$data->order_no}}/ {{date('d.m.Y', strtotime($data->created_at))}}</u></p>
-                                        <p><strong>Print Date:</strong> <u>{{date('d.m.Y')}}</u></p>
-                                        <p><strong>From:</strong></p>
-                                        <p><strong>M/S: </strong> <u>{{$data->stores ? $data->stores->name : ''}}</u></p>
-                                        @if ($data->stores)
-                                            <p><u>{{ $data->stores->address.' '.$data->stores->area->name.' '.$data->stores->state->name.' '.$data->stores->city.' '.$data->stores->pin }}</u></p>
-                                            <p><strong>Booking Place:</strong> <u>{{ $data->stores->city ? $data->stores->city : $data->stores->area->name }}</u></p>
-                                        @endif
-										@if(!empty($data->users))
-                                        <p style="margin-bottom:0;"><strong>ASE:</strong> <u>{{$data->users ? $data->users->name : ''}}</u></p>
-										@else
-										<p style="margin-bottom:0;"><strong>ASE:</strong> <u>{{$data->users ? $data->users->name : ''}}</u></p>
-										@endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        
 
                         
 
