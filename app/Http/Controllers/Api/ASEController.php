@@ -1957,7 +1957,7 @@ public function aseSalesreport(Request $request)
         }
     }
 
-    public function momStore(Request $request): JsonResponse
+    public function momStore(Request $request)
     {
         //dd($request->all);
          $validator = Validator::make($request->all(), [
