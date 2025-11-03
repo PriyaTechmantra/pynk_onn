@@ -1609,7 +1609,7 @@ public function aseSalesreport(Request $request)
         }
 
         $cartData = $query->get();
-
+        
         return view('api.cart-pdf', compact('cartData'));
     }
 
