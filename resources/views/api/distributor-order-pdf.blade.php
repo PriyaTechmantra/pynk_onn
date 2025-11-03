@@ -71,10 +71,10 @@
                                         <p><strong>Order no./ Date:</strong> <u>{{$data->order_no}}/ {{date('d.m.Y', strtotime($data->created_at))}}</u></p>
                                         <p><strong>Print Date:</strong> <u>{{date('d.m.Y')}}</u></p>
                                         <p><strong>From:</strong></p>
-                                        <p><strong>M/S: </strong> <u>{{$data->stores ? $data->stores->name : ''}}</u></p>
+                                        <p><strong>M/S: </strong> <u>{{$data->distributors ? $data->distributors->name : ''}}</u></p>
                                         @if ($data->stores)
-                                            <p><u>{{ $data->stores->address.' '.$data->stores->area->name.' '.$data->stores->state->name.' '.$data->stores->city.' '.$data->stores->pin }}</u></p>
-                                            <p><strong>Booking Place:</strong> <u>{{ $data->stores->city ? $data->stores->city : $data->stores->area->name }}</u></p>
+                                            <p><u>{{ $data->distributors->address.' '.$data->distributors->areas->name.' '.$data->distributors->states->name.' '.$data->distributors->city.' '.$data->distributors->pin }}</u></p>
+                                            <p><strong>Booking Place:</strong> <u>{{ $data->distributors->city ? $data->distributors->city : $data->distributors->areas->name }}</u></p>
                                         @endif
 										@if(!empty($data->users))
                                         <p style="margin-bottom:0;"><strong>ASE:</strong> <u>{{$data->users ? $data->users->name : ''}}</u></p>
