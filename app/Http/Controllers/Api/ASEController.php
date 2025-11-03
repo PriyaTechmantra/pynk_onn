@@ -347,7 +347,7 @@ public function aseSalesreport(Request $request)
     ];
     $brandCode = $request->brand;
     $brandName = $brandMap[$brandCode] ?? '';
-    $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+    $brandsToCheck = ($brandCode == 3) ? [1, 2] : $brandCode;
 
     $respArrd = [];
     $respArr  = [];
