@@ -30,6 +30,8 @@ use App\Models\DistributorMom;
 use App\Models\CartDistributor;
 use App\Models\Activity;
 use App\Models\Scheme;
+use App\Models\News;
+use App\Models\ProductCatalogue;
 use Str;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserPermissionCategory;
