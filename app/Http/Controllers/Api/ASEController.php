@@ -1813,35 +1813,72 @@ public function aseSalesreport(Request $request)
         
     public function catalogueList(Request $request)
     {
+        if (!$request->user_id) {
+            return response()->json([
+                'error' => true,
+                'resp'  => 'User not found.',
+                'data'  => []
+            ]);
+        }
+
         $brandMap = [
             1 => 'ONN',
             2 => 'PYNK',
             3 => 'Both',
         ];
 
+        $user = Employee::find($request->user_id);
+
+        // 🔹 Get VP IDs related to this user
+        $vpIds = Team::where(function ($query) use ($request) {
+                $query->where('ase_id', $request->user_id)
+                    ->orWhere('asm_id', $request->user_id)
+                    ->orWhere('rsm_id', $request->user_id)
+                    ->orWhere('distributor_id', $request->user_id);
+            })
+            ->pluck('vp_id') // ✅ extract just the IDs
+            ->unique()
+            ->toArray();
+
+        // 🔹 Get State IDs related to this user
+        $stateIds = Team::where(function ($query) use ($request) {
+                $query->where('ase_id', $request->user_id)
+                    ->orWhere('asm_id', $request->user_id)
+                    ->orWhere('rsm_id', $request->user_id)
+                    ->orWhere('distributor_id', $request->user_id);
+            })
+            ->pluck('state_id')
+            ->unique()
+            ->toArray();
+
+        // 🔹 Fetch Product Catalogues
         $data = ProductCatalogue::where('status', 1)
             ->where('is_deleted', 0)
-            ->with(['category', 'collection','colorSize']) // optional: if you want category/color-size too
-            ->orderBy('position_collection', 'asc')
-            ->get()
-            ->map(function ($product) use ($brandMap) {
-                return [
-                    'product_id' => $product->id,
-                    'product_style_no' => $product->style_no,
-                    'product_name' => $product->name,
-                    'brand' => $brandMap[$product->brand] ?? 'Unknown',
-                    'category' => $product->category ? $product->category->name : null,
-                    'collection' => $product->collection ? $product->collection->name : null,
-                    'color_size' => $product->colorSize ?? [],
-                ];
+            ->whereIn('state_id', $stateIds)
+            ->whereIn('vp_id', $vpIds)
+            ->orderBy('id', 'desc')
+            ->get();
+
+        if ($data->isNotEmpty()) {
+            // Add readable brand names
+            $data = $data->map(function ($item) use ($brandMap) {
+                $item->brand_name = $brandMap[$item->brand] ?? null;
+                return $item;
             });
 
+            return response()->json([
+                'status'  => true,
+                'message' => 'Catalogue data fetched successfully',
+                'data'    => $data,
+            ], 200);
+        }
+
         return response()->json([
-            'error' => false,
-            'resp' => 'Product data fetched successfully',
-            'data' => $data,
-        ]);
+            'status'  => false,
+            'message' => 'No catalogue data found',
+        ], 404);
     }
+
 
 
     public function schemeList(Request $request)
@@ -1875,6 +1912,64 @@ public function aseSalesreport(Request $request)
             ], 404);
         }
     }
+
+
+    public function newsList(Request $request)
+    {
+        // Define your brand map first
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $user = Employee::find($request->user_id);
+
+        if (!$user) {
+            return response()->json([
+                'error' => true,
+                'resp'  => 'User not found.',
+                'data'  => []
+            ], 404);
+        }
+
+        $userType = $user->type;
+        $today = date('Y-m-d');
+
+        $data = News::where('status', 1)
+            ->where('is_deleted', 0)
+            ->whereRaw("FIND_IN_SET(?, user_type)", [$userType])
+            ->whereDate('end_date', '>=', $today)
+            ->get();
+
+        if ($data->isNotEmpty()) {
+            $data = $data->map(function ($news) use ($brandMap) {
+                // If 'brand' is comma separated (like "1,2"), map multiple names
+                if (strpos($news->brand, ',') !== false) {
+                    $brands = explode(',', $news->brand);
+                    $brandNames = array_map(fn($b) => $brandMap[trim($b)] ?? $b, $brands);
+                    $news->brand_name = implode(', ', $brandNames);
+                } else {
+                    $news->brand_name = $brandMap[$news->brand] ?? $news->brand;
+                }
+
+                return $news;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'News data fetched successfully',
+                'data'    => $data,
+            ], 200);
+        }
+
+        return response()->json([
+            'status'  => false,
+            'message' => 'No news data found',
+            'data'    => [],
+        ], 404);
+    }
+
 
     //primary order
     public function primaryorderList(Request $request)
