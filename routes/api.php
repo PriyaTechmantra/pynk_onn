@@ -145,3 +145,5 @@ Route::post('read-notification', [ASEController::class, 'readNotification']);
 Route::get('asm/ase/list/{id}', [ASEController::class, 'aseList']);
 
 Route::get('inactive/ase/report/asm', [ASEController::class, 'inactiveAseListASM']);
+
+Route::get('ase/stores/list', [ASEController::class, 'asestoreList']);

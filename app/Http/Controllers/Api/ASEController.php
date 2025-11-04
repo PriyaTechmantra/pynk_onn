@@ -2892,6 +2892,40 @@ public function productReportASE(Request $request)
 }
 
 
+   public function asestoreList(Request $request)
+    {
+		$ase = $_GET['ase_id'];
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+		
+		$stores = Store::where('user_id',$ase)->where('status',1)->where('is_deleted',0)->with('state','area','user')->get();
+		
+	
+        if ($stores->isNotEmpty()) {
+            // Transform brand values
+            $stores = $stores->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                return $store;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Store data fetched successfully',
+                'data'    => $stores,
+            ], 200);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No store data found',
+            ], 404);
+        }
+    }
+
+
 
 
 
