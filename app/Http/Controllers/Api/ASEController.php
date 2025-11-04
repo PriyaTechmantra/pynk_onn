@@ -2385,7 +2385,7 @@ public function aseSalesreport(Request $request)
                 $newEntry->distributor_id = $collectedData['distributor_id'];
                 $newEntry->brand = $brandValue;
                 $newEntry->user_id = $collectedData['user_id'];
-                $newEntry->order_placed_by = 'ase';
+                $newEntry->order_placed_by = $collectedData['order_placed_by'];
                 //$newEntry->distributor_id = $collectedData['distributor_id'] ?? '';
                 $aseDetails=DB::select("select * from employees where id='".$collectedData['user_id']."'");
                 $aseName=$aseDetails[0]->name;
