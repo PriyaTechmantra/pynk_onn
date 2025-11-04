@@ -138,7 +138,8 @@ Route::get('distributor/order/pdf/view/{id}', [ASEController::class, 'distributo
 
 Route::get('activity', [ASEController::class, 'activityList']);
 
-
+//ASM
 Route::get('notification/list', [ASEController::class, 'notificationList']);
 Route::post('read-notification', [ASEController::class, 'readNotification']);
 
+Route::get('asm/ase/list/{id}', [ASEController::class, 'aseList']);

@@ -2787,6 +2787,39 @@ public function productReportASE(Request $request)
 	}
 
 
+    //asm wise ase
+
+    public function aseList(Request $request,$id)
+    {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $data=Team::where('asm_id',$id)->groupby('ase_id')->where('status',1)->where('is_deleted',0)->with('ase:id,name')->get();
+        if ($data->isNotEmpty()) {
+            // Add brand name to response
+            $data = $data->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null;
+                return $store;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'ase list data fetched successfully',
+                'data'    => $data,
+            ], 200);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No list data found',
+            ], 404);
+        }
+        
+    }
+
+
 
 
 
