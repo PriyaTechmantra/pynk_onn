@@ -435,7 +435,7 @@ public function aseSalesreport(Request $request)
     public function storeList(Request $request)
     {
 		$ase = $_GET['ase_id'];
-
+        $area = $_GET['area_id'];
         $brandMap = [
             1 => 'ONN',
             2 => 'PYNK',
@@ -443,7 +443,7 @@ public function aseSalesreport(Request $request)
         ];
 
 		
-		$stores = Store::where('user_id',$ase)->where('status',1)->where('is_deleted',0)->with('state','area','user')->get();
+		$stores = Store::where('user_id',$ase)->where('area_id',$area)->where('status',1)->where('is_deleted',0)->with('state','area','user')->get();
 		
 	
         if ($stores->isNotEmpty()) {
