@@ -2773,7 +2773,7 @@ public function productReportASE(Request $request)
 			
 			
 		}else{
-			return response()->json(['error' => true, 'message' => 'Please send a valid user']);
+			return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
 		}
 	}
 	//notification update
