@@ -2562,6 +2562,7 @@ public function productReportASE(Request $request)
         $validator = Validator::make($request->all(), [
             "user_id" => "required|integer",
             "date" => "required|date",
+            "brand" => "required",
         ]);
     
         if ($validator->fails()) {
