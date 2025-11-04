@@ -503,6 +503,17 @@ public function aseSalesreport(Request $request)
 
     public function searchStore(Request $request)
    {
+        $validator = Validator::make($request->all(),[
+            'user_id' => 'required',
+            'area_id' => 'required',
+            'keyword' => 'required'
+        ]);
+
+        if($validator->fails()){
+            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+        }
+        $userId = $_GET['user_id'];
+        $areaId = $_GET['area_id'];
         $search = $request->keyword ?? '';
 
         // Brand map
@@ -513,7 +524,7 @@ public function aseSalesreport(Request $request)
         ];
 
         // Base query
-        $query = Store::select('*')
+        $query = Store::select('*')->where('user_id',$userId)->where('area_id',$areaId)
             ->where('status', 1)
             ->where('is_deleted', 0)->with('state','area','user');
 
