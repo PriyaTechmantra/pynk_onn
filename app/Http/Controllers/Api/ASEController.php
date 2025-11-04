@@ -2736,6 +2736,44 @@ public function productReportASE(Request $request)
     }
 
 
+    //notification list
+    public function notificationList(Request $request){
+		$validator = Validator::make($request->all(), [
+			'user_id' => ['required'],
+			'pageNo' => ['nullable'],
+		]);
+		
+		if (!$validator->fails()) {
+			$user_id = $request->user_id;
+          	$pageNo =$request->pageNo;
+			if(!$pageNo){
+               $page=1;
+             }else{
+              $page=$pageNo;
+			  }
+              $limit=20;
+              $offset=($page-1)*$limit;
+			  $notifications = DB::select("select * from notifications where receiver_id='$user_id' ORDER BY id desc LIMIT ".$limit." OFFSET ".$offset."");
+			  $notificationCount=DB::table('notifications')->where('receiver_id','=',$user_id)->count();
+			  $count= (int) ceil($notificationCount / $limit);
+				return response()->json(['error' => false, 'message' => 'User wise notification list', 'data' => $notifications,'count'=>$count]);
+			
+			
+		}else{
+			return response()->json(['error' => true, 'message' => 'Please send a valid user']);
+		}
+	}
+	//notification update
+	public function readNotification(Request $request){
+		$id = $request->id;
+		$read_time = date("Y-m-d G:i:s");
+		
+		DB::select("update notifications set read_flag=1, read_at='$read_time' where id='$id'");
+		
+		return response()->json(['error' => false, 'message' => 'Notification date updated successfully']);
+	}
+
+
 
 
 
