@@ -2569,11 +2569,30 @@ public function productReportASE(Request $request)
         }
     
         $user_id = $request->input('user_id');
-        $date = $request->input('date');
-    
+        $date = date('Y-m-d', strtotime($request->date));
+        // 🔹 Brand mapping
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $request->brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+
+        // 🔹 Handle "Both"
+        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
         // Fetch activities directly without unnecessary object casting
         $activities = Activity::where('user_id', $user_id)
             ->whereDate('date', $date)
+            ->where(function ($q) use ($brandCode) {
+                $q->where('brand', $brandCode)
+                ->orWhereNull('brand')
+                ->orWhere('brand', '');
+            })
             ->latest('id')
             ->get();
     
