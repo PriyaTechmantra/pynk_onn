@@ -162,9 +162,10 @@ if (!function_exists('userTypeName')) {
 }
 
 if(!function_exists('sendNotification')) {
-    function sendNotification($sender, $receiver, $type, $route, $title, $body='')
+    function sendNotification($sender,$brand, $receiver, $type, $route, $title, $body='')
     {
         $noti = new Notification();
+        $noti->brand = $brand;
         $noti->sender_id = $sender;
         $noti->receiver_id = $receiver;
         $noti->type = $type;
