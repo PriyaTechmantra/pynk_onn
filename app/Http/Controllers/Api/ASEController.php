@@ -29,6 +29,7 @@ use App\Models\OrderDistributor;
 use App\Models\DistributorMom;
 use App\Models\CartDistributor;
 use App\Models\Activity;
+use App\Models\Scheme;
 use Str;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserPermissionCategory;
@@ -1840,6 +1841,39 @@ public function aseSalesreport(Request $request)
             'resp' => 'Product data fetched successfully',
             'data' => $data,
         ]);
+    }
+
+
+    public function schemeList(Request $request)
+    {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+        $data = Scheme::where('status', 1)
+            ->where('is_deleted', 0)
+            ->orderBy('id', 'desc')
+            ->get();
+        if ($data->isNotEmpty()) {
+            // Transform brand values
+            $data = $data->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                return $store;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Scheme data fetched successfully',
+                'data'    => $data,
+            ], 200);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No scheme data found',
+            ], 404);
+        }
     }
 
     //primary order
