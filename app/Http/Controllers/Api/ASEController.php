@@ -2822,31 +2822,64 @@ public function productReportASE(Request $request)
 
 
     public function inactiveAseListASM(Request $request)
-    {
-        $userId = $_GET['user_id'];
-        $brandMap = [
-            'ONN'  => 1,
-            'PYNK' => 2,
-            'Both' => 3,
-        ];
+{
+    $userId = $request->user_id;
 
-        $brandText = $request->brand;
-        $brandCode = $brandMap[$brandText] ?? null;
-        if (!$brandCode) {
-            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
-        }
+    $brandMap = [
+        'ONN'  => 1,
+        'PYNK' => 2,
+        'Both' => 3,
+    ];
 
-        // 🔹 Handle "Both"
-        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
-        $aseDetails = Team::select('employees.id')->join('employees', 'teams.ase_id', '=', 'employees.id')->where('teams.asm_id', '=', $userId)->where('teams.brand','=',$brandCode)->where('teams.status',1)->where('teams.is_deleted',0)->groupby('teams.ase_id')->orderby('teams.ase_id')->get()->pluck('employees.id')->toArray();
-                
-        $activeASEreport=Activity::where('type','Visit Started')->whereDate('date', '=', Carbon::now())->whereIn('user_id',$aseDetails)->pluck('user_id')->toArray();
-                
-        $inactiveASE=Team::select('employees.*')->join('employees', 'teams.ase_id', '=', 'employees.id')->where('teams.asm_id', '=', $userId)->whereNotIn('employees.id',$activeASEreport)->where('teams.asm_id', '=', $userId)->where('teams.brand','=',$brandCode)->where('teams.status',1)->where('teams.is_deleted',0)->groupby('teams.ase_id')->orderby('teams.ase_id')->get();
-            
-        return response()->json(['error' => false, 'resp' => 'Inactive ASE report - Team wise', 'data' => $inactiveASE]);
-        
+    $brandText = $request->brand;
+    $brandCode = $brandMap[$brandText] ?? null;
+
+    if (!$brandCode) {
+        return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
     }
+
+    // Handle "Both"
+    $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+
+    // ✅ Get ASE IDs under this ASM
+    $aseDetails = Team::join('employees', 'teams.ase_id', '=', 'employees.id')
+        ->where('teams.asm_id', $userId)
+        ->whereIn('teams.brand', $brandsToCheck)
+        ->where('teams.status', 1)
+        ->where('teams.is_deleted', 0)
+        ->pluck('teams.ase_id')
+        ->unique()
+        ->toArray();
+
+    // ✅ Get ASEs who are active today (did “Visit Started”)
+    $today = now()->format('Y-m-d');
+
+    $activeASEreport = Activity::where('type', 'Visit Started')
+        ->whereDate('date', $today)
+        ->whereIn('user_id', $aseDetails)
+        ->pluck('user_id')
+        ->unique()
+        ->toArray();
+
+    // ✅ Get ASEs who are NOT in the active list
+    $inactiveASE = Team::select('employees.*')
+        ->join('employees', 'teams.ase_id', '=', 'employees.id')
+        ->where('teams.asm_id', $userId)
+        ->whereIn('teams.brand', $brandsToCheck)
+        ->whereNotIn('employees.id', $activeASEreport)
+        ->where('teams.status', 1)
+        ->where('teams.is_deleted', 0)
+        ->groupBy('teams.ase_id')
+        ->orderBy('employees.name')
+        ->get();
+
+    return response()->json([
+        'error' => false,
+        'resp' => 'Inactive ASE report - Team wise',
+        'data' => $inactiveASE,
+    ]);
+}
+
 
 
 
