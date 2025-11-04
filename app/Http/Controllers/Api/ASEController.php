@@ -2842,7 +2842,7 @@ public function productReportASE(Request $request)
                 
         $activeASEreport=Activity::where('type','Visit Started')->whereDate('created_at', '=', Carbon::now())->whereIn('user_id',$aseDetails)->pluck('user_id')->toArray();
                 
-        $inactiveASE=Team::select(DB::raw("users.id as id"),DB::raw("users.name as name"),DB::raw("users.mobile as mobile"),DB::raw("users.state as state"),DB::raw("users.city as city"))->join('users', 'teams.ase_id', '=', 'users.id')->where('teams.asm_id', '=', $userId)->whereNotIn('users.id',$activeASEreport)->where('teams.asm_id', '=', $userId)->where('brand','=',$brandCode)->where('teams.status',1)->where('teams.is_deleted',0)->groupby('teams.ase_id')->orderby('teams.ase_id')->get();
+        $inactiveASE=Team::select('users.*')->join('users', 'teams.ase_id', '=', 'users.id')->where('teams.asm_id', '=', $userId)->whereNotIn('users.id',$activeASEreport)->where('teams.asm_id', '=', $userId)->where('brand','=',$brandCode)->where('teams.status',1)->where('teams.is_deleted',0)->groupby('teams.ase_id')->orderby('teams.ase_id')->get();
             
         return response()->json(['error' => false, 'resp' => 'Inactive ASE report - Team wise', 'data' => $inactiveASE]);
         
