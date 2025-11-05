@@ -3458,6 +3458,7 @@ public function aseSalesreport(Request $request)
             'rsm_id' => ['required'],
             'date_from' => ['nullable'],
             'date_to' => ['nullable'],
+            'region' => ['nullable'],
             'collection' => ['nullable'],
             'category' => ['nullable'],
             'orderBy' => ['nullable'],
@@ -3468,24 +3469,12 @@ public function aseSalesreport(Request $request)
         if ($validator->fails()) {
             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
-        
-        $user = Employee::findOrFail($request->rsm_id);
-        $asmIds =Team::where('rsm_id', $request->rsm_id)->where('status',1)->where('is_deleted',0)
-                   ->whereNull('store_id')
-                  ->whereNotNull('asm_id')
-                  ->pluck('asm_id')->unique()->toArray();
-        $aseIds = Team::where('rsm_id', $request->rsm_id)->where('status',1)->where('is_deleted',0)
-                   ->whereNull('store_id')
-                  ->whereNotNull('ase_id')
-                  ->pluck('ase_id')->unique()->toArray();
-        
-        // Fetch ASE Data in One Query with Eager Loading (If applicable)
-        $ases = Employee::whereIn('id', $aseIds)->get();
-        $asms = Employee::whereIn('id', $asmIds)->get();
+
         $from = $request->filled('from') ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
         $to   = $request->filled('to') ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
 
         // 🔹 Filter values
+        $regionQuery = ($request->region == '10000' || empty($request->region)) ? null : $request->region;
         $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
         $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
         $styleNoQuery    = $request->style_no;
@@ -3498,6 +3487,40 @@ public function aseSalesreport(Request $request)
             default    => 'id DESC',
         };
         
+        $user = Employee::findOrFail($request->rsm_id);
+        // 🔹 ASM Query
+        $asmQuery = Team::where('rsm_id', $request->rsm_id)
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->whereNull('store_id')
+            ->whereNotNull('asm_id');
+
+        // Apply region filter if provided
+        if (!empty($regionQuery)) {
+            $asmQuery->where('area_id', $regionQuery);
+        }
+
+        $asmIds = $asmQuery->pluck('asm_id')->unique()->toArray();
+
+        // 🔹 ASE Query
+        $aseQuery = Team::where('rsm_id', $request->rsm_id)
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->whereNull('store_id')
+            ->whereNotNull('ase_id');
+
+        // Apply region filter if provided
+        if (!empty($regionQuery)) {
+            $aseQuery->where('area_id', $regionQuery);
+        }
+
+        $aseIds = $aseQuery->pluck('ase_id')->unique()->toArray();
+
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
+        $asms = Employee::whereIn('id', $asmIds)->get();
+        
+        
         $brandMap = [
             'ONN'  => 1,
             'PYNK' => 2,
@@ -3507,18 +3530,25 @@ public function aseSalesreport(Request $request)
         $brandName = $brandMap[$brandCode] ?? null;
 
         //primary
-            $distributors = Team::where('rsm_id', $request->rsm_id)
-            ->where('brand', $brandName)
-            ->whereNull('store_id')
-            ->where('status', 1)
-            ->where('is_deleted', 0)
-            ->whereHas('distributor', function ($q) use ($brandName) {
-                $q->where('brand', $brandName)
+         $distributorQuery = Team::where('rsm_id', $request->rsm_id)
+                ->where('brand', $brandName)
+                ->whereNull('store_id')
                 ->where('status', 1)
-                ->where('is_deleted', 0);
-            })
-            ->with('distributor:id,name')
-            ->get();
+                ->where('is_deleted', 0)
+                ->whereHas('distributor', function ($q) use ($brandName) {
+                    $q->where('brand', $brandName)
+                    ->where('status', 1)
+                    ->where('is_deleted', 0);
+                })
+                ->with('distributor:id,name');
+
+            // 🔹 Apply region filter if provided
+            if (!empty($regionQuery)) {
+                $distributorQuery->where('area_id', $regionQuery);
+            }
+
+            // 🔹 Execute query
+            $distributors = $distributorQuery->get();
              $respArrd = [];
 
             foreach ($distributors as $item) {
@@ -3649,6 +3679,7 @@ public function aseSalesreport(Request $request)
             'rsm_id' => ['required'],
             'from' => ['required'],
             'to' => ['required'],
+             'region' => ['nullable'],
             'collection' => ['nullable'],
             'category' => ['nullable'],
             'orderBy' => ['nullable'],
@@ -3659,18 +3690,12 @@ public function aseSalesreport(Request $request)
         if ($validator->fails()) {
             return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
         }
-        $user = Employee::findOrFail($request->rsm_id);
-        $aseIds = Team::where('rsm_id', $request->rsm_id)->where('status',1)->where('is_deleted',0)
-                   ->whereNull('store_id')
-                  ->whereNotNull('ase_id')
-                  ->pluck('ase_id');
-        
-        // Fetch ASE Data in One Query with Eager Loading (If applicable)
-        $ases = Employee::whereIn('id', $aseIds)->get();
+
 
         $from = date('Y-m-d', strtotime($request->from));
         $to   = date('Y-m-d', strtotime($request->to));
          // 🔹 Filter values
+        $regionQuery = ($request->region == '10000' || empty($request->region)) ? null : $request->region;
         $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
         $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
         $styleNoQuery    = $request->style_no;
@@ -3682,6 +3707,27 @@ public function aseSalesreport(Request $request)
             'qty_desc' => 'qty DESC',
             default    => 'id DESC',
         };
+
+        $user = Employee::findOrFail($request->rsm_id);
+        // 🔹 ASE Query
+        $aseQuery = Team::where('rsm_id', $request->rsm_id)
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->whereNull('store_id')
+            ->whereNotNull('ase_id');
+
+        // Apply region filter if provided
+        if (!empty($regionQuery)) {
+            $aseQuery->where('area_id', $regionQuery);
+        }
+
+        $aseIds = $aseQuery->pluck('ase_id')->unique()->toArray();
+
+        
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
+
+        
         // 🔹 Brand mapping
         $brandMap = [
             'ONN'  => 1,
@@ -3782,7 +3828,28 @@ public function aseSalesreport(Request $request)
 
     //VP
 
+    public function vpstateList(Request $request,$id)
+    {
+        $data=Team::where('vp_id',$id)->groupby('state_id')->with('states:id,name')->get();
+        if ($data->isNotEmpty()) {
+            return response()->json(['error'=>false, 'resp'=>'State List','data'=>$data]);
+                 
+        } else {
+            return response()->json(['error'=>true, 'resp'=>'No data found']);   
+        } 
+    }
 
+
+    public function vpstateareaList(Request $request)
+    {
+        $data=Team::where('vp_id',$request->vp_id)->where('state_id',$request->state_id)->groupby('area_id')->with('areas:id,name')->get();
+        if ($data->isNotEmpty()) {
+            return response()->json(['error'=>false, 'resp'=>'Area List','data'=>$data]);
+                 
+        } else {
+            return response()->json(['error'=>true, 'resp'=>'No data found']);   
+        } 
+    }
     
     public function inactiveAseListVP(Request $request)
     {
@@ -3851,6 +3918,8 @@ public function aseSalesreport(Request $request)
             'vp_id' => ['required'],
             'date_from' => ['nullable'],
             'date_to' => ['nullable'],
+            'state' => ['nullable'],
+            'region' => ['nullable'],
             'collection' => ['nullable'],
             'category' => ['nullable'],
             'orderBy' => ['nullable'],
@@ -3861,24 +3930,13 @@ public function aseSalesreport(Request $request)
         if ($validator->fails()) {
             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
-        
-        $user = Employee::findOrFail($request->vp_id);
-        $rsmIds =Team::where('vp_id', $request->vp_id)->where('status',1)->where('is_deleted',0)
-                   ->whereNull('store_id')
-                  ->whereNotNull('rsm_id')
-                  ->pluck('rsm_id')->unique()->toArray();
-        $aseIds = Team::where('vp_id', $request->vp_id)->where('status',1)->where('is_deleted',0)
-                   ->whereNull('store_id')
-                  ->whereNotNull('ase_id')
-                  ->pluck('ase_id')->unique()->toArray();
-        
-        // Fetch ASE Data in One Query with Eager Loading (If applicable)
-        $ases = Employee::whereIn('id', $aseIds)->get();
-        $rsms = Employee::whereIn('id', $rsmIds)->get();
+
         $from = $request->filled('from') ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
         $to   = $request->filled('to') ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
 
         // 🔹 Filter values
+        $stateQuery = ($request->state == '10000' || empty($request->state)) ? null : $request->state;
+        $regionQuery = ($request->region == '10000' || empty($request->region)) ? null : $request->region;
         $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
         $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
         $styleNoQuery    = $request->style_no;
@@ -3891,6 +3949,40 @@ public function aseSalesreport(Request $request)
             default    => 'id DESC',
         };
         
+        $user = Employee::findOrFail($request->vp_id);
+        $rsmQuery = Team::where('vp_id', $request->vp_id)->where('status',1)->where('is_deleted',0)
+                   ->whereNull('store_id')
+                  ->whereNotNull('rsm_id');
+        if (!empty($stateQuery)) {
+            $rsmQuery->where('state_id', $stateQuery);
+        }
+        if (!empty($regionQuery)) {
+            $rsmQuery->where('area_id', $regionQuery);
+        }     
+        $rsmIds = $rsmQuery->pluck('rsm_id')->unique()->toArray();
+        
+        // 🔹 ASE Query
+        $aseQuery = Team::where('vp_id', $request->vp_id)
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->whereNull('store_id')
+            ->whereNotNull('ase_id');
+
+        // Apply region filter if provided
+        if (!empty($stateQuery)) {
+            $aseQuery->where('state_id', $stateQuery);
+        }
+        if (!empty($regionQuery)) {
+            $aseQuery->where('area_id', $regionQuery);
+        }
+
+        $aseIds = $aseQuery->pluck('ase_id')->unique()->toArray();
+        
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
+        $rsms = Employee::whereIn('id', $rsmIds)->get();
+        
+        
         $brandMap = [
             'ONN'  => 1,
             'PYNK' => 2,
@@ -3900,7 +3992,7 @@ public function aseSalesreport(Request $request)
         $brandName = $brandMap[$brandCode] ?? null;
 
         //primary
-            $distributors = Team::where('vp_id', $request->vp_id)
+            $distributorQuery = Team::where('vp_id', $request->vp_id)
             ->where('brand', $brandName)
             ->whereNull('store_id')
             ->where('status', 1)
@@ -3910,8 +4002,17 @@ public function aseSalesreport(Request $request)
                 ->where('status', 1)
                 ->where('is_deleted', 0);
             })
-            ->with('distributor:id,name')
-            ->get();
+            ->with('distributor:id,name');
+            if (!empty($stateQuery)) {
+                $distributorQuery->where('state_id', $stateQuery);
+            }
+            if (!empty($regionQuery)) {
+                $distributorQuery->where('area_id', $regionQuery);
+            }
+
+            // 🔹 Execute query
+            $distributors = $distributorQuery->get();
+            
              $respArrd = [];
 
             foreach ($distributors as $item) {
@@ -4042,6 +4143,8 @@ public function aseSalesreport(Request $request)
             'vp_id' => ['required'],
             'from' => ['required'],
             'to' => ['required'],
+            'state' => ['nullable'],
+            'region' => ['nullable'],
             'collection' => ['nullable'],
             'category' => ['nullable'],
             'orderBy' => ['nullable'],
@@ -4052,18 +4155,12 @@ public function aseSalesreport(Request $request)
         if ($validator->fails()) {
             return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
         }
-        $user = Employee::findOrFail($request->vp_id);
-        $aseIds = Team::where('vp_id', $request->vp_id)->where('status',1)->where('is_deleted',0)
-                   ->whereNull('store_id')
-                  ->whereNotNull('ase_id')
-                  ->pluck('ase_id');
-        
-        // Fetch ASE Data in One Query with Eager Loading (If applicable)
-        $ases = Employee::whereIn('id', $aseIds)->get();
 
         $from = date('Y-m-d', strtotime($request->from));
         $to   = date('Y-m-d', strtotime($request->to));
          // 🔹 Filter values
+        $stateQuery = ($request->state == '10000' || empty($request->state)) ? null : $request->state;
+        $regionQuery = ($request->region == '10000' || empty($request->region)) ? null : $request->region;
         $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
         $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
         $styleNoQuery    = $request->style_no;
@@ -4075,6 +4172,32 @@ public function aseSalesreport(Request $request)
             'qty_desc' => 'qty DESC',
             default    => 'id DESC',
         };
+
+        $user = Employee::findOrFail($request->vp_id);
+
+        // 🔹 ASE Query
+        $aseQuery = Team::where('vp_id', $request->vp_id)
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->whereNull('store_id')
+            ->whereNotNull('ase_id');
+
+        // Apply region filter if provided
+        if (!empty($stateQuery)) {
+            $aseQuery->where('state_id', $stateQuery);
+        }
+        if (!empty($regionQuery)) {
+            $aseQuery->where('area_id', $regionQuery);
+        }
+
+        $aseIds = $aseQuery->pluck('ase_id')->unique()->toArray();
+
+        
+        
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
+
+        
         // 🔹 Brand mapping
         $brandMap = [
             'ONN'  => 1,

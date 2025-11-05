@@ -166,6 +166,9 @@ Route::post('product-wise-report-rsm', [ASEController::class, 'productReportRSM'
 
 Route::get('inactive/ase/report/vp', [ASEController::class, 'inactiveAseListVP']);
 
+Route::get('vp/state/list/{id}', [ASEController::class, 'vpstateList']);
+Route::get('vp/state/area/list/{id}', [ASEController::class, 'vpstateareaList']);
+
 Route::post('team-wise-report-vp', [ASEController::class, 'storeReportVP']);
 
 Route::post('product-wise-report-vp', [ASEController::class, 'productReportVP']);
