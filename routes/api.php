@@ -151,5 +151,6 @@ Route::get('ase/stores/list', [ASEController::class, 'asestoreList']);
 Route::get('asm/area/list/{id}', [ASEController::class, 'asmareaList']);
 //distributor list
 Route::get('asm/distributor/list', [ASEController::class, 'asmdistributorList']);
+Route::post('team-wise-report-asm', [ASEController::class, 'storeReportASM']);
 
 Route::post('product-wise-report-asm', [ASEController::class, 'productReportASM']);
