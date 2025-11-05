@@ -3653,7 +3653,7 @@ public function aseSalesreport(Request $request)
                     $asmReport[] = [
                         'asm_id'   => $asmId,
                         'asm_name' => $asm->name ?? 'N/A',
-                        'total_qty' => array_sum(array_column($aseList, 'qty')),
+                        'total_qty' => array_column($aseList, 'qty'),
                     ];
                 }
                 $resp[] = [
@@ -4117,7 +4117,7 @@ public function aseSalesreport(Request $request)
                     $rsmReport[] = [
                         'rsm_id'   => $rsmId,
                         'rsm_name' => $rsm->name ?? 'N/A',
-                        'total_qty' => array_sum(array_column($aseList, 'qty')),
+                        'total_qty' => array_column($aseList, 'qty'),
                     ];
                 }
                 $resp[] = [
