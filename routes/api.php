@@ -147,3 +147,7 @@ Route::get('asm/ase/list/{id}', [ASEController::class, 'aseList']);
 Route::get('inactive/ase/report/asm', [ASEController::class, 'inactiveAseListASM']);
 
 Route::get('ase/stores/list', [ASEController::class, 'asestoreList']);
+//area list
+Route::get('asm/area/list/{id}', [ASEController::class, 'asmareaList']);
+//distributor list
+Route::get('asm/distributor/list', [ASEController::class, 'asmdistributorList']);

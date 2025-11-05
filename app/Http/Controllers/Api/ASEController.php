@@ -2747,7 +2747,7 @@ public function productReportASE(Request $request)
         return response()->json(['error' => false, 'resp' => 'Activity List', 'data' => $activities]);
     }
 
-
+    //ASM
     //notification list
     public function notificationList(Request $request){
 		$validator = Validator::make($request->all(), [
@@ -2926,35 +2926,31 @@ public function productReportASE(Request $request)
     }
 
 
-
-
-
-
+    //area list
+    public function asmareaList(Request $request,$id)
+    {
+        $data=Team::where('asm_id',$id)->groupby('area_id')->with('areas:id,name')->get();
+        if ($data->isNotEmpty()) {
+            return response()->json(['error'=>false, 'resp'=>'Area List','data'=>$data]);
+                 
+        } else {
+            return response()->json(['error'=>true, 'resp'=>'No data found']);   
+        } 
+    }
     
-
-
-   
-
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    //distributor list
+    public function asmdistributorList(Request $request)
+    {
+        $asm = $_GET['user_id'];
+        $area = $_GET['area_id'];
+        $data= Team::select('distributor_id','area_id')->where('asm_id',$asm)->where('area_id',$area)->where('store_id',NULL)->with('distributors:id,name,mobile,email,address')->distinct('distributor_id')->get();
+        if ($data->isNotEmpty()) 
+        {
+            return response()->json(['error' => false, 'resp' => 'Distributor data fetched successfully','data' => $data]);
+        } else {
+            return response()->json(['error' => true, 'resp' => 'Something happened']);
+        }
+    }
 
 }
  
