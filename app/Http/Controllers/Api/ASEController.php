@@ -2684,6 +2684,18 @@ public function aseSalesreport(Request $request)
         $from = date('Y-m-d', strtotime($request->from));
         $to   = date('Y-m-d', strtotime($request->to));
 
+        // 🔹 Filter values
+        $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
+        $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
+        $styleNoQuery    = $request->style_no;
+
+        // 🔹 Handle orderBy
+        $orderByQuery = match ($request->orderBy) {
+            'date_asc' => 'id ASC',
+            'qty_asc'  => 'qty ASC',
+            'qty_desc' => 'qty DESC',
+            default    => 'id DESC',
+        };
         // 🔹 Brand mapping
         $brandMap = [
             'ONN'  => 1,
@@ -2693,6 +2705,7 @@ public function aseSalesreport(Request $request)
 
         $brandText = $request->brand;
         $brandCode = $brandMap[$brandText] ?? null;
+       
         if (!$brandCode) {
             return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
         }
@@ -2710,12 +2723,36 @@ public function aseSalesreport(Request $request)
         $finalData = [];
 
         foreach ($stores as $store) {
-            // 🔹 Get all secondary orders for this store
-            $orders = SecondaryOrder::where('retailer_id', $store->id)
-                ->where('brand', $brandCode)
-                ->whereBetween('order_date', [$from, $to])
-                ->get();
 
+            $productIds = [];
+            if (!empty($styleNoQuery)) {
+                $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
+                    ->pluck('id')
+                    ->toArray();
+            }
+            // 🔹 Get all secondary orders for this store
+            $query = SecondaryOrder::where('retailer_id', $store->id)
+                ->where('brand', $brandCode)
+                ->whereBetween('order_date', [$from, $to]);
+                
+             // 🔹 Handle filters with comma-separated columns
+            if (!empty($collectionQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+            }
+
+            if (!empty($categoryQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+            }
+            if (!empty($productIds)) {
+                $query->where(function ($q) use ($productIds) {
+                    foreach ($productIds as $pid) {
+                        $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                    }
+                });
+            }
+            $orders=$query->get();
             $productQtyMap = [];
 
             // 🔹 Loop orders to gather product quantities
@@ -3206,7 +3243,7 @@ public function aseSalesreport(Request $request)
         \DB::connection()->enableQueryLog();
 
         $validator = Validator::make($request->all(), [
-            'ase_id' => ['required'],
+            'asm_id' => ['required'],
             'from' => ['required'],
             'to' => ['required'],
             'collection' => ['nullable'],
@@ -3219,10 +3256,29 @@ public function aseSalesreport(Request $request)
         if ($validator->fails()) {
             return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
         }
+        $user = Employee::findOrFail($request->asm_id);
+        $aseIds = Team::where('asm_id', $request->asm_id)->where('status',1)->where('is_deleted',0)
+                   ->whereNull('store_id')
+                  ->whereNotNull('ase_id')
+                  ->pluck('ase_id');
+        
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
 
         $from = date('Y-m-d', strtotime($request->from));
         $to   = date('Y-m-d', strtotime($request->to));
+         // 🔹 Filter values
+        $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
+        $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
+        $styleNoQuery    = $request->style_no;
 
+        // 🔹 Handle orderBy
+        $orderByQuery = match ($request->orderBy) {
+            'date_asc' => 'id ASC',
+            'qty_asc'  => 'qty ASC',
+            'qty_desc' => 'qty DESC',
+            default    => 'id DESC',
+        };
         // 🔹 Brand mapping
         $brandMap = [
             'ONN'  => 1,
@@ -3239,21 +3295,40 @@ public function aseSalesreport(Request $request)
         // 🔹 Handle "Both"
         $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
 
-        // 🔹 Fetch ASE stores
-        $stores = Store::where('user_id', $request->ase_id)
-            ->where('brand', $brandCode)
-            ->where('status', 1)
-            ->where('is_deleted', 0)
-            ->get();
-
+        
         $finalData = [];
 
-        foreach ($stores as $store) {
+            $productIds = [];
+            if (!empty($styleNoQuery)) {
+                $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
+                    ->pluck('id')
+                    ->toArray();
+            }
             // 🔹 Get all secondary orders for this store
-            $orders = SecondaryOrder::where('retailer_id', $store->id)
+            $query = SecondaryAseOrder::whereIN('ase_id', $aseIds)
                 ->where('brand', $brandCode)
-                ->whereBetween('order_date', [$from, $to])
-                ->get();
+                ->whereBetween('order_date', [$from, $to]);
+                
+             // 🔹 Handle filters with comma-separated columns
+            if (!empty($collectionQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+            }
+
+            if (!empty($categoryQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+            }
+            if (!empty($productIds)) {
+                $query->where(function ($q) use ($productIds) {
+                    foreach ($productIds as $pid) {
+                        $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                    }
+                });
+            }
+            $orders=$query->get();
+            // 🔹 Get all secondary orders for this store
+           
 
             $productQtyMap = [];
 
@@ -3284,8 +3359,7 @@ public function aseSalesreport(Request $request)
 
                 foreach ($productDetails as $prod) {
                     $finalData[] = [
-                        'store_id'   => $store->id,
-                        'store_name' => $store->name,
+                        
                         'brand'      => $brandText,
                         'product'    => $prod->name,
                         'style_no'   => $prod->style_no,
@@ -3293,11 +3367,11 @@ public function aseSalesreport(Request $request)
                     ];
                 }
             }
-        }
+        
 
         return response()->json([
             'error' => false,
-            'resp'  => 'ASE Product-wise report fetched successfully',
+            'resp'  => 'ASM Product-wise report fetched successfully',
             'data'  => array_values($finalData),
         ]);
     }
