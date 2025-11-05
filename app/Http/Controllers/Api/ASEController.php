@@ -2943,7 +2943,7 @@ public function productReportASE(Request $request)
     {
         $asm = $_GET['user_id'];
         $area = $_GET['area_id'];
-        $data= Team::select('distributor_id','area_id')->where('asm_id',$asm)->where('area_id',$area)->where('store_id',NULL)->with('distributor:id,name,mobile,email,address')->distinct('distributor_id')->get();
+        $data= Team::select('distributor_id','area_id')->where('asm_id',$asm)->where('area_id',$area)->where('store_id',NULL)->with('distributor')->distinct('distributor_id')->get();
         if ($data->isNotEmpty()) 
         {
             return response()->json(['error' => false, 'resp' => 'Distributor data fetched successfully','data' => $data]);
