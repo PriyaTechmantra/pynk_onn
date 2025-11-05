@@ -582,7 +582,7 @@ public function aseSalesreport(Request $request)
             ->where('is_deleted', 0)
             ->with('distributor')
             ->distinct('distributor_id') // ✅ ensures each distributor_id only once
-            ->get(['distributor_id']);
+            ->get();
 
         if ($distributors->isNotEmpty()) {
            
