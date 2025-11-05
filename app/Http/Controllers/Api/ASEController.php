@@ -3135,7 +3135,6 @@ public function aseSalesreport(Request $request)
             return [
                 'ase_id' => $ase->id,
                 'ase_name' => $ase->name,
-                 'brand'       => $request->brand,
                 'quantity' => $aseSales[$ase->id] ?? 0,
             ];
         });
