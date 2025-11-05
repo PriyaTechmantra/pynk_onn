@@ -2945,7 +2945,7 @@ public function aseSalesreport(Request $request)
 
     $brandText = $request->brand;
     $brandCode = $brandMap[$brandText] ?? null;
-
+    
     if (!$brandCode) {
         return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
     }
@@ -2956,7 +2956,7 @@ public function aseSalesreport(Request $request)
     // ✅ Get ASE IDs under this ASM
     $aseDetails = Team::join('employees', 'teams.ase_id', '=', 'employees.id')
         ->where('teams.asm_id', $userId)
-        ->whereIn('teams.brand', $brandsToCheck)
+        ->where('teams.brand', $brandCode)
         ->where('teams.status', 1)
         ->where('teams.is_deleted', 0)
         ->pluck('teams.ase_id')
@@ -2977,7 +2977,7 @@ public function aseSalesreport(Request $request)
     $inactiveASE = Team::select('employees.*')
         ->join('employees', 'teams.ase_id', '=', 'employees.id')
         ->where('teams.asm_id', $userId)
-        ->whereIn('teams.brand', $brandsToCheck)
+        ->where('teams.brand', $brandCode)
         ->whereNotIn('employees.id', $activeASEreport)
         ->where('teams.status', 1)
         ->where('teams.is_deleted', 0)
@@ -3375,6 +3375,803 @@ public function aseSalesreport(Request $request)
             'data'  => array_values($finalData),
         ]);
     }
+
+
+    //RSM
+    public function rsmareaList(Request $request,$id)
+    {
+        $data=Team::where('rsm_id',$id)->groupby('area_id')->with('areas:id,name')->get();
+        if ($data->isNotEmpty()) {
+            return response()->json(['error'=>false, 'resp'=>'Area List','data'=>$data]);
+                 
+        } else {
+            return response()->json(['error'=>true, 'resp'=>'No data found']);   
+        } 
+    }
+
+
+
+    public function inactiveAseListRSM(Request $request)
+    {
+        $userId = $request->user_id;
+
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $request->brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+
+        // Handle "Both"
+        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+
+        // ✅ Get ASE IDs under this ASM
+        $aseDetails = Team::join('employees', 'teams.ase_id', '=', 'employees.id')
+            ->where('teams.rsm_id', $userId)
+            ->where('teams.brand', $brandCode)
+            ->where('teams.status', 1)
+            ->where('teams.is_deleted', 0)
+            ->pluck('teams.ase_id')
+            ->unique()
+            ->toArray();
+
+        // ✅ Get ASEs who are active today (did “Visit Started”)
+        $today = now()->format('Y-m-d');
+
+        $activeASEreport = Activity::where('type', 'Visit Started')
+            ->whereDate('date', $today)
+            ->whereIn('user_id', $aseDetails)
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
+        // ✅ Get ASEs who are NOT in the active list
+        $inactiveASE = Team::select('employees.*')
+            ->join('employees', 'teams.ase_id', '=', 'employees.id')
+            ->where('teams.rsm_id', $userId)
+            ->where('teams.brand', $brandCode)
+            ->whereNotIn('employees.id', $activeASEreport)
+            ->where('teams.status', 1)
+            ->where('teams.is_deleted', 0)
+            ->groupBy('teams.ase_id')
+            ->orderBy('employees.name')
+            ->get();
+
+        return response()->json([
+            'error' => false,
+            'resp' => 'Inactive ASE report - Team wise',
+            'data' => $inactiveASE,
+        ]);
+    }
+
+
+
+    public function storeReportRSM(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'rsm_id' => ['required'],
+            'date_from' => ['nullable'],
+            'date_to' => ['nullable'],
+            'collection' => ['nullable'],
+            'category' => ['nullable'],
+            'orderBy' => ['nullable'],
+            'style_no' => ['nullable'],
+            'brand' => ['required'],
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+        
+        $user = Employee::findOrFail($request->rsm_id);
+        $asmIds =Team::where('rsm_id', $request->rsm_id)->where('status',1)->where('is_deleted',0)
+                   ->whereNull('store_id')
+                  ->whereNotNull('asm_id')
+                  ->pluck('asm_id')->unique()->toArray();
+        $aseIds = Team::where('rsm_id', $request->rsm_id)->where('status',1)->where('is_deleted',0)
+                   ->whereNull('store_id')
+                  ->whereNotNull('ase_id')
+                  ->pluck('ase_id')->unique()->toArray();
+        
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
+        $asms = Employee::whereIn('id', $asmIds)->get();
+        $from = $request->filled('from') ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
+        $to   = $request->filled('to') ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
+
+        // 🔹 Filter values
+        $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
+        $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
+        $styleNoQuery    = $request->style_no;
+
+        // 🔹 Handle orderBy
+        $orderByQuery = match ($request->orderBy) {
+            'date_asc' => 'id ASC',
+            'qty_asc'  => 'qty ASC',
+            'qty_desc' => 'qty DESC',
+            default    => 'id DESC',
+        };
+        
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+        $brandCode = $request->brand;
+        $brandName = $brandMap[$brandCode] ?? null;
+
+        //primary
+            $distributors = Team::where('rsm_id', $request->rsm_id)
+            ->where('brand', $brandName)
+            ->whereNull('store_id')
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->whereHas('distributor', function ($q) use ($brandName) {
+                $q->where('brand', $brandName)
+                ->where('status', 1)
+                ->where('is_deleted', 0);
+            })
+            ->with('distributor:id,name')
+            ->get();
+             $respArrd = [];
+
+            foreach ($distributors as $item) {
+
+                // 🔹 If style_no is provided, get product IDs first
+                $productIds = [];
+                if (!empty($styleNoQuery)) {
+                    $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                        ->where('status', 1)
+                        ->where('is_deleted', 0)
+                        ->pluck('id')
+                        ->toArray();
+                }
+                // 🔹 Build base query
+                $query = PrimaryOrder::where('distributor_id', $item->distributor_id)
+                    ->where('brand', $brandName)
+                    ->whereBetween('order_date', [$from, $to]);
+                
+                // 🔹 Handle filters with comma-separated columns
+                if (!empty($collectionQuery)) {
+                    $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+                }
+
+                if (!empty($categoryQuery)) {
+                    $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+                }
+
+                if (!empty($productIds)) {
+                    $query->where(function ($q) use ($productIds) {
+                        foreach ($productIds as $pid) {
+                            $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                        }
+                    });
+                }
+
+                $qty = $query->sum('qty');
+                // 🚫 Skip if no quantity (no orders)
+                if ($qty <= 0) continue;
+                $respArrd[] = [
+                    'distributor_id' => $item->distributor_id,
+                    'distributor_name'  => $item->distributor->name ?? '',
+                    'brand'       => $request->brand,
+                    'amount'      => 0,
+                    'qty'         => $qty ?? 0,
+                ];
+                
+            }
+            $productIds = [];
+            if (!empty($styleNoQuery)) {
+                $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
+                    ->pluck('id')
+                    ->toArray();
+            }
+
+            // 🔹 Build base query
+            $query = SecondaryASEOrder::select('ase_id', DB::raw('SUM(qty) as total_qty'))
+                    ->whereIn('ase_id', $aseIds)
+                    ->where('brand', $brandName)
+                    ->whereBetween('order_date', [$from, $to])
+                    ->groupBy('ase_id');
+                    
+            
+            // 🔹 Handle filters with comma-separated columns
+            if (!empty($collectionQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+            }
+
+            if (!empty($categoryQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+            }
+
+            if (!empty($productIds)) {
+                $query->where(function ($q) use ($productIds) {
+                    foreach ($productIds as $pid) {
+                        $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                    }
+                });
+            }
+
+            $aseSales =  $query->pluck('total_qty', 'ase_id')->toArray();
+            // 🔹 Build ASM → ASE → qty mapping
+                $asmReport = [];
+                foreach ($asmIds as $asmId) {
+                    $aseUnderAsm = Team::where('asm_id', $asmId)
+                        ->where('brand', $brandName)
+                        ->pluck('ase_id')
+                        ->toArray();
+
+                    $aseList = [];
+                    foreach ($aseUnderAsm as $aseId) {
+                        $ase = Employee::find($aseId);
+                        $aseList[] = [
+                            'ase_id'   => $aseId,
+                            'ase_name' => $ase->name ?? 'N/A',
+                            'qty'      => $aseSales[$aseId] ?? 0,
+                        ];
+                    }
+
+                    $asm = Employee::find($asmId);
+                    $asmReport[] = [
+                        'asm_id'   => $asmId,
+                        'asm_name' => $asm->name ?? 'N/A',
+                        'total_qty' => array_sum(array_column($aseList, 'qty')),
+                    ];
+                }
+                $resp[] = [
+                    'primary_sales' => $respArrd,
+                    'secondary_sales' => $aseResp,
+                ];
+        return response()->json([
+            'error' => false,
+            'message' => 'RSM report - Team wise',
+            'PrimarySales' => $respArrd,
+            'SecondarySales' => $asmReport
+            
+            
+        ]);
+    }
+
+
+     public function productReportRSM(Request $request)
+    {
+        \DB::connection()->enableQueryLog();
+
+        $validator = Validator::make($request->all(), [
+            'rsm_id' => ['required'],
+            'from' => ['required'],
+            'to' => ['required'],
+            'collection' => ['nullable'],
+            'category' => ['nullable'],
+            'orderBy' => ['nullable'],
+            'style_no' => ['nullable'],
+            'brand' => ['required'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+        }
+        $user = Employee::findOrFail($request->rsm_id);
+        $aseIds = Team::where('rsm_id', $request->rsm_id)->where('status',1)->where('is_deleted',0)
+                   ->whereNull('store_id')
+                  ->whereNotNull('ase_id')
+                  ->pluck('ase_id');
+        
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
+
+        $from = date('Y-m-d', strtotime($request->from));
+        $to   = date('Y-m-d', strtotime($request->to));
+         // 🔹 Filter values
+        $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
+        $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
+        $styleNoQuery    = $request->style_no;
+
+        // 🔹 Handle orderBy
+        $orderByQuery = match ($request->orderBy) {
+            'date_asc' => 'id ASC',
+            'qty_asc'  => 'qty ASC',
+            'qty_desc' => 'qty DESC',
+            default    => 'id DESC',
+        };
+        // 🔹 Brand mapping
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $request->brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+
+        // 🔹 Handle "Both"
+        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+
+        
+        $finalData = [];
+
+            $productIds = [];
+            if (!empty($styleNoQuery)) {
+                $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
+                    ->pluck('id')
+                    ->toArray();
+            }
+            // 🔹 Get all secondary orders for this store
+            $query = SecondaryAseOrder::whereIN('ase_id', $aseIds)
+                ->where('brand', $brandCode)
+                ->whereBetween('order_date', [$from, $to]);
+                
+             // 🔹 Handle filters with comma-separated columns
+            if (!empty($collectionQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+            }
+
+            if (!empty($categoryQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+            }
+            if (!empty($productIds)) {
+                $query->where(function ($q) use ($productIds) {
+                    foreach ($productIds as $pid) {
+                        $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                    }
+                });
+            }
+            $orders=$query->get();
+            // 🔹 Get all secondary orders for this store
+           
+
+            $productQtyMap = [];
+
+            // 🔹 Loop orders to gather product quantities
+            foreach ($orders as $order) {
+                $productIds = explode(',', $order->product_id);
+                $qtys = explode(',', $order->qty);
+
+                foreach ($productIds as $index => $pid) {
+                    $pid = trim($pid);
+                    $q = isset($qtys[$index]) ? (int)$qtys[$index] : 0;
+
+                    if ($pid && $q > 0) {
+                        if (!isset($productQtyMap[$pid])) {
+                            $productQtyMap[$pid] = 0;
+                        }
+                        $productQtyMap[$pid] += $q;
+                    }
+                }
+            }
+
+            // 🔹 Fetch product details
+            if (!empty($productQtyMap)) {
+                $productDetails = Product::whereIn('id', array_keys($productQtyMap))
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
+                    ->get(['id', 'name', 'style_no']);
+
+                foreach ($productDetails as $prod) {
+                    $finalData[] = [
+                        
+                        'brand'      => $brandText,
+                        'product'    => $prod->name,
+                        'style_no'   => $prod->style_no,
+                        'qty'        => $productQtyMap[$prod->id] ?? 0,
+                    ];
+                }
+            }
+        
+
+        return response()->json([
+            'error' => false,
+            'resp'  => 'RSM Product-wise report fetched successfully',
+            'data'  => array_values($finalData),
+        ]);
+    }
+
+
+    //VP
+
+
+    
+    public function inactiveAseListVP(Request $request)
+    {
+        $userId = $request->user_id;
+
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $request->brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+
+        // Handle "Both"
+        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+
+        // ✅ Get ASE IDs under this ASM
+        $aseDetails = Team::join('employees', 'teams.ase_id', '=', 'employees.id')
+            ->where('teams.vp_id', $userId)
+            ->where('teams.brand', $brandCode)
+            ->where('teams.status', 1)
+            ->where('teams.is_deleted', 0)
+            ->pluck('teams.ase_id')
+            ->unique()
+            ->toArray();
+
+        // ✅ Get ASEs who are active today (did “Visit Started”)
+        $today = now()->format('Y-m-d');
+
+        $activeASEreport = Activity::where('type', 'Visit Started')
+            ->whereDate('date', $today)
+            ->whereIn('user_id', $aseDetails)
+            ->pluck('user_id')
+            ->unique()
+            ->toArray();
+
+        // ✅ Get ASEs who are NOT in the active list
+        $inactiveASE = Team::select('employees.*')
+            ->join('employees', 'teams.ase_id', '=', 'employees.id')
+            ->where('teams.vp_id', $userId)
+            ->where('teams.brand', $brandCode)
+            ->whereNotIn('employees.id', $activeASEreport)
+            ->where('teams.status', 1)
+            ->where('teams.is_deleted', 0)
+            ->groupBy('teams.ase_id')
+            ->orderBy('employees.name')
+            ->get();
+
+        return response()->json([
+            'error' => false,
+            'resp' => 'Inactive ASE report - Team wise',
+            'data' => $inactiveASE,
+        ]);
+    }
+
+
+
+    public function storeReportVP(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'vp_id' => ['required'],
+            'date_from' => ['nullable'],
+            'date_to' => ['nullable'],
+            'collection' => ['nullable'],
+            'category' => ['nullable'],
+            'orderBy' => ['nullable'],
+            'style_no' => ['nullable'],
+            'brand' => ['required'],
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+        
+        $user = Employee::findOrFail($request->vp_id);
+        $rsmIds =Team::where('vp_id', $request->vp_id)->where('status',1)->where('is_deleted',0)
+                   ->whereNull('store_id')
+                  ->whereNotNull('rsm_id')
+                  ->pluck('rsm_id')->unique()->toArray();
+        $aseIds = Team::where('vp_id', $request->vp_id)->where('status',1)->where('is_deleted',0)
+                   ->whereNull('store_id')
+                  ->whereNotNull('ase_id')
+                  ->pluck('ase_id')->unique()->toArray();
+        
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
+        $rsms = Employee::whereIn('id', $rsmIds)->get();
+        $from = $request->filled('from') ? date('Y-m-d', strtotime($request->from)) : date('Y-m-01');
+        $to   = $request->filled('to') ? date('Y-m-d', strtotime($request->to)) : date('Y-m-d');
+
+        // 🔹 Filter values
+        $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
+        $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
+        $styleNoQuery    = $request->style_no;
+
+        // 🔹 Handle orderBy
+        $orderByQuery = match ($request->orderBy) {
+            'date_asc' => 'id ASC',
+            'qty_asc'  => 'qty ASC',
+            'qty_desc' => 'qty DESC',
+            default    => 'id DESC',
+        };
+        
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+        $brandCode = $request->brand;
+        $brandName = $brandMap[$brandCode] ?? null;
+
+        //primary
+            $distributors = Team::where('vp_id', $request->vp_id)
+            ->where('brand', $brandName)
+            ->whereNull('store_id')
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->whereHas('distributor', function ($q) use ($brandName) {
+                $q->where('brand', $brandName)
+                ->where('status', 1)
+                ->where('is_deleted', 0);
+            })
+            ->with('distributor:id,name')
+            ->get();
+             $respArrd = [];
+
+            foreach ($distributors as $item) {
+
+                // 🔹 If style_no is provided, get product IDs first
+                $productIds = [];
+                if (!empty($styleNoQuery)) {
+                    $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                        ->where('status', 1)
+                        ->where('is_deleted', 0)
+                        ->pluck('id')
+                        ->toArray();
+                }
+                // 🔹 Build base query
+                $query = PrimaryOrder::where('distributor_id', $item->distributor_id)
+                    ->where('brand', $brandName)
+                    ->whereBetween('order_date', [$from, $to]);
+                
+                // 🔹 Handle filters with comma-separated columns
+                if (!empty($collectionQuery)) {
+                    $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+                }
+
+                if (!empty($categoryQuery)) {
+                    $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+                }
+
+                if (!empty($productIds)) {
+                    $query->where(function ($q) use ($productIds) {
+                        foreach ($productIds as $pid) {
+                            $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                        }
+                    });
+                }
+
+                $qty = $query->sum('qty');
+                // 🚫 Skip if no quantity (no orders)
+                if ($qty <= 0) continue;
+                $respArrd[] = [
+                    'distributor_id' => $item->distributor_id,
+                    'distributor_name'  => $item->distributor->name ?? '',
+                    'brand'       => $request->brand,
+                    'amount'      => 0,
+                    'qty'         => $qty ?? 0,
+                ];
+                
+            }
+            $productIds = [];
+            if (!empty($styleNoQuery)) {
+                $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
+                    ->pluck('id')
+                    ->toArray();
+            }
+
+            // 🔹 Build base query
+            $query = SecondaryASEOrder::select('ase_id', DB::raw('SUM(qty) as total_qty'))
+                    ->whereIn('ase_id', $aseIds)
+                    ->where('brand', $brandName)
+                    ->whereBetween('order_date', [$from, $to])
+                    ->groupBy('ase_id');
+                    
+            
+            // 🔹 Handle filters with comma-separated columns
+            if (!empty($collectionQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+            }
+
+            if (!empty($categoryQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+            }
+
+            if (!empty($productIds)) {
+                $query->where(function ($q) use ($productIds) {
+                    foreach ($productIds as $pid) {
+                        $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                    }
+                });
+            }
+
+            $aseSales =  $query->pluck('total_qty', 'ase_id')->toArray();
+            // 🔹 Build ASM → ASE → qty mapping
+                $rsmReport = [];
+                foreach ($rsmIds as $rsmId) {
+                    $aseUnderRsm = Team::where('rsm_id', $rsmId)
+                        ->where('brand', $brandName)
+                        ->pluck('ase_id')
+                        ->toArray();
+
+                    $aseList = [];
+                    foreach ($aseUnderRsm as $aseId) {
+                        $ase = Employee::find($aseId);
+                        $aseList[] = [
+                            'ase_id'   => $aseId,
+                            'ase_name' => $ase->name ?? 'N/A',
+                            'qty'      => $aseSales[$aseId] ?? 0,
+                        ];
+                    }
+
+                    $rsm = Employee::find($rsmId);
+                    $rsmReport[] = [
+                        'rsm_id'   => $rsmId,
+                        'rsm_name' => $rsm->name ?? 'N/A',
+                        'total_qty' => array_sum(array_column($aseList, 'qty')),
+                    ];
+                }
+                $resp[] = [
+                    'primary_sales' => $respArrd,
+                    'secondary_sales' => $aseResp,
+                ];
+        return response()->json([
+            'error' => false,
+            'message' => 'VP report - Team wise',
+            'PrimarySales' => $respArrd,
+            'SecondarySales' => $rsmReport
+            
+            
+        ]);
+    }
+
+
+     public function productReportVP(Request $request)
+    {
+        \DB::connection()->enableQueryLog();
+
+        $validator = Validator::make($request->all(), [
+            'vp_id' => ['required'],
+            'from' => ['required'],
+            'to' => ['required'],
+            'collection' => ['nullable'],
+            'category' => ['nullable'],
+            'orderBy' => ['nullable'],
+            'style_no' => ['nullable'],
+            'brand' => ['required'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+        }
+        $user = Employee::findOrFail($request->vp_id);
+        $aseIds = Team::where('vp_id', $request->vp_id)->where('status',1)->where('is_deleted',0)
+                   ->whereNull('store_id')
+                  ->whereNotNull('ase_id')
+                  ->pluck('ase_id');
+        
+        // Fetch ASE Data in One Query with Eager Loading (If applicable)
+        $ases = Employee::whereIn('id', $aseIds)->get();
+
+        $from = date('Y-m-d', strtotime($request->from));
+        $to   = date('Y-m-d', strtotime($request->to));
+         // 🔹 Filter values
+        $collectionQuery = ($request->collection == '10000' || empty($request->collection)) ? null : $request->collection;
+        $categoryQuery   = ($request->category == '10000' || empty($request->category)) ? null : $request->category;
+        $styleNoQuery    = $request->style_no;
+
+        // 🔹 Handle orderBy
+        $orderByQuery = match ($request->orderBy) {
+            'date_asc' => 'id ASC',
+            'qty_asc'  => 'qty ASC',
+            'qty_desc' => 'qty DESC',
+            default    => 'id DESC',
+        };
+        // 🔹 Brand mapping
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $request->brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+
+        // 🔹 Handle "Both"
+        $brandsToCheck = ($brandCode == 3) ? [1, 2] : [$brandCode];
+
+        
+        $finalData = [];
+
+            $productIds = [];
+            if (!empty($styleNoQuery)) {
+                $productIds = Product::where('style_no', 'LIKE', "%{$styleNoQuery}%")
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
+                    ->pluck('id')
+                    ->toArray();
+            }
+            // 🔹 Get all secondary orders for this store
+            $query = SecondaryAseOrder::whereIN('ase_id', $aseIds)
+                ->where('brand', $brandCode)
+                ->whereBetween('order_date', [$from, $to]);
+                
+             // 🔹 Handle filters with comma-separated columns
+            if (!empty($collectionQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, collection_id)", [$collectionQuery]);
+            }
+
+            if (!empty($categoryQuery)) {
+                $query->whereRaw("FIND_IN_SET(?, cat_id)", [$categoryQuery]);
+            }
+            if (!empty($productIds)) {
+                $query->where(function ($q) use ($productIds) {
+                    foreach ($productIds as $pid) {
+                        $q->orWhereRaw("FIND_IN_SET(?, product_id)", [$pid]);
+                    }
+                });
+            }
+            $orders=$query->get();
+            // 🔹 Get all secondary orders for this store
+           
+
+            $productQtyMap = [];
+
+            // 🔹 Loop orders to gather product quantities
+            foreach ($orders as $order) {
+                $productIds = explode(',', $order->product_id);
+                $qtys = explode(',', $order->qty);
+
+                foreach ($productIds as $index => $pid) {
+                    $pid = trim($pid);
+                    $q = isset($qtys[$index]) ? (int)$qtys[$index] : 0;
+
+                    if ($pid && $q > 0) {
+                        if (!isset($productQtyMap[$pid])) {
+                            $productQtyMap[$pid] = 0;
+                        }
+                        $productQtyMap[$pid] += $q;
+                    }
+                }
+            }
+
+            // 🔹 Fetch product details
+            if (!empty($productQtyMap)) {
+                $productDetails = Product::whereIn('id', array_keys($productQtyMap))
+                    ->where('status', 1)
+                    ->where('is_deleted', 0)
+                    ->get(['id', 'name', 'style_no']);
+
+                foreach ($productDetails as $prod) {
+                    $finalData[] = [
+                        
+                        'brand'      => $brandText,
+                        'product'    => $prod->name,
+                        'style_no'   => $prod->style_no,
+                        'qty'        => $productQtyMap[$prod->id] ?? 0,
+                    ];
+                }
+            }
+        
+
+        return response()->json([
+            'error' => false,
+            'resp'  => 'VP Product-wise report fetched successfully',
+            'data'  => array_values($finalData),
+        ]);
+    }
+
 
 }
  

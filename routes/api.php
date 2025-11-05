@@ -154,3 +154,19 @@ Route::get('asm/distributor/list', [ASEController::class, 'asmdistributorList'])
 Route::post('team-wise-report-asm', [ASEController::class, 'storeReportASM']);
 
 Route::post('product-wise-report-asm', [ASEController::class, 'productReportASM']);
+
+//RSM
+Route::get('inactive/ase/report/rsm', [ASEController::class, 'inactiveAseListRSM']);
+Route::get('rsm/area/list/{id}', [ASEController::class, 'rsmareaList']);
+
+Route::post('team-wise-report-rsm', [ASEController::class, 'storeReportRSM']);
+
+Route::post('product-wise-report-rsm', [ASEController::class, 'productReportRSM']);
+//VP
+
+Route::get('inactive/ase/report/vp', [ASEController::class, 'inactiveAseListVP']);
+
+Route::post('team-wise-report-vp', [ASEController::class, 'storeReportVP']);
+
+Route::post('product-wise-report-vp', [ASEController::class, 'productReportVP']);
+//Distributor
