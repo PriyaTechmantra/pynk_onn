@@ -3128,7 +3128,7 @@ public function aseSalesreport(Request $request)
                 
             }
         // Fetch ASE Sales in Bulk (Optimize Query)
-        $aseSales = $this->fetchASESales($aseIds, $brandName,$filters, $from, $to);
+        $aseSales = $this->fetchASESales($aseIds, $brandName,$from, $to);
 
         // Map ASE data to response format
         $aseResp = $ases->map(function ($ase) use ($aseSales) {
@@ -3151,7 +3151,7 @@ public function aseSalesreport(Request $request)
         ]);
     }
 
-    private function fetchASESales($aseIds, $brandName, $filters, $from, $to)
+    private function fetchASESales($aseIds, $brandName, $from, $to)
     {
         if (empty($aseIds)) {
             return [];
