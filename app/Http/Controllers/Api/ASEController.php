@@ -1903,8 +1903,7 @@ public function aseSalesreport(Request $request)
             3 => 'Both',
         ];
 
-        $data = Scheme::where('status', 1)
-            ->where('is_deleted', 0)
+        $data = Scheme::where('is_deleted', 0)
             ->orderBy('id', 'desc')
             ->get();
         if ($data->isNotEmpty()) {
