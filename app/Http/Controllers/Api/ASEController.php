@@ -1867,15 +1867,13 @@ public function aseSalesreport(Request $request)
         
         $data = ProductCatalogue::where('status', 1)
             ->where('is_deleted', 0)
-            ->when(!empty($stateIds), function ($query) use ($stateIds) {
-                $query->whereIn('state_id', $stateIds);
-            })
-            ->when(!empty($vpIds), function ($query) use ($vpIds) {
-                $query->whereIn('vp_id', $vpIds);
-            })
+            ->where(function ($query) use ($vpIds, $stateIds) {
+                    $query->whereRaw("FIND_IN_SET(?, vp_id)", [$vpIds])
+                          ->orWhereRaw("FIND_IN_SET(?, state_id)", [$stateIds]);
+                })
             ->orderBy('id', 'desc')
             ->get();
-
+            
 
         if ($data->isNotEmpty()) {
             // Add readable brand names
