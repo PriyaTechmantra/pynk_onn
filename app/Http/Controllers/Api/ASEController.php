@@ -3553,7 +3553,7 @@ public function aseSalesreport(Request $request)
             }
 
             // 🔹 Execute query
-            $distributors = $distributorQuery->pluck('distributor_id')->unique()->values();
+            $distributors = $distributorQuery->get();
              $respArrd = [];
 
             foreach ($distributors as $item) {
