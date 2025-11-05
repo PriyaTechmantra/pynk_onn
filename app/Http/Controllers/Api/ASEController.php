@@ -3146,7 +3146,9 @@ public function aseSalesreport(Request $request)
         return response()->json([
             'error' => false,
             'message' => 'ASM report - Team wise',
-            'data' =>$resp
+            'PrimarySales' => $respArrd,
+            'SecondarySales' => $aseResp
+            
             
         ]);
     }
