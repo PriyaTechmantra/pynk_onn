@@ -371,7 +371,8 @@ public function aseSalesreport(Request $request)
               ->where('is_deleted', 0);
         })
         ->with('distributor:id,name')
-        ->get();
+        ->distinct('distributor_id') // ✅ ensures each distributor_id only once
+        ->get(['distributor_id']);
 
     foreach ($distributors as $item) {
         $qty = PrimaryOrder::where('distributor_id', $item->distributor_id)
@@ -580,7 +581,8 @@ public function aseSalesreport(Request $request)
             ->where('store_id',NULL)
             ->where('is_deleted', 0)
             ->with('distributor')
-            ->get();
+            ->distinct('distributor_id') // ✅ ensures each distributor_id only once
+            ->get(['distributor_id']);
 
         if ($distributors->isNotEmpty()) {
            
@@ -3075,7 +3077,7 @@ public function aseSalesreport(Request $request)
         $aseIds = Team::where('asm_id', $request->asm_id)->where('status',1)->where('is_deleted',0)
                    ->whereNull('store_id')
                   ->whereNotNull('ase_id')
-                  ->pluck('ase_id');
+                  ->pluck('ase_id')->unique()->toArray();
         
         // Fetch ASE Data in One Query with Eager Loading (If applicable)
         $ases = Employee::whereIn('id', $aseIds)->get();
@@ -3115,8 +3117,10 @@ public function aseSalesreport(Request $request)
                 ->where('status', 1)
                 ->where('is_deleted', 0);
             })
+           
             ->with('distributor:id,name')
-            ->get();
+            ->distinct('distributor_id') // ✅ ensures each distributor_id only once
+            ->get(['distributor_id']);
              $respArrd = [];
 
             foreach ($distributors as $item) {
@@ -4294,6 +4298,397 @@ public function aseSalesreport(Request $request)
             'data'  => array_values($finalData),
         ]);
     }
+
+
+    //distributor
+    
+    public function distributorAddTocart(Request $request)
+    {
+        $validator = Validator::make($request->all(),[
+           
+            'distributor_id' => 'required',
+            'product_id' => 'required',
+            'order_type' => 'required',
+            'color' => 'required',
+            'brand' => 'required'
+        ]);
+        if(!$validator->fails()){
+            $collectedData = $request->except('_token');
+            $multiColorSizeQty = explode("|", $collectedData['color']);
+            $colors = array();
+            $sizes = array();
+            $qtys = array();
+            $multiPrice =array();
+            // ✅ Convert brand name to code
+            $brandMap = [
+                'ONN' => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+            $brandCode = $brandMap[$collectedData['brand']] ?? null;
+            foreach($multiColorSizeQty as $m){
+                $str_arr = explode("*",$m);
+                array_push($colors,$str_arr[0]);
+                array_push($sizes,$str_arr[1]);
+                array_push($qtys,$str_arr[2]);
+                
+            }
+            $lastEntry = null;
+            for($i=0;$i<count($colors);$i++)
+            {
+                $cartExists = CartDistributor::where('product_id', $collectedData['product_id'])->where('distributor_id', $collectedData['distributor_id'])->where('color_id', $colors[$i])->where('size_id', $sizes[$i])->where('brand', $brandCode)->first();
+                
+    
+                if ($cartExists) {
+                        $cartExists->qty = $cartExists->qty + $qtys[$i];
+                        $cartExists->save();
+                        return response()->json(['error'=>false, 'resp'=>'Product qty updated','data'=>$cartExists]);
+                } else {
+                    if ($collectedData['order_type']) {
+                        if ($collectedData['order_type'] == 'distributor-visit') {
+                            $orderType = 'Distributor visit';
+                        } else {
+                            $orderType = 'Order on call';
+                        }
+                    } else {
+                        $orderType = null;
+                    }
+                    
+                    $newEntry = new CartDistributor;
+                   
+                    $newEntry->distributor_id = $collectedData['distributor_id'] ?? null;
+                    $newEntry->order_type = $orderType;
+                    $newEntry->product_id = $collectedData['product_id'];
+                    $newEntry->color_id = $colors[$i];
+                    $newEntry->size_id = $sizes[$i];
+                    $newEntry->qty = $qtys[$i];
+                    $newEntry->brand = $brandCode;
+                    $newEntry->save();
+                }
+            }
+            if($newEntry){
+                return response()->json(['error'=>false, 'resp'=>'Product added to cart successfully','data'=>$newEntry]);
+            }else{
+                return response()->json(['error'=>false, 'resp'=>'Something happend']);
+            }
+        }else {
+            return response()->json(['error' => true, 'resp' => $validator->errors()->first()]);
+        }
+    }
+
+    public function distributorappcartqtyUpdate(Request $request)
+    {
+        $cart = CartDistributor::findOrFail($request->cartId);
+        
+        if ($cart) {
+			 $cart->qty = $request->qty;
+			 $cart->save();
+            return response()->json([
+                'error' => false,
+                'resp' => 'Quantity updated'
+            ]);
+        } else {
+            return response()->json([
+                'error' => true,
+                'resp' => 'Something Happened'
+            ]);
+        }
+    }
+
+    public function showBydistributorapp(Request $request)
+    {
+        // Brand mapping
+        $brandMap = [
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandName = $request->brand; // e.g. ONN, PYNK, Both
+        $brandId = $brandMap[$brandName] ?? null;
+
+        // Base query
+        $query = CartDistributor::where('distributor_id', $request->distributorId)->whereHas('product')->with([
+                'size:id,name,size_details',
+                'color:id,name',
+                'product' => function ($q) {
+                    $q->select('id', 'name', 'style_no','brand')
+                        ->where('status', 1)
+                        ->where('is_deleted', 0);
+                }
+               ]);
+            //->with(['product:id,name,style_no,brand', 'color:id,name', 'size:id,name,size_details']);
+
+        // Apply brand filter if provided
+        if ($brandId) {
+            if ($brandId == 3) {
+                // If "Both", show all brands (1, 2, 3)
+                $query->whereIn('brand', [1, 2, 3]);
+            } else {
+                // If ONN or PYNK, include its brand + "Both" (3)
+                $query->whereIn('brand', [$brandId, 3]);
+            }
+        }
+
+        $cart = $query->get();
+        
+        // Total quantity
+        $total_quantity = $cart->sum('qty');
+
+        // Response
+        return response()->json([
+            'error' => false,
+            'resp' => 'Cart list fetched successfully',
+            'data' => $cart,
+            'total_quantity' => $total_quantity,
+        ]);
+    }
+
+
+    public function distributorappcartDelete(Request $request,$id)
+    {
+        $cart=CartDistributor::destroy($id);
+        if ($cart) {
+            return response()->json(['error'=>false, 'resp'=>'Product removed from cart']);
+        } else {
+            return response()->json(['error' => true, 'resp' => 'Something happened']);
+        }
+    }
+
+    public function distributorappcartPreviewPDF_URL(Request $request)
+    {
+        $brandMap = [
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandName = $request->brand; // e.g. ONN, PYNK, Both
+        $brandId = $brandMap[$brandName] ?? null;
+        return response()->json([
+            'error' => false,
+            'resp' => 'URL generated',
+            'data' => url('/').'/api/distributor/cart/pdf/view/?distributorId='.$request->distributorId.'&brand='.$brandId,
+        ]);
+    }
+
+    
+
+    public function distributorappcartPreviewPDF_view(Request $request)
+    {
+        // Map brand name to code
+        $brandMap = [
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandCode = $brandMap[$request->brand] ?? null;
+
+        // Base query
+        $query = CartDistributor::where('distributor_id', $request->distributorId)->whereHas('product')
+            ->with(['product', 'distributors', 'color', 'size']);
+
+        // Apply brand filter
+        if ($brandCode) {
+            if ($brandCode == 3) {
+                // If "Both", show all (ONN, PYNK, Both)
+                $query->whereIn('brand', [1, 2, 3]);
+            } else {
+                // If ONN or PYNK, show its brand and "Both"
+                $query->whereIn('brand', [$brandCode, 3]);
+            }
+        }
+
+        $cartData = $query->get();
+
+        return view('api.distributor-cart-pdf', compact('cartData'));
+    }
+
+
+    public function distributorappplaceOrderUpdate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'distributor_id' => ['required'],
+            'brand' => ['required'],
+            'order_type' => ['required', 'string', 'min:1'],
+            'order_lat' => ['required', 'string', 'min:1'],
+            'order_lng' => ['required', 'string', 'min:1'],
+            'comment' => ['nullable', 'string', 'min:1'],
+            'order_placed_by' => ['required'],
+        ]);
+
+        if (!$validator->fails()) {
+            $params = $request->except('_token');
+            $collectedData = collect($params);
+            $brandMap = [
+                'ONN'  => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+            $brandValue = $brandMap[$request->brand] ?? null;
+
+            if (!$brandValue) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid brand value.',
+                ]);
+            }
+            $cart_count = CartDistributor::where('distributor_id', $collectedData['distributor_id'])
+            
+            ->where('brand',$brandValue)->whereHas('product')
+            ->with(['product' => function ($query) {
+                $query->where('status', 1)
+                    ->where('is_deleted', 0);
+            }])->get();
+            //dd($cart_count);
+            if ($cart_count->isNotEmpty()) {
+
+                $firstCart = $cart_count->first();
+
+                if ($firstCart->brand == 1) {
+                    [$order_no, $sequence_no] = generateprimaryONNOrderNumber('primary', $collectedData['distributor_id']);
+                } else {
+                    [$order_no, $sequence_no] = generateprimaryPYNKOrderNumber('primary', $collectedData['distributor_id']);
+                }
+                            // 1 order
+                $newEntry = new OrderDistributor;
+                $newEntry->sequence_no = $sequence_no;
+                $newEntry->order_no = $order_no;
+                $newEntry->distributor_id = $collectedData['distributor_id'];
+                $newEntry->brand = $brandValue;
+                $newEntry->order_placed_by = $collectedData['order_placed_by'];
+                //$newEntry->distributor_id = $collectedData['distributor_id'] ?? '';
+                //$aseDetails=DB::select("select * from employees where id='".$collectedData['user_id']."'");
+                //$aseName=$aseDetails[0]->name;
+                $user=$newEntry->distributor_id;
+    			$result = DB::select("select * from distributors where id='".$user."'");
+                $item=$result[0];
+                $name = $item->name;
+                $newEntry->order_type = $collectedData['order_type'] ?? null;
+                $newEntry->order_lat = $collectedData['order_lat'] ?? null;
+                $newEntry->order_lng = $collectedData['order_lng'] ?? null;
+    
+    			$newEntry->email = $item->email;
+    			$newEntry->mobile = $item->contact;
+                // fetch cart details
+                
+                $subtotal = $totalOrderQty = 0;
+                foreach ($cart_count as $cartValue) {
+                    if ($cartValue->product) {
+                        $totalOrderQty += $cartValue->qty;
+                        $subtotal += $cartValue->product->offer_price * $cartValue->qty;
+                        $store_id = $cartValue->store_id;
+                        $order_type = $cartValue->order_type;
+                    } else {
+                        return response()->json(['error' => true, 'resp' => 'Product not exist or inactive/deleted']);
+                    }
+                }
+                $newEntry->amount = $subtotal;
+                $newEntry->comment = $collectedData['comment'] ?? null;
+                $total = (int) $subtotal;
+                $newEntry->final_amount = $total;
+                $newEntry->save();
+                // 2 insert cart data into order products
+                $orderProducts = [];
+                foreach($cart_count as $cartValue) {
+                    $orderProducts[] = [
+                        'order_id' => $newEntry->id,
+                        'product_id' => $cartValue->product_id,
+                        'color_id' => $cartValue->color_id,
+                        'size_id' => $cartValue->size_id,
+                        'qty' => $cartValue->qty,
+                        "created_at" => date('Y-m-d H:i:s'),
+                        "updated_at" => date('Y-m-d H:i:s'),
+                    ];
+                }
+                $orderProductsNewEntry = OrderProductDistributor::insert($orderProducts);
+                  CartDistributor::where('distributor_id', $newEntry->distributor_id)->where('user_id',$newEntry->user_id)->where('brand',$brandValue)->delete();
+    
+    			// notification: sender, receiver, type, route, title
+                // notification to ASE
+                sendNotification($collectedData['user_id'], $brandValue, 'admin', 'primary-order-place', 'front.user.order', $totalOrderQty.' New order placed',$totalOrderQty.' new order placed  '.$name);
+    
+    
+    
+    
+                return response()->json(['error'=>false, 'resp'=>'Order placed successfully','data'=>$newEntry]);
+            }else{
+                return response()->json(['error'=>true, 'resp'=>'cart empty']);
+            }
+        } else {
+            return response()->json(['status' => 400, 'resp' => $validator->errors()->first()]);
+        }
+    }
+
+    public function distributorapporderPDF_URL(Request $request, $id)
+    {
+        return response()->json([
+            'error' => false,
+            'resp' => 'URL generated',
+            'data' => url('/').'/api/distributor/order/pdf/view/'.$id,
+        ]);
+    }
+
+    
+
+    public function distributorapporderPDF_view(Request $request, $id)
+    {
+        $orderData =OrderProductDistributor::where('order_id',$id)->whereHas('product')->with('product','color','size','orders')->get();
+		
+        return view('api.distributor-order-pdf', compact('orderData','id'));
+    }
+
+
+    public function distributorprimaryorderList(Request $request)
+    {
+        $brandMap = [
+            'ONN' => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandCode = $brandMap[$request->brand] ?? null;
+
+        $orderQuery = OrderDistributor::where('distributor_id', $request->distributorId)
+            
+            ->where('brand', $brandCode)
+            ->with('distributors:id,name')
+            ->orderBy('id', 'desc');
+
+        // ✅ Apply date filters only if provided
+        if ($request->filled('from') && $request->filled('to')) {
+            $fromDate = date('Y-m-d 00:00:00', strtotime($request->from));
+            $toDate = date('Y-m-d 23:59:59', strtotime($request->to));
+
+            $orderQuery->whereBetween('created_at', [$fromDate, $toDate]);
+        }
+
+        $orders = $orderQuery->get();
+        // ✅ Add total quantity field to each order
+        $orders->map(function ($order) {
+            $order->total_qty = $order->orderProducts->sum('qty');
+            unset($order->orderProducts); // optional: remove detailed items if not needed
+            return $order;
+        });
+        if ($orders->isNotEmpty()) {
+            return response()->json([
+                'error' => false,
+                'resp' => 'Order list fetched successfully',
+                'data' => $orders
+            ]);
+        } else {
+            return response()->json([
+                'error' => true,
+                'resp' => 'No orders found for the given filters'
+            ]);
+        }
+    }
+
+
+
 
 
 }

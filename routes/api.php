@@ -126,7 +126,7 @@ Route::get('distributor/cart/preview/pdf/url', [ASEController::class, 'distribut
 Route::get('distributor/cart/pdf/view', [ASEController::class, 'distributorcartPreviewPDF_view']);
 Route::get('distributor/cart/clear/{id}', [ASEController::class, 'distributorclearCart']);
 Route::get('distributor/cart/delete/{id}', [ASEController::class, 'distributorcartDelete']);
-//return book
+
 Route::get('distributor/cart/list', [ASEController::class, 'showBydistributor']);
 
 Route::post('distributor-place-order', [ASEController::class, 'distributorplaceOrderUpdate']);
@@ -173,3 +173,22 @@ Route::post('team-wise-report-vp', [ASEController::class, 'storeReportVP']);
 
 Route::post('product-wise-report-vp', [ASEController::class, 'productReportVP']);
 //Distributor
+
+
+Route::post('distributor/addTocart', [ASEController::class, 'distributorAddTocart']);
+Route::get('distributor/app/cart/qty/update', [ASEController::class, 'distributorappcartqtyUpdate']);
+Route::get('distributor/app/cart/preview/pdf/url', [ASEController::class, 'distributorappcartPreviewPDF_URL']);
+Route::get('distributor/app/cart/pdf/view', [ASEController::class, 'distributorappcartPreviewPDF_view']);
+Route::get('distributor/app/cart/clear/{id}', [ASEController::class, 'distributorappclearCart']);
+Route::get('distributor/app/cart/delete/{id}', [ASEController::class, 'distributorappcartDelete']);
+Route::get('distributor/app/cart/list', [ASEController::class, 'showBydistributorapp']);
+
+Route::post('distributor-app-place-order', [ASEController::class, 'distributorappplaceOrderUpdate']);
+
+Route::get('distributor/app/order/pdf/url/{id}', [ASEController::class, 'distributorapporderPDF_URL']);
+
+
+Route::get('distributor/app/order/pdf/view/{id}', [ASEController::class, 'distributorapporderPDF_view']);
+
+
+Route::get('distributor/order/list', [ASEController::class, 'distributorprimaryorderList']);
