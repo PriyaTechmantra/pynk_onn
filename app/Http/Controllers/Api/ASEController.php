@@ -1864,14 +1864,20 @@ public function aseSalesreport(Request $request)
             ->pluck('state_id')
             ->unique()
             ->toArray();
-
+        
         // 🔹 Fetch Product Catalogues
-        $data = ProductCatalogue::where('status', 1)
-            ->where('is_deleted', 0)
-            ->whereIn('state_id', $stateIds)
-            ->whereIn('vp_id', $vpIds)
-            ->orderBy('id', 'desc')
-            ->get();
+        $query = ProductCatalogue::where('status', 1)
+            ->where('is_deleted', 0);
+
+        if (!empty($stateIds)) {
+            $query->whereIn('state_id', $stateIds);
+        }
+
+        if (!empty($vpIds)) {
+            $query->whereIn('vp_id', $vpIds);
+        }
+
+        $data = $query->orderBy('id', 'desc')->get();
 
         if ($data->isNotEmpty()) {
             // Add readable brand names
