@@ -2550,7 +2550,8 @@ public function aseSalesreport(Request $request)
                 ->where('is_deleted', 0);
             })
             ->with('distributor:id,name')
-            ->get();
+            ->distinct('distributor_id') // ✅ ensures each distributor_id only once
+            ->get(['distributor_id']);
              $respArrd = [];
 
             foreach ($distributors as $item) {
@@ -3552,7 +3553,7 @@ public function aseSalesreport(Request $request)
             }
 
             // 🔹 Execute query
-            $distributors = $distributorQuery->get();
+            $distributors = $distributorQuery->pluck('distributor_id')->unique()->values();
              $respArrd = [];
 
             foreach ($distributors as $item) {
