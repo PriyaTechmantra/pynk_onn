@@ -1889,12 +1889,13 @@ public function aseSalesreport(Request $request)
                 'message' => 'Catalogue data fetched successfully',
                 'data'    => $data,
             ], 200);
-        }
+        }else{
 
-        return response()->json([
-            'status'  => false,
-            'message' => 'No catalogue data found',
-        ], 404);
+            return response()->json([
+                'status'  => false,
+                'message' => 'No catalogue data found',
+            ], 404);
+        }
     }
 
 
@@ -1978,13 +1979,14 @@ public function aseSalesreport(Request $request)
                 'message' => 'News data fetched successfully',
                 'data'    => $data,
             ], 200);
-        }
+        }else{
 
-        return response()->json([
-            'status'  => false,
-            'message' => 'No news data found',
-            'data'    => [],
-        ], 404);
+            return response()->json([
+                'status'  => false,
+                'message' => 'No news data found',
+                'data'    => [],
+            ], 404);
+        }
     }
 
 
