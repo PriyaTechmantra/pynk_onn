@@ -196,7 +196,7 @@
                 @endcan
 
                
-                 {{--<li class="{{ request()->is('reward*') ? 'active' : '' }}">
+                 <li class="{{ request()->is('reward*') ? 'active' : '' }}">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Reward App</span></a>
                     <ul>
                         <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
@@ -206,7 +206,7 @@
                 	<li class="{{ ( request()->is('reward/terms*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.terms.index') }}"><i class="fi fi-br-database"></i> <span>Terms & Condition</span></a></li> 
 
                     </ul>
-                </li>--}}
+                </li>
             </ul>
         </nav>
          <div class="nav__footer">
