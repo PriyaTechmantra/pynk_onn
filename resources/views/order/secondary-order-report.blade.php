@@ -50,11 +50,37 @@
                         <h4 class="d-flex">
                             Secondary Order
                             @can('view primary order report')
-                            <a href="{{ url('primary/order/csv/export',['brand'=>$request->brand,'date_from'=>$request->date_from,'date_to'=>$request->date_to,'state'=>$request->state,'area'=>$request->area,'distributor'=>$request->distributor,'ase'=>$request->ase,'product'=>$request->product,'keyword'=>$request->keyword]) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                CSV
-                            </a>
-                            @endcan
+                                <a 
+                                    href="{{ url('secondary/order/csv/export') . '?' . http_build_query([
+                                        'brand' => $request->brand,
+                                        'date_from' => $request->date_from,
+                                        'date_to' => $request->date_to,
+                                        'state' => $request->state,
+                                        'area' => $request->area,
+                                        'distributor' => $request->distributor,
+                                        'ase' => $request->ase,
+                                        'asm' => $request->asm,
+                                        'rsm' => $request->rsm,
+                                        'vp' => $request->vp,
+                                        'product' => $request->product,
+                                        'keyword' => $request->keyword
+                                    ]) }}" 
+                                    id="downloadCsvBtn"  {{-- ✅ Added CSV download button ID --}}
+                                    class="btn btn-sm btn-cta ms-auto" 
+                                    data-bs-toggle="tooltip" 
+                                    title="Export data in CSV"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" 
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        class="feather feather-download">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    CSV
+                                </a>
+                                @endcan
+
                             
                         </h4>
                                 <div class="search__filter mb-0">
@@ -214,7 +240,12 @@
                                         <th>Order No</th>
                                         <th>State</th>
                                         <th>Area</th>
+                                        <th>Order by</th>
+                                        <th>Store</th>
                                         <th>ASE</th>
+                                        <th>ASM</th>
+                                        <th>RSM</th>
+                                        <th>VP</th>
                                         <th>Distributor</th>
 				                        <th>Date</th>
                                         {{--<th>Status</th>
@@ -293,7 +324,24 @@
                             </td>
 
                             <td>
+                                <p class="text-dark mb-1">{{$item->user_name}}</p>
+                            </td>
+                            
+                            <td>
+                                <p class="text-dark mb-1">{{$item->store_name}}</p>
+                            </td>
+                            
+                            <td>
                                 <p class="text-dark mb-1">{{$item->ase_name}}</p>
+                            </td>
+                            <td>
+                                <p class="text-dark mb-1">{{$item->asm_name}}</p>
+                            </td>
+                            <td>
+                                <p class="text-dark mb-1">{{$item->rsm_name}}</p>
+                            </td>
+                            <td>
+                                <p class="text-dark mb-1">{{$item->vp_name}}</p>
                             </td>
                             <td>
                                 <p class="text-dark mb-1">{{$item->distributor_name}}</p>
@@ -323,10 +371,11 @@
                     @endforelse
                     <tr>
                         <td></td>
-                        
+                        <td></td>
                         <td>
                             <p class="small text-dark mb-1 fw-bold">TOTAL</p>
                         </td>
+                        
                         <td>
                             <p class="small text-dark mb-1 fw-bold">{{ number_format($all_orders_total_amount) }}</p>
                         </td>
