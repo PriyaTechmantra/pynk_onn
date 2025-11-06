@@ -219,7 +219,7 @@
                                             ];
 
                                             // Collect brand IDs from items (avoid duplicates)
-                                            $brands = $data->pluck('brand')->unique()->toArray();
+                                            $brands = collect($data->all_orders)->pluck('brand')->unique()->toArray();
 
                                             // Determine brand permissions
                                             if (in_array(3, $brands)) {
