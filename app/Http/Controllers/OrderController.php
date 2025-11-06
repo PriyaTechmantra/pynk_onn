@@ -259,7 +259,7 @@ class OrderController extends Controller
     // ✅ Fetch paginated results
     //$data->all_orders = $query->latest('orders.id')->get();
     //if ($request->has('download_csv')) {
-        $orders = $query->latest('order_distributors.id')->get();
+        $orders = $query->groupby('order_product_distributors.id')->latest('order_distributors.id')->get();
 
         // ✅ Define CSV headers
         $headers = [
