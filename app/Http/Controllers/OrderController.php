@@ -136,7 +136,7 @@ class OrderController extends Controller
     //$data->all_orders = $query->latest('orders.id')->get();
     //if ($request->has('download_csv')) {
         $data->all_orders = $query->latest('order_distributors.id')->paginate(25);
-        
+        dd($data->all_orders);
         $allASEs = Employee::where('type',4)->where('name', '!=', null)->where('status',1)->where('is_deleted',0)->orderBy('name')->get();
         $allDistributors = Distributor::where('name', '!=', null)->where('status',1)->where('is_deleted',0)->orderBy('name')->get();
         $state = State::where('status',1)->where('is_deleted',0)->orderBy('name')->get();
