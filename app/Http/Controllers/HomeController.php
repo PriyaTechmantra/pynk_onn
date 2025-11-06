@@ -189,7 +189,7 @@ class HomeController extends Controller
             
             case 'state':
                 $data = DB::table('order_products')
-                    ->select('states.name', DB::raw('SUM(order_products.qty) as total_sales'))->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('states', 'states.id', 'stores.state_id')
+                    ->select('states.name','states.id', DB::raw('SUM(order_products.qty) as total_sales'))->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('states', 'states.id', 'stores.state_id')
                     ->whereBetween('order_products.created_at', [$startDate, $endDate])
                     ->groupBy('states.id')->orderByDesc('total_sales')
                     ->get();
@@ -197,16 +197,16 @@ class HomeController extends Controller
 
             case 'product':
                 $data = DB::table('order_products')
-                    ->select('products.style_no', DB::raw('SUM(order_products.qty) as total_sales'))->join('products', 'products.id', 'order_products.product_id')->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('states', 'states.id', 'stores.state_id')
+                    ->select('products.id','products.style_no', DB::raw('SUM(order_products.qty) as total_sales'))->join('products', 'products.id', 'order_products.product_id')->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('states', 'states.id', 'stores.state_id')
                     ->whereBetween('order_products.created_at', [$startDate, $endDate])
-                    ->groupBy('products.style_no')->orderByDesc('total_sales')
+                    ->groupBy('products.id')->orderByDesc('total_sales')
                     ->get();
                 break;
             case 'ase':
                 $data = DB::table('order_products')
-                    ->select('employees.name','employees.status', DB::raw('SUM(order_products.qty) as total_sales'))->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('employees', 'employees.id', 'orders.user_id')
+                    ->select('employees.name','employees.id','employees.status', DB::raw('SUM(order_products.qty) as total_sales'))->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('employees', 'employees.id', 'orders.user_id')
                     ->whereBetween('order_products.created_at', [$startDate, $endDate])
-                    ->groupBy('employees.name')->orderByDesc('total_sales')
+                    ->groupBy('employees.id')->orderByDesc('total_sales')
                     ->get();
                 break;
             case 'asm':
@@ -251,6 +251,7 @@ class HomeController extends Controller
                         }
                     
                         $data[] = [
+                            'id' => $asm->id,
                             'name' => $asm->name,
                             'total_sales' => $totalSales,
                         ];
@@ -308,6 +309,7 @@ class HomeController extends Controller
                         }
                     
                         $data[] = [
+                            'id' => $rsm->id,
                             'name' => $rsm->name,
                             'total_sales' => $totalSales,
                         ];
@@ -361,6 +363,7 @@ class HomeController extends Controller
                         }
                     
                         $data[] = [
+                             'id' => $vp->id,
                             'name' => $vp->name,
                             'total_sales' => $totalSales,
                         ];

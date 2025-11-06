@@ -40,7 +40,7 @@ $date_to = $date->format('Y-m-t');
                             <a type="button" class="btn btn-danger btn-sm report-btn" href="#" data-report="ase">ASE wise report</a>
                         </div>
                         <div class="col-auto">
-                            <a type="button" class="btn btn-danger btn-sm" href="#" data-report="asm">ASM wise report</a>
+                            <a type="button" class="btn btn-danger btn-sm report-btn" href="#" data-report="asm">ASM wise report</a>
                         </div>
                         <div class="col-auto">
                             <a type="button" class="btn btn-danger btn-sm report-btn" href="#" data-report="rsm">RSM wise report</a>
@@ -88,6 +88,7 @@ $date_to = $date->format('Y-m-t');
                                         $totalSales = 0;
                                     @endphp
                                     @foreach ($data as $row)
+                                    
                                         <tr>
                                             <td><a href="{{route('secondary.order.report',['state'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row->name ?? 'N/A' }}</a></td>
                                             <td>{{ $row->total_sales }}</td>
@@ -140,7 +141,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['product'=>$row->style_no,'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row->style_no ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['product'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row->style_no ?? 'N/A' }}</a></td>
                                             <td>{{ $row->total_sales }}</td>
                                         </tr>
                                         @php
@@ -191,7 +192,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['ase'=>$row->name,'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row->name ?? 'N/A' }}</a>({{$row->status == 1 ? 'Active' : 'Inactive'}} user)  </td>
+                                            <td><a href="{{route('secondary.order.report',['ase'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row->name ?? 'N/A' }}</a>({{$row->status == 1 ? 'Active' : 'Inactive'}} user)  </td>
                                             <td>{{ $row->total_sales }}</td>
                                         </tr>
 					@php
@@ -245,7 +246,7 @@ $date_to = $date->format('Y-m-t');
                                     
                                    
                                         <tr>
-                                            <td><a href="{{route('admin.secondary.order.report.index',['asm'=>$row['name'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['asm'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
                                             <td>{{ $row['total_sales'] }}</td>
                                         </tr>
 					                    @php
@@ -298,7 +299,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('admin.secondary.order.report.index',['rsm'=>$row['name'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['rsm'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
                                             <td>{{ $row['total_sales'] }}</td>
                                         </tr>
 					@php
@@ -350,7 +351,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('admin.secondary.order.report.index',['vp'=>$row['name'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['vp'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
                                             <td>{{ $row['total_sales'] }}</td>
                                         </tr>
 					@php
@@ -402,7 +403,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('admin.secondary.order.report.index',['distributor'=>$row['name'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</div></td>
+                                            <td><a href="{{route('secondary.order.report',['distributor'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</div></td>
                                             <td>{{ $row['total_sales'] }}</td>
                                         </tr>
 					@php
