@@ -51,7 +51,7 @@
                             Secondary Order
                             @can('view primary order report')
                                 <a 
-                                    href="{{ url('primary/order/csv/export') . '?' . http_build_query([
+                                    href="{{ url('primary/order/report/csv/export') . '?' . http_build_query([
                                         'brand' => $request->brand,
                                         'date_from' => $request->date_from,
                                         'date_to' => $request->date_to,

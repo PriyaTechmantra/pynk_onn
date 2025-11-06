@@ -683,7 +683,7 @@ public function secondaryOrderReport(Request $request)
 }
 
 
-public function secondaryOrderExport(Request $request)
+public function secondaryOrderReportExport(Request $request)
 {
     $user = auth()->user();
 
