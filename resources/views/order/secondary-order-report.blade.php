@@ -49,7 +49,7 @@
                     <div class="card-header">
                         <h4 class="d-flex">
                             Secondary Order
-                            @can('view primary order report')
+                            @can('view secondary order report')
                                 <a 
                                     href="{{ url('secondary/order/csv/export') . '?' . http_build_query([
                                         'brand' => $request->brand,

@@ -26,64 +26,117 @@ class OrderController extends Controller
     public function primaryOrderReport(Request $request)
     {
         $user = auth()->user();
-        $userBrands = DB::table('user_permission_categories')
-                ->where('user_id', Auth::id())
-                ->pluck('brand')
-                ->toArray();
+
+    // ✅ Fetch user brand permissions
+    $userBrands = DB::table('user_permission_categories')
+        ->where('user_id', $user->id)
+        ->pluck('brand')
+        ->toArray();
+
+    // ✅ Determine which brands user can access
+    $brandsToShow = [];
+    if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+        $brandsToShow = [1, 2, 3]; // Both access
+    } elseif (in_array(1, $userBrands)) {
+        $brandsToShow = [1];
+    } elseif (in_array(2, $userBrands)) {
+        $brandsToShow = [2];
+    }
+
+    $data = (object) [];
+
+    // ✅ Date range (make sure “to” includes the entire day)
+    $from = $request->date_from ?? date('Y-m-01');
+    $to = $request->date_to
+        ? date('Y-m-d', strtotime($request->date_to . ' +1 day'))
+        : date('Y-m-d', strtotime('+1 day'));
+
+    // ✅ Filters
+    $brandFilter = $request->brand ?? '';
+    $orderNo = $request->orderNo ?? '';
+    $product = $request->product ?? '';
+    $state = $request->state ?? '';
+    $area = $request->area ?? '';
+    $ase = $request->ase ?? '';
+    $distributor = $request->distributor ?? '';
+    
+    // ✅ Base query
+    $query = OrderProductDistributor::select(
+            'order_product_distributors.id as order_product_id',
+            'order_product_distributors.qty',
+            'order_product_distributors.color_id',
+            'order_product_distributors.size_id',
+            'products.id as product_id',
+            'products.name as product_name',
+            'products.style_no',
+            'order_distributors.brand', // ✅ ensure brand comes from orders table
+            'order_distributors.id as order_id',
+            'order_distributors.order_no',
+            'order_distributors.status',
+            'order_distributors.created_at',
+            'distributors.state_id',
+            'distributors.area_id',
+            'employees.name as user_name',
+            'colors.name as color_name',
+            'sizes.name as size_name',
+            'distributors.name as distributor_name',
+            'states.name as state_name',
+            'areas.name as area_name',
+             // ✅ team hierarchy names
+            'ase_emp.name as ase_name',
+        )
+        ->join('products', 'products.id', '=', 'order_product_distributors.product_id')
+        ->join('colors', 'colors.id', '=', 'order_product_distributors.color_id')
+        ->join('sizes', 'sizes.id', '=', 'order_product_distributors.size_id')
+        ->join('order_distributors', 'order_distributors.id', '=', 'order_product_distributors.order_id')
         
-            $brandsToShow = [];
+        ->join('employees', 'employees.id', '=', 'order_distributors.user_id')
+        ->leftJoin('distributors', 'distributors.id', '=', 'order_distributors.distributor_id')
+        ->join('teams', 'distributors.id', '=', 'teams.distributor_id')
+        ->leftJoin('states', 'states.id', '=', 'distributors.state_id')
+        ->leftJoin('areas', 'areas.id', '=', 'distributors.area_id')
+        // ✅ join employees table again for hierarchy
+        ->leftJoin('employees as ase_emp', 'ase_emp.id', '=', 'teams.ase_id')
+        ->whereBetween('order_distributors.created_at', [$from, $to]);
 
-            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
-                // Both brands access
-                $brandsToShow = [1, 2, 3];
-            } elseif (in_array(1, $userBrands)) {
-                $brandsToShow = [1];
-            } elseif (in_array(2, $userBrands)) {
-                $brandsToShow = [2];
+    // ✅ Brand filter logic
+    if ($request->filled('brand')) {
+        $query->where(function ($q) use ($request) {
+            if ($request->brand == 3) {
+                // “Both” selected → show ONN, PYNK, and Both
+                $q->whereIn('order_distributors.brand', [1, 2, 3]);
+            } else {
+                // Single brand selected → include that + both
+                $q->where('order_distributors.brand', $request->brand)
+                    ->orWhere('order_distributors.brand', 3);
             }
-        $data = (object) [];
-        $from =  date('Y-m-01');
-        $to =  date('Y-m-d', strtotime('+1 day'));
-        if(isset($request->date_from) || isset($request->date_to) || isset($request->orderNo)||isset($request->ase)||isset($request->distributor)||isset($request->state)||isset($request->product)||isset($request->area)) 
-        {
-            $from = $request->date_from ? $request->date_from : date('Y-m-01');
-            $to = date('Y-m-d', strtotime(request()->input('date_to'). '+1 day'))? date('Y-m-d', strtotime(request()->input('date_to'). '+1 day')) : '';
-            $orderNo = $request->orderNo ? $request->orderNo : '';
-            $product = $request->product ?? '';
-            $state = $request->state ?? '';
-            $area = $request->area ?? '';
-            $ase = $request->ase ?? '';
-			$distributor = $request->distributor ?? '';
-            // all order products
-            $query1 = OrderProductDistributor::select('order_distributors.brand','order_product_distributors.id AS id','products.style_no AS product_style_no','products.name AS product_name','order_product_distributors.color_id AS color_id','order_product_distributors.size_id AS size_id','order_product_distributors.qty AS qty','order_distributors.order_no AS order_no','retailer_list_of_occ.state AS state','retailer_list_of_occ.area AS area','order_distributors.fname AS fname','order_distributors.lname AS lname','distributors.name AS distributor_name','order_distributors.created_at AS created_at','order_product_distributors.status AS status')->join('products', 'products.id', 'order_product_distributors.product_id')
-            ->join('order_distributors', 'order_distributors.id', 'order_product_distributors.order_id')->join('teams', 'teams.distributor_id', 'order_distributors.distributor_id')->join('distributors', 'distributors.id', 'order_distributors.distributor_id')->whereBetween('order_distributors.created_at', [$from, $to])->where('order_distributors.status', 1);
-            $query1->when($ase, function($query1) use ($ase) {
-                $query1->join('employees', 'employees.id', 'order_distributors.user_id')->where('employees.id', $ase);
+        });
+    } else {
+        // If brand not selected — use user permissions
+        if (!empty($userBrands)) {
+            $query->where(function ($q) use ($userBrands) {
+                if (in_array(3, $userBrands)) {
+                    $q->whereIn('order_distributors.brand', [1, 2, 3]);
+                } else {
+                    $q->whereIn('order_distributors.brand', array_merge($userBrands, [3]));
+                }
             });
-            $query1->when($product, function($query1) use ($product) {
-                $query1->where('order_product_distributors.product_id', $product);
-            });
-            $query1->when($state, function($query1) use ($state) {
-                $query1->where('teams.state_id', $state);
-            });
-            $query1->when($area, function($query1) use ($area) {
-                $query1->where('teams.area_id', $area);
-            });
-			$query1->when($distributor, function($query1) use ($distributor) {
-                $query1->where('order_distributors.distributor_id', $distributor);
-            });
-            $query1->when($orderNo, function($query1) use ($orderNo) {
-                $query1->Where('order_distributors.order_no', 'like', '%' . $orderNo . '%');
-            })->whereBetween('order_distributors.created_at', [$from, $to]);
-
-            $data->all_orders = $query1->groupby('order_product_distributors.id')->latest('order_distributors.id')
-            ->paginate(25);
-            // dd($data->all_orders);
-        }else{
-            $data->all_orders = OrderProductDistributor::select('order_distributors.brand','order_product_distributors.id AS id','products.style_no AS product_style_no','products.name AS product_name','order_product_distributors.color_id AS color_id','order_product_distributors.size_id AS size_id','order_product_distributors.qty AS qty','order_distributors.order_no AS order_no','teams.state_id AS state_id','teams.area_id AS area_id','order_distributors.fname AS fname','order_distributors.lname AS lname','distributors.name AS distributor_name','order_distributors.created_at AS created_at','order_product_distributors.status AS status')->join('products', 'products.id', 'order_product_distributors.product_id')
-            ->join('order_distributors', 'order_distributors.id', 'order_product_distributors.order_id')->join('teams', 'teams.distributor_id', 'order_distributors.distributor_id')->join('distributors', 'distributors.id', 'order_distributors.distributor_id')->whereBetween('order_distributors.created_at', [$from, $to])->where('order_distributors.status', 1)->groupby('order_product_distributors.id')->latest('order_distributors.id')->paginate(25);
-            //dd($data->all_orders[1]);
         }
+    }
+
+    // ✅ Dynamic filters (kept as-is but cleaned)
+    $query->when($ase, fn($q) => $q->where('teams.ase_id', $ase));
+    $query->when($distributor, fn($q) => $q->where('order_distributors.distributor_id', $distributor));
+    $query->when($state, fn($q) => $q->where('distributors.state_id', $state));
+    $query->when($area, fn($q) => $q->where('distributors.area_id', $area));
+    $query->when($orderNo, fn($q) => $q->where('order_distributors.order_no', 'like', "%$orderNo%"));
+    $query->when($product, fn($q) => $q->where('products.id', $product));
+
+    // ✅ Fetch paginated results
+    //$data->all_orders = $query->latest('orders.id')->get();
+    //if ($request->has('download_csv')) {
+        $data->all_orders = $query->latest('order_distributors.id')->paginate(25);
+        
         $allASEs = Employee::where('type',4)->where('name', '!=', null)->where('status',1)->where('is_deleted',0)->orderBy('name')->get();
         $allDistributors = Distributor::where('name', '!=', null)->where('status',1)->where('is_deleted',0)->orderBy('name')->get();
         $state = State::where('status',1)->where('is_deleted',0)->orderBy('name')->get();
@@ -94,7 +147,183 @@ class OrderController extends Controller
 
 
 
+    public function primaryOrderReportExport(Request $request)
+{
+    $user = auth()->user();
 
+    // ✅ Fetch user brand permissions
+    $userBrands = DB::table('user_permission_categories')
+        ->where('user_id', $user->id)
+        ->pluck('brand')
+        ->toArray();
+
+    // ✅ Determine which brands user can access
+    $brandsToShow = [];
+    if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+        $brandsToShow = [1, 2, 3]; // Both access
+    } elseif (in_array(1, $userBrands)) {
+        $brandsToShow = [1];
+    } elseif (in_array(2, $userBrands)) {
+        $brandsToShow = [2];
+    }
+
+    $data = (object) [];
+
+    // ✅ Date range (make sure “to” includes the entire day)
+    $from = $request->date_from ?? date('Y-m-01');
+    $to = $request->date_to
+        ? date('Y-m-d', strtotime($request->date_to . ' +1 day'))
+        : date('Y-m-d', strtotime('+1 day'));
+
+    // ✅ Filters
+    $brandFilter = $request->brand ?? '';
+    $orderNo = $request->orderNo ?? '';
+    $product = $request->product ?? '';
+    $state = $request->state ?? '';
+    $area = $request->area ?? '';
+    $ase = $request->ase ?? '';
+    $distributor = $request->distributor ?? '';
+    
+    // ✅ Base query
+    $query = OrderProductDistributor::select(
+            'order_product_distributors.id as order_product_id',
+            'order_product_distributors.qty',
+            'order_product_distributors.color_id',
+            'order_product_distributors.size_id',
+            'products.id as product_id',
+            'products.name as product_name',
+            'products.style_no',
+            'order_distributors.brand', // ✅ ensure brand comes from orders table
+            'order_distributors.id as order_id',
+            'order_distributors.order_no',
+            'order_distributors.status',
+            'order_distributors.created_at',
+            'distributors.state_id',
+            'distributors.area_id',
+            'employees.name as user_name',
+            'colors.name as color_name',
+            'sizes.name as size_name',
+            'distributors.name as distributor_name',
+            'states.name as state_name',
+            'areas.name as area_name',
+             // ✅ team hierarchy names
+            'ase_emp.name as ase_name',
+        )
+        ->join('products', 'products.id', '=', 'order_product_distributors.product_id')
+        ->join('colors', 'colors.id', '=', 'order_product_distributors.color_id')
+        ->join('sizes', 'sizes.id', '=', 'order_product_distributors.size_id')
+        ->join('order_distributors', 'order_distributors.id', '=', 'order_product_distributors.order_id')
+        
+        ->join('employees', 'employees.id', '=', 'order_distributors.user_id')
+        ->leftJoin('distributors', 'distributors.id', '=', 'order_distributors.distributor_id')
+        ->join('teams', 'distributors.id', '=', 'teams.distributor_id')
+        ->leftJoin('states', 'states.id', '=', 'distributors.state_id')
+        ->leftJoin('areas', 'areas.id', '=', 'distributors.area_id')
+        // ✅ join employees table again for hierarchy
+        ->leftJoin('employees as ase_emp', 'ase_emp.id', '=', 'teams.ase_id')
+        ->whereBetween('order_distributors.created_at', [$from, $to]);
+
+    // ✅ Brand filter logic
+    if ($request->filled('brand')) {
+        $query->where(function ($q) use ($request) {
+            if ($request->brand == 3) {
+                // “Both” selected → show ONN, PYNK, and Both
+                $q->whereIn('order_distributors.brand', [1, 2, 3]);
+            } else {
+                // Single brand selected → include that + both
+                $q->where('order_distributors.brand', $request->brand)
+                    ->orWhere('order_distributors.brand', 3);
+            }
+        });
+    } else {
+        // If brand not selected — use user permissions
+        if (!empty($userBrands)) {
+            $query->where(function ($q) use ($userBrands) {
+                if (in_array(3, $userBrands)) {
+                    $q->whereIn('order_distributors.brand', [1, 2, 3]);
+                } else {
+                    $q->whereIn('order_distributors.brand', array_merge($userBrands, [3]));
+                }
+            });
+        }
+    }
+
+    // ✅ Dynamic filters (kept as-is but cleaned)
+    $query->when($ase, fn($q) => $q->where('teams.ase_id', $ase));
+    $query->when($distributor, fn($q) => $q->where('order_distributors.distributor_id', $distributor));
+    $query->when($state, fn($q) => $q->where('distributors.state_id', $state));
+    $query->when($area, fn($q) => $q->where('distributors.area_id', $area));
+    $query->when($orderNo, fn($q) => $q->where('order_distributors.order_no', 'like', "%$orderNo%"));
+    $query->when($product, fn($q) => $q->where('products.id', $product));
+
+    // ✅ Fetch paginated results
+    //$data->all_orders = $query->latest('orders.id')->get();
+    //if ($request->has('download_csv')) {
+        $orders = $query->latest('order_distributors.id')->get();
+
+        // ✅ Define CSV headers
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="primary_order_report.csv"',
+        ];
+
+        // ✅ Define CSV columns
+        $columns = [
+             'SR',
+            'Order No',
+            'Order Date',
+            'Brand',
+            'State',
+            'Area',
+            'ASE',
+            'Distributor',
+            'Product Name',
+            'Style No',
+            'Color',
+            'Size',
+            'Quantity',
+            
+            'Created By',
+        ];
+
+        // ✅ Stream CSV response
+        $callback = function () use ($orders, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+            $count = 1;
+            foreach ($orders as $row) {
+                $brandName = match($row->brand) {
+                    1 => 'ONN',
+                    2 => 'PYNK',
+                    3 => 'Both',
+                    default => '-',
+                };
+                fputcsv($file, [
+                    $count,
+                    $row->order_no,
+                    date('d-m-Y', strtotime($row->created_at)),
+                    $brandName,
+                    $row->state_name,
+                    $row->area_name,
+                    $row->ase_name,
+                    $row->distributor_name,
+                    $row->product_name,
+                    $row->style_no,
+                    $row->color_name,
+                    $row->size_name,
+                    $row->qty,
+                    
+                    $row->user_name,
+                ]);
+                $count++;
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    //}
+}
 
 
 
