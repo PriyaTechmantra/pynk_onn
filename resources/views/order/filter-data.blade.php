@@ -441,6 +441,7 @@ $date_to = $date->format('Y-m-t');
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const monthInput = document.getElementById('month_year');
+        const brand = @json($brand);
         const selectedMonth = @json($monthName);
         const selectedYear = @json($year);
         document.querySelectorAll('.report-btn').forEach(btn => {
@@ -454,7 +455,7 @@ $date_to = $date->format('Y-m-t');
 
                 // Build URL with month-year
                 const reportType = this.getAttribute('data-report');
-                const url = `?month=${selectedMonth}&year=${selectedYear}&month_year=${monthYear}&report_type=${reportType}`;
+                const url = `?month=${selectedMonth}&year=${selectedYear}&month_year=${monthYear}&report_type=${reportType}&brand=${brand}`;
                 window.location.href = url;
             });
         });

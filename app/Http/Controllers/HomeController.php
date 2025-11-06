@@ -37,32 +37,74 @@ class HomeController extends Controller
      */
    public function index(Request $request)
 {
-    $data = (object)[];
+        $data = (object)[];
 
-    $user = auth()->user();
+        $user = auth()->user();
 
-    // 🔹 Step 1: Detect which brand(s) the user has permission to view
-    if ($user->can('onn daily dashboard') && $user->can('pynk dashboard')) {
-        $brandPermissions = 'Both';
-    } elseif ($user->can('onn daily dashboard')) {
-        $brandPermissions = 'ONN';
-    } elseif ($user->can('pynk dashboard')) {
-        $brandPermissions = 'PYNK';
-    } else {
-        abort(403, 'Unauthorized access.');
-    }
+// 🔹 Step 1: Get assigned brand(s) from user_permission_categories
+        $userBrands = DB::table('user_permission_categories')
+            ->where('user_id', $user->id)
+            ->pluck('brand')
+            ->toArray();
+
+        // Determine which brands user can access
+        if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+            $brandsToShow = [1, 2]; // Both brands
+        } elseif (in_array(1, $userBrands)) {
+            $brandsToShow = [1]; // Only ONN
+        } elseif (in_array(2, $userBrands)) {
+            $brandsToShow = [2]; // Only PYNK
+        } else {
+            $brandsToShow = []; // No brand access
+        }
+
+        // 🔹 Step 2: Check dashboard permissions
+        if ($user->can('onn daily dashboard') && $user->can('pynk dashboard')) {
+            $brandPermissions = 'Both';
+        } elseif ($user->can('onn daily dashboard')) {
+            $brandPermissions = 'ONN';
+        } elseif ($user->can('pynk dashboard')) {
+            $brandPermissions = 'PYNK';
+        } else {
+            abort(403, 'Unauthorized access.');
+        }
+
+        if ($brandPermissions === 'Both' && count($brandsToShow) > 1) {
+            // Superadmin with both brand access and both dashboard permissions
+            $brandCode = $request->brand ?? session('selected_brand', 1); // Default ONN
+            session(['selected_brand' => $brandCode]);
+        } else if($brandPermissions === 'ONN' && $brandsToShow == [1]) {
+            // For single-brand users
+            $brandCode = 1 ?? null;
+        }else if($brandPermissions === 'PYNK' && $brandsToShow == [2]) {
+            // For single-brand users
+            $brandCode = 2 ?? null;
+        }else{
+            $brandCode  =  0;
+        }
+
+    // // 🔹 Step 1: Detect which brand(s) the user has permission to view
+    // if ($user->can('onn daily dashboard') && $user->can('pynk dashboard')) {
+    //     $brandPermissions = 'Both';
+    // } elseif ($user->can('onn daily dashboard')) {
+    //     $brandPermissions = 'ONN';
+    // } elseif ($user->can('pynk dashboard')) {
+    //     $brandPermissions = 'PYNK';
+    // } else {
+    //     abort(403, 'Unauthorized access.');
+    // }
 
     // 🔹 Step 2: Determine brandCode
     // If both, allow switching from dropdown; else force user's allowed brand
-    if ($brandPermissions === 'Both') {
-        $brandCode = $request->brand ?? session('selected_brand', 1); // default ONN
-        session(['selected_brand' => $brandCode]);
-    } elseif ($brandPermissions === 'ONN') {
-        $brandCode = 1;
-    } elseif ($brandPermissions === 'PYNK') {
-        $brandCode = 2;
-    }
-
+    // if ($brandPermissions === 'Both') {
+    //     $brandCode = $request->brand ?? session('selected_brand', 1); // default ONN
+    //     session(['selected_brand' => $brandCode]);
+    // } elseif ($brandPermissions === 'ONN') {
+    //     $brandCode = 1;
+    // } elseif ($brandPermissions === 'PYNK') {
+    //     $brandCode = 2;
+    // }
+  
     // 🔹 Step 3: Proceed with your existing dashboard logic (filtered by $brandCode)
     $data->vp = Employee::where('type', 1)->where('is_deleted', 0)->where('brand', $brandCode)->get();
     $data->rsm = Employee::where('type', 2)->where('is_deleted', 0)->where('brand', $brandCode)->get();
@@ -129,14 +171,14 @@ class HomeController extends Controller
     ", [$brandCode]);
 
     // 🔹 ASE active/inactive
-    $userIds = Employee::where('type', 4)->pluck('id')->toArray();
+    $userIds = Employee::where('type', 4)->where('is_deleted', 0)->where('brand', $brandCode)->pluck('id')->toArray();
     $activeASEreport = Activity::where('type', 'Visit Started')
         ->where('created_at', '>', date('Y-m-d'))
         ->whereIn('user_id', $userIds)
         ->pluck('user_id')
         ->toArray();
 
-    $inactiveASE = Employee::where('type', 4)
+    $inactiveASE = Employee::where('type', 4)->where('brand', $brandCode)->where('is_deleted', 0)
         ->whereNotIn('id', $activeASEreport)
         ->get();
 
@@ -172,7 +214,7 @@ class HomeController extends Controller
 
     public function filterReport(Request $request)
     {
-       
+        $brand = $request->brand;
         $month=$request->month;
         $year=$request->year;
         $monthYear = $request->get('month_year'); // e.g., "2025-04"
@@ -180,7 +222,7 @@ class HomeController extends Controller
        // dd($reportType);
     $data = [];
 
-    if ($month && $year && $reportType) {
+    if ($month && $year && $reportType && $brand) {
         $startDate = $monthYear . '-01';
         //$endDate = date('Y-m-t', strtotime($startDate));
         $endDate = date('Y-m-t 23:59:59', strtotime($startDate));
@@ -190,6 +232,7 @@ class HomeController extends Controller
             case 'state':
                 $data = DB::table('order_products')
                     ->select('states.name','states.id', DB::raw('SUM(order_products.qty) as total_sales'))->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('states', 'states.id', 'stores.state_id')
+                    ->where('orders.brand' ,$brand)
                     ->whereBetween('order_products.created_at', [$startDate, $endDate])
                     ->groupBy('states.id')->orderByDesc('total_sales')
                     ->get();
@@ -198,6 +241,7 @@ class HomeController extends Controller
             case 'product':
                 $data = DB::table('order_products')
                     ->select('products.id','products.style_no', DB::raw('SUM(order_products.qty) as total_sales'))->join('products', 'products.id', 'order_products.product_id')->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('states', 'states.id', 'stores.state_id')
+                    ->where('orders.brand' ,$brand)
                     ->whereBetween('order_products.created_at', [$startDate, $endDate])
                     ->groupBy('products.id')->orderByDesc('total_sales')
                     ->get();
@@ -205,12 +249,13 @@ class HomeController extends Controller
             case 'ase':
                 $data = DB::table('order_products')
                     ->select('employees.name','employees.id','employees.status', DB::raw('SUM(order_products.qty) as total_sales'))->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('employees', 'employees.id', 'orders.user_id')
+                    ->where('orders.brand' ,$brand)
                     ->whereBetween('order_products.created_at', [$startDate, $endDate])
                     ->groupBy('employees.id')->orderByDesc('total_sales')
                     ->get();
                 break;
             case 'asm':
-                    $asmUsers = Employee::where('type', 3)->get(); // Get all ASM users
+                    $asmUsers = Employee::where('type', 3)->where('brand' ,$brand)->where('is_deleted',0)->get(); // Get all ASM users
 
                     $data = []; // Final array for ASM with total sales
                     
@@ -220,7 +265,7 @@ class HomeController extends Controller
                     
                         // Get all ASE names under this ASM from retailer_list_of_occ table
                         $aseDetails = DB::table('teams')
-                            ->whereRaw("FIND_IN_SET(?, asm_id)", [$asm->id])
+                            ->whereRaw("FIND_IN_SET(?, asm_id)", [$asm->id])->where('brand' ,$brand)
                             ->pluck('ase_id');
                            
                         // Parse all ASEs from comma-separated format
@@ -237,7 +282,7 @@ class HomeController extends Controller
                         
                     
                         // Get user_ids of those ASEs from users table
-                        $aseUsers = Employee::whereIn('id', $uniqueAseList)->pluck('id');
+                        $aseUsers = Employee::whereIn('id', $uniqueAseList)->where('brand' ,$brand)->pluck('id');
                         
                         if ($aseUsers->isEmpty()) {
                             $totalSales = 0;
@@ -245,6 +290,7 @@ class HomeController extends Controller
                             // Get total sales for these ASE user IDs
                             $totalSales = DB::table('order_products')
                                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
+                                ->where('orders.brand' ,$brand)
                                 ->whereIn('orders.user_id', $aseUsers)
                                 ->whereBetween('order_products.created_at', [$startDate, $endDate])
                                 ->sum('order_products.qty');
@@ -268,7 +314,7 @@ class HomeController extends Controller
                 break;
             case 'rsm':
                 
-		    $rsmUsers = Employee::where('type', 2)->get(); // Get all ASM users
+		    $rsmUsers = Employee::where('type', 2)->where('brand' ,$brand)->where('is_deleted',0)->get(); // Get all ASM users
 
                     $data = []; // Final array for ASM with total sales
                     
@@ -278,7 +324,7 @@ class HomeController extends Controller
                     
                         // Get all ASE names under this ASM from retailer_list_of_occ table
                         $aseDetails = DB::table('teams')
-                            ->whereRaw("FIND_IN_SET(?, rsm_id)", [$rsm->id])
+                            ->whereRaw("FIND_IN_SET(?, rsm_id)", [$rsm->id])->where('brand' ,$brand)
                             ->pluck('ase_id');
                            
                         // Parse all ASEs from comma-separated format
@@ -295,7 +341,7 @@ class HomeController extends Controller
                         
                     
                         // Get user_ids of those ASEs from users table
-                        $aseUsers = Employee::whereIn('id', $uniqueAseList)->pluck('id');
+                        $aseUsers = Employee::whereIn('id', $uniqueAseList)->where('brand' ,$brand)->where('is_deleted',0)->pluck('id');
                         
                         if ($aseUsers->isEmpty()) {
                             $totalSales = 0;
@@ -303,6 +349,7 @@ class HomeController extends Controller
                             // Get total sales for these ASE user IDs
                             $totalSales = DB::table('order_products')
                                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
+                                ->where('orders.brand' ,$brand)
                                 ->whereIn('orders.user_id', $aseUsers)
                                 ->whereBetween('order_products.created_at', [$startDate, $endDate])
                                 ->sum('order_products.qty');
@@ -322,7 +369,7 @@ class HomeController extends Controller
             case 'vp':
                
 
-		    $vpUsers = Employee::where('type', 1)->get(); // Get all ASM users
+		    $vpUsers = Employee::where('type', 1)->where('brand' ,$brand)->where('is_deleted',0)->get(); // Get all ASM users
 
                     $data = []; // Final array for ASM with total sales
                     
@@ -332,7 +379,7 @@ class HomeController extends Controller
                     
                         // Get all ASE names under this ASM from retailer_list_of_occ table
                         $aseDetails = DB::table('teams')
-                            ->whereRaw("FIND_IN_SET(?, vp_id)", [$vp->id])
+                            ->whereRaw("FIND_IN_SET(?, vp_id)", [$vp->id])->where('brand' ,$brand)->where('is_deleted',0)
                             ->pluck('ase_id');
                            
                         // Parse all ASEs from comma-separated format
@@ -349,7 +396,7 @@ class HomeController extends Controller
                         
                     
                         // Get user_ids of those ASEs from users table
-                        $aseUsers = Employee::whereIn('id', $uniqueAseList)->pluck('id');
+                        $aseUsers = Employee::whereIn('id', $uniqueAseList)->where('brand' ,$brand)->where('is_deleted',0)->pluck('id');
                         
                         if ($aseUsers->isEmpty()) {
                             $totalSales = 0;
@@ -357,6 +404,7 @@ class HomeController extends Controller
                             // Get total sales for these ASE user IDs
                             $totalSales = DB::table('order_products')
                                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
+                                ->where('orders.brand' ,$brand)
                                 ->whereIn('orders.user_id', $aseUsers)
                                 ->whereBetween('order_products.created_at', [$startDate, $endDate])
                                 ->sum('order_products.qty');
@@ -377,7 +425,7 @@ class HomeController extends Controller
                 case 'distributor':
                
 
-		    $disUsers = Distributor::where('is_deleted',0)->orderby('name')->get(); // Get all ASM users
+		    $disUsers = Distributor::where('brand' ,$brand)->where('is_deleted',0)->orderby('name')->get(); // Get all ASM users
 
                     $data = []; // Final array for ASM with total sales
                     
@@ -387,7 +435,7 @@ class HomeController extends Controller
                     
                         // Get all ASE names under this ASM from retailer_list_of_occ table
                         $aseDetails = DB::table('teams')
-                            ->whereRaw("FIND_IN_SET(?, distributor_id)", [$vp->id])
+                            ->whereRaw("FIND_IN_SET(?, distributor_id)", [$vp->id])->where('brand' ,$brand)->where('is_deleted',0)
                             ->pluck('ase_id');
                            
                         // Parse all ASEs from comma-separated format
@@ -404,7 +452,7 @@ class HomeController extends Controller
                         
                     
                         // Get user_ids of those ASEs from users table
-                        $aseUsers = Employee::whereIn('id', $uniqueAseList)->pluck('id');
+                        $aseUsers = Employee::whereIn('id', $uniqueAseList)->where('brand' ,$brand)->where('is_deleted',0)->pluck('id');
                         
                         if ($aseUsers->isEmpty()) {
                             $totalSales = 0;
@@ -412,6 +460,7 @@ class HomeController extends Controller
                             // Get total sales for these ASE user IDs
                             $totalSales = DB::table('order_products')
                                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
+                                ->where('orders.brand' ,$brand)
                                 ->whereIn('orders.user_id', $aseUsers)
                                 ->whereBetween('order_products.created_at', [$startDate, $endDate])
                                 ->sum('order_products.qty');
@@ -437,7 +486,7 @@ class HomeController extends Controller
         
     }
 
-        return view('order.filter-data', compact('data', 'monthYear', 'reportType','month','year'));
+        return view('order.filter-data', compact('data', 'monthYear', 'reportType','month','year','brand'));
         
     }
   
