@@ -27,11 +27,23 @@
                 ->map(fn($brand) => $brandMap[$brand] ?? $brand)
                 ->implode(', ');
         }
+        
+         // Determine brand value to pass in URL
+        if(empty(request()->brand)){
+            if ($brandPermissions === 'Both') {
+                $brandValue = 1;
+            } else {
+                $brandValue = ($brands[0] ?? '');
+            }
+        }else{
+            $brandValue = request()->brand ?? ($brands[0] ?? '');
+        }
 @endphp
 <div class="container">
     
      <h3>Dashboard</h3>
     @if($brandPermissions=='Both')
+    
     <div class="row mb-3">
         <div class="col-md-3">
             <form action="{{ url('home') }}" method="GET" id="brandFilterForm">
@@ -236,7 +248,7 @@
 			
 			<div class="row mt-4">
 			    
-                     
+                    
                        @if($data->monthly_secondary->isNotEmpty()) 
                         <h5 class="card-title">Secondary Order Details Monthly</h5>
             			    @foreach($data->monthly_secondary as $month)
@@ -244,7 +256,7 @@
                                 <div class="card home__card">
                                     <div class="card-body">
                                         <h5>{{ $month->month_name }}</h5>
-                                        <p><a href="{{ url('order/filter/report/data?month='.$month->month_name.'&year='.$month->year_name) }}">
+                                        <p><a href="{{ url('order/filter/report/data?month='.$month->month_name.'&year='.$month->year_name. '&brand='. $brandValue) }}">
                                             {{ $month->total_qty }}
                                         </a></p>
                                     </div>
