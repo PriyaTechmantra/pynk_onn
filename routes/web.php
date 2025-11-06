@@ -9,7 +9,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DistributorNoteController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\Facility\CabBookingController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Facility\TrainBookingController;
 use App\Http\Controllers\Facility\FlightBookingController;
 use App\Http\Controllers\Facility\HotelBookingController;

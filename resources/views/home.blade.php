@@ -1,9 +1,52 @@
- @extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
+
+@php
+    $assignedPermissions = DB::table('user_permission_categories')
+    ->select('user_permission_categories.*')
+    ->join('users','users.id','=','user_permission_categories.user_id')
+    ->where('user_permission_categories.user_id', Auth::user()->id)
+    ->get();
+
+    $brandMap = [
+        1 => 'ONN',
+        2 => 'PYNK',
+        3 => 'Both',
+    ];
+
+    $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+    // Check conditions
+        if (in_array(3, $brands)) {
+            $brandPermissions = 'Both';
+        } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+            $brandPermissions = 'Both';
+        } else {
+            $brandPermissions = collect($brands)
+                ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                ->implode(', ');
+        }
+@endphp
 <div class="container">
-     @can('onn daily dashboard')
-     <h3>ONN Dashboard</h3>
+    
+     <h3>Dashboard</h3>
+    @if($brandPermissions=='Both')
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <form action="{{ url('home') }}" method="GET" id="brandFilterForm">
+                <div class="input-group">
+                    <select name="brand" id="brandSelect" class="form-select form-select-sm" onchange="document.getElementById('brandFilterForm').submit();">
+                        <option value=1 {{ request('brand') == 1 ? 'selected' : '' }}>ONN</option>
+                        <option value=2 {{ request('brand') == 2 ? 'selected' : '' }}>PYNK</option>
+                        {{-- <option value=3 {{ request('brand') == 3 ? 'selected' : '' }}>Both</option>--}}
+                    </select>
+                    {{--<button class="btn btn-danger btn-sm" type="submit">Filter</button>--}}
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
     <div class="row">
         <div class="col-sm-6 col-lg-3">
             <div class="card home__card bg-gradient-danger">
@@ -194,21 +237,21 @@
 			<div class="row mt-4">
 			    
                      
-                        
-                        <h5 class="card-title">Secondary Order Details</h5>
+                       @if($data->monthly_secondary->isNotEmpty()) 
+                        <h5 class="card-title">Secondary Order Details Monthly</h5>
             			    @foreach($data->monthly_secondary as $month)
                             <div class="col-sm-6 col-lg-3">
                                 <div class="card home__card">
                                     <div class="card-body">
-                                        <h4>{{ $month->month_name }}</h4>
-                                        <h2><a href="{{ url('order/filter/report/data', ['month' => $month->month_name,'year'=>$month->year_name]) }}">
+                                        <h5>{{ $month->month_name }}</h5>
+                                        <p><a href="{{ url('order/filter/report/data?month='.$month->month_name.'&year='.$month->year_name) }}">
                                             {{ $month->total_qty }}
-                                        </a></h2>
+                                        </a></p>
                                     </div>
                                 </div>
                             </div>
                             @endforeach
-                            
+                           @endif 
                      
                     
                 
@@ -264,7 +307,7 @@
                 </div>
             </div>
 	</div>
-    @endcan
+  
 
 
 
