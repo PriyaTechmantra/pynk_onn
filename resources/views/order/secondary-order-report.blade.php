@@ -49,12 +49,38 @@
                     <div class="card-header">
                         <h4 class="d-flex">
                             Secondary Order
-                            @can('view primary order report')
-                            <a href="{{ url('primary/order/csv/export',['brand'=>$request->brand,'date_from'=>$request->date_from,'date_to'=>$request->date_to,'state'=>$request->state,'area'=>$request->area,'distributor'=>$request->distributor,'ase'=>$request->ase,'product'=>$request->product,'keyword'=>$request->keyword]) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                CSV
-                            </a>
-                            @endcan
+                            @can('view secondary order report')
+                                <a 
+                                    href="{{ url('secondary/order/report/csv/export') . '?' . http_build_query([
+                                        'brand' => $request->brand,
+                                        'date_from' => $request->date_from,
+                                        'date_to' => $request->date_to,
+                                        'state' => $request->state,
+                                        'area' => $request->area,
+                                        'distributor' => $request->distributor,
+                                        'ase' => $request->ase,
+                                        'asm' => $request->asm,
+                                        'rsm' => $request->rsm,
+                                        'vp' => $request->vp,
+                                        'product' => $request->product,
+                                        'keyword' => $request->keyword
+                                    ]) }}" 
+                                    id="downloadCsvBtn"  {{-- ✅ Added CSV download button ID --}}
+                                    class="btn btn-sm btn-cta ms-auto" 
+                                    data-bs-toggle="tooltip" 
+                                    title="Export data in CSV"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" 
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                        class="feather feather-download">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    CSV
+                                </a>
+                                @endcan
+
                             
                         </h4>
                                 <div class="search__filter mb-0">
@@ -66,7 +92,7 @@
                                     <div class="row">
                                         
                                         <div class="col-12">
-                                            <form action="">
+                                            <form action="" class="p-3 border rounded shadow-sm bg-white">
                                                 <div class="row">
                                                     @if($brandPermissions=='Both')
                                                     <div class="col">
@@ -99,6 +125,10 @@
                                                             @endforeach
                                                         </select>
                                                     </div>
+                                                    
+                                                    
+                                                </div>
+                                                <div class="row">
                                                     <div class="col">
                                                         <label for="ase" class="small text-muted">ASE</label>
                                                         <select class="form-select form-select-sm select2" id="ase" name="ase">
@@ -108,11 +138,36 @@
                                                             @endforeach
                                                         </select>
                                                     </div>
-                                                    
-                                                   
+                                                    <div class="col">
+                                                        <label for="ase" class="small text-muted">ASM</label>
+                                                        <select class="form-select form-select-sm select2" id="asm" name="asm">
+                                                            <option value="" selected disabled>Select</option>
+                                                            @foreach ($allASMs as $item)
+                                                                <option value="{{$item->id}}" {{ (request()->input('asm') == $item->id) ? 'selected' : '' }}>{{$item->name}}({{$item->stateDetail->name}})</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="rsm" class="small text-muted">RSM</label>
+                                                        <select class="form-select form-select-sm select2" id="rsm" name="rsm">
+                                                            <option value="" selected disabled>Select</option>
+                                                            @foreach ($allRSMs as $item)
+                                                                <option value="{{$item->id}}" {{ (request()->input('rsm') == $item->id) ? 'selected' : '' }}>{{$item->name}}({{$item->stateDetail->name}})</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col">
+                                                        <label for="" class="small text-muted">VP</label>
+                                                        <select class="form-select form-select-sm" id="vp" name="vp">
+                                                            <option value="" selected disabled>Select</option>
+                                                            @foreach ($allVPs as $item)
+                                                                <option value="{{$item->id}}" {{ (request()->input('vp') == $item->id) ? 'selected' : '' }}>{{$item->name}}({{$item->stateDetail->name}})</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
                                                     
                                                 </div>
-                                                <div class="row mt-2">
+                                                <div class="row">
                                                      <div class="col">
                                                         <label for="state" class="small text-muted">State</label>
                                                         <select name="state" id="state" class="form-select form-select-sm select2">
@@ -185,12 +240,17 @@
                                         <th>Order No</th>
                                         <th>State</th>
                                         <th>Area</th>
+                                        <th>Order by</th>
+                                        <th>Store</th>
                                         <th>ASE</th>
+                                        <th>ASM</th>
+                                        <th>RSM</th>
+                                        <th>VP</th>
                                         <th>Distributor</th>
 				                        <th>Date</th>
-                                        <th>Status</th>
+                                        {{--<th>Status</th>
                                        
-                                        <th class="action_btn">Action</th>
+                                        <th class="action_btn">Action</th>--}}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -219,8 +279,8 @@
                                             ];
 
                                             // Collect brand IDs from items (avoid duplicates)
-                                            $brands = collect($data->all_orders)->pluck('brand')->unique()->toArray();
-
+                                            $brands = [$item->brand];
+                                            
                                             // Determine brand permissions
                                             if (in_array(3, $brands)) {
                                                 // If any brand is "Both"
@@ -244,9 +304,9 @@
                                            {{ $brandPermissions ?? '' }}
                                         </td>
                             <td>
-                                <p class="text-dark mb-1">({{$item->product_style_no}}) {{$item->product_name}}</p>
-                                <p class="small text-muted mb-1">{{$color->name ?? ''}}</p>
-                                <p class="small text-muted mb-1">{{$item->size}}</p>
+                                <p class="text-dark mb-1">({{$item->style_no}}) {{$item->product_name}}</p>
+                                <p class="small text-muted mb-1">{{$item->color_name ?? ''}}</p>
+                                <p class="small text-muted mb-1">{{$item->size_name}}</p>
 
                             </td>
                             
@@ -254,20 +314,37 @@
                                 <p class="text-dark mb-1">{{$item->qty}}</p>
                             </td>
                             <td>
-                                <p class="small text-dark mb-1">#{{$item->order_no}}</p>
+                                <p class="text-dark mb-1">#{{$item->order_no}}</p>
                             </td>
                             <td>
-                                <p class="small text-dark mb-1">{{$item->state}}</p>
+                                <p class="text-dark mb-1">{{$item->state_name}}</p>
                             </td>
                             <td>
-                                <p class="small text-dark mb-1">{{$item->area}}</p>
+                                <p class="text-dark mb-1">{{$item->area_name}}</p>
                             </td>
 
                             <td>
-                                <p class="small text-dark mb-1">{{$item->fname.' '.$item->lname}}</p>
+                                <p class="text-dark mb-1">{{$item->user_name}}</p>
+                            </td>
+                            
+                            <td>
+                                <p class="text-dark mb-1">{{$item->store_name}}</p>
+                            </td>
+                            
+                            <td>
+                                <p class="text-dark mb-1">{{$item->ase_name}}</p>
                             </td>
                             <td>
-                                <p class="small text-dark mb-1">{{$item->distributor_name}}</p>
+                                <p class="text-dark mb-1">{{$item->asm_name}}</p>
+                            </td>
+                            <td>
+                                <p class="text-dark mb-1">{{$item->rsm_name}}</p>
+                            </td>
+                            <td>
+                                <p class="text-dark mb-1">{{$item->vp_name}}</p>
+                            </td>
+                            <td>
+                                <p class="text-dark mb-1">{{$item->distributor_name}}</p>
                             </td>
                             
                             <td>
@@ -279,7 +356,7 @@
                                     </p>
                                 </div>
                             </td>
-							<td>
+							{{--<td>
 								@if($item->status ==1)
 								<span class="btn btn-sm btn-primary">Wait for approval</span>
 								@elseif($item->status==2)
@@ -287,17 +364,18 @@
 								@else
 								<span class="btn btn-sm btn-danger">Rejected</span>
 								@endif
-							</td>
+							</td>--}}
                         </tr>
                     @empty
                         <td colspan="9" class="text-center">No record found</td>
                     @endforelse
                     <tr>
                         <td></td>
-                        
+                        <td></td>
                         <td>
                             <p class="small text-dark mb-1 fw-bold">TOTAL</p>
                         </td>
+                        
                         <td>
                             <p class="small text-dark mb-1 fw-bold">{{ number_format($all_orders_total_amount) }}</p>
                         </td>

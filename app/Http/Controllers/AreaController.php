@@ -102,17 +102,43 @@ class AreaController extends Controller
      */
     public function update(Request $request, $id): RedirectResponse
     {
-         request()->validate([
+        $request->validate([
             'name' => 'required',
+            'state_id' => 'required'
         ]);
-    
-        $data = Area::findOrfail($id);
-        $data->name=$request->name;
-        $data->state_id=$request->state_id;
+
+        // ✅ Get existing record before updating
+        $data = Area::findOrFail($id);
+        $oldData = $data->replicate(); // clone old values before update
+
+        // ✅ Update fields
+        $data->name = $request->name;
+        $data->state_id = $request->state_id;
         $data->save();
+
+        // ✅ Compare old vs new and log only changed fields
+        $changedFields = $data->getChanges(); // only changed attributes
+
+        foreach ($changedFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue; // skip timestamps
+
+            $oldValue = $oldData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'areas',
+                'record_id' => $data->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
+
         return redirect()->route('areas.index')
-                        ->with('success','Area updated successfully');
+            ->with('success', 'Area updated successfully');
     }
+
     
     /**
      * Remove the specified resource from storage.
