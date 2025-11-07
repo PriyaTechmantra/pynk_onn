@@ -292,9 +292,9 @@ Route::group(['middleware' => ['auth']], function() {
 
             // Route::get('/{id}/verification', [RetailerUserController::class, 'verification'])->name('verification');
 			Route::get('/login/Count', [RetailerUserController::class, 'loginCount'])->name('loginCount');
-			Route::get('/login/count/export/csv', [RetailerUserController::class, 'loginCountexportCSV'])->name('login.count.export.csv');
+			Route::get('/login/count/export/csv', [RetailerUserController::class, 'loginCountexportCSV'])->name('loginCountExportCSV');
 			Route::get('/login/store/count/{state}', [RetailerUserController::class, 'loginStoreCount'])->name('login.store.count');
-			Route::get('/login/store/count/export/csv/{state}', [RetailerUserController::class, 'loginStoreCountCsv'])->name('login.store.export.csv');
+			Route::get('/login/store/count/export/csv/{state}', [RetailerUserController::class, 'loginStoreCountCsv'])->name('loginStoreCountCsv');
         });
 		    // product
         Route::prefix('/product')->name('retailer.product.')->group(function () {

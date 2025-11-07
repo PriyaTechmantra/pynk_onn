@@ -11,6 +11,7 @@ use App\Models\State;
 use App\Models\Area;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 use Auth;
 class RetailerUserController extends Controller
 {
@@ -365,6 +366,56 @@ class RetailerUserController extends Controller
 
         return view('reward.user.login-count', compact('loginCountWiseReport', 'states', 'request'));
     }
+
+
+    public function loginCountexportCSV(Request $request)
+    {
+        $stateId = $request->input('state_id');
+        $brand = $request->input('brand_selection');
+
+        // Base query
+        $query = DB::table('stores as s')
+            ->select('s.state_id', DB::raw('COUNT(s.secret_pin) AS count'))
+            ->groupBy('s.state_id')
+            ->orderByDesc('count');
+
+        // Apply filters
+        if ($stateId) {
+            $query->where('s.state_id', $stateId);
+        }
+
+        if ($brand && $brand != 3) { // brand=3 means "ALL"
+            $query->where('s.brand_id', $brand);
+        }
+
+        $data = $query->get();
+
+        // Prepare CSV content
+        $filename = 'login_count_state_wise_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = ['State Name', 'Login Count'];
+
+        $callback = function() use ($data, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($data as $row) {
+                $stateName = DB::table('states')->where('id', $row->state_id)->value('name');
+                fputcsv($file, [
+                    $stateName ?? 'Unknown',
+                    $row->count
+                ]);
+            }
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
+
    
     public function loginStoreCount(Request $request,$state)
 	{
@@ -417,6 +468,101 @@ class RetailerUserController extends Controller
 		return view('reward.user.login-store', compact('loginCountWiseReport',  'request','allDistributors','allASEs','allASMs','stateData','state','areaData'));
 	}
 	
+    public function loginStoreCountCsv(Request $request)
+    {
+        $state = $request->state;
+        
+        $query = \App\Models\Store::select('stores.*')
+            ->with(['state', 'area', 'user'])
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->where('stores.secret_pin', '!=', null)
+            ->where('stores.user_id', '!=', '')
+            ->orderBy('stores.id', 'desc');
 
+        if ($request->state) {
+            $query->where('stores.state_id', $request->state);
+        }
 
+        if ($request->distributor_id) {
+            $query->whereRaw("find_in_set('".$request->distributor_id."',teams.distributor_id)");
+        }
+
+        if ($request->ase_id) {
+            $query->whereRaw("find_in_set('".$request->ase_id."',stores.user_id)");
+        }
+
+        if ($request->asm_id) {
+            $query->whereRaw("find_in_set('".$request->asm_id."',stores.user_id)");
+        }
+
+        if ($request->area_id) {
+            $query->where('stores.area_id', $request->area_id);
+        }
+
+        if ($request->keyword) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('stores.name', 'like', "%{$keyword}%")
+                    ->orWhere('stores.bussiness_name', 'like', "%{$keyword}%")
+                    ->orWhere('stores.owner_name', 'like', "%{$keyword}%")
+                    ->orWhere('stores.contact', 'like', "%{$keyword}%");
+            });
+        }
+
+        if ($request->brand_selection && $request->brand_selection != 3) { // 3 = ALL
+            $query->where('stores.brand_id', $request->brand_selection);
+        }
+
+        $stores = $query->get();
+
+        $filename = 'store_login_count_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $columns = [
+            'Unique Code', 'Store Name', 'Business Name', 'Contact', 'Distributor',
+            'State', 'Area', 'Address', 'Created Date', 'Status'
+        ];
+
+        $callback = function() use ($stores, $columns) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach ($stores as $store) {
+                $distributor = \App\Models\Team::select('users.name')
+                    ->join('users', 'users.id', 'teams.distributor_id')
+                    ->where('store_id', $store->id)
+                    ->value('users.name');
+
+                $user = $store->users ? $store->users->name . 
+                    (($store->users->type == 3) ? ' (ASM)' : (($store->users->type == 4) ? ' (ASE)' : '')) : '';
+
+                $brandName = match($store->brand_id) {
+                    1 => 'ONN',
+                    2 => 'PYNK',
+                    default => '',
+                };
+
+                fputcsv($file, [
+                    $store->unique_code,
+                    $store->name,
+                    $store->bussiness_name,
+                    $store->contact,
+                    $distributor ?? '',
+                    $store->state->name ?? '',
+                    $store->area->name ?? '',
+                    $store->address,
+                   
+                    \Carbon\Carbon::parse($store->created_at)->format('d/m/Y'),
+                    $store->status == 1 ? 'Active' : 'Inactive',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
+    }
 }
