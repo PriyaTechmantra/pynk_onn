@@ -8,6 +8,7 @@ use App\Models\Distributor;
 use App\Models\User;
 use App\Models\Employee;
 use App\Models\State;
+use App\Models\Area;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Auth;
@@ -344,6 +345,78 @@ class RetailerUserController extends Controller
             $headers
         );
     }
+
+    public function loginCount(Request $request)
+    {
+        $stateId = $request->input('state_id');
+
+        $query = \DB::table('stores as s')
+            ->select('s.state_id', \DB::raw('COUNT(s.secret_pin) AS count'))
+            ->groupBy('s.state_id')
+            ->orderByDesc('count');
+
+        if ($stateId) {
+            $query->where('s.state_id', $stateId);
+        }
+
+        $loginCountWiseReport = $query->get();
+
+        $states = State::orderBy('name')->get();
+
+        return view('reward.user.login-count', compact('loginCountWiseReport', 'states', 'request'));
+    }
+   
+    public function loginStoreCount(Request $request,$state)
+	{
+		$allASEs = Employee::select('id','name')->where('type',4)->where('name', '!=', null)->where('status',1)->groupBy('name')->orderBy('name')->get();
+        $allASMs = Employee::select('id','name')->where('type',3)->where('name', '!=', null)->where('status',1)->groupBy('name')->orderBy('name')->get();
+        $allDistributors = Distributor::where('name', '!=', null)->groupBy('name')->orderBy('name')->with('states')->get();
+        $stateData = State::where('status',1)->groupBy('name')->orderBy('name')->get();
+		$areaData=Area::where('state_id',$state)->orderby('name')->get();
+		if( isset($request->distributor_id)||isset($request->ase_id)||isset($request->asm_id)||isset($request->state_id)||isset($request->keyword)||isset($request->area_id)) 
+        {
+           
+
+            $distributor = $request->distributor_id ? $request->distributor_id : '';
+            $ase = $request->ase_id ? $request->ase_id : '';
+            $asm = $request->asm_id ? $request->asm_id : '';
+            $stateDetails = $request->state_id ? $request->state_id : '';
+            $area = $request->area_id ? $request->area_id : '';
+            $keyword = $request->keyword ? $request->keyword : '';
+			
+            $query = Store::selectRaw('stores.*')->with('states','areas','users')->join('teams', 'teams.store_id', 'stores.id');
+            $query->when($distributor, function($query) use ($distributor) {
+                $query->whereRaw("find_in_set('".$distributor."',teams.distributor_id)");
+            });
+            $query->when($ase, function($query) use ($ase) {
+                $query->whereRaw("find_in_set('".$ase."',stores.user_id)");
+            });
+            $query->when($asm, function($query) use ($asm) {
+                $query->whereRaw("find_in_set('".$asm."',stores.user_id)");
+            });
+            
+            $query->when($area, function($query) use ($area) {
+                $query->where('stores.area_id', $area);
+            });
+		
+		
+		
+            $query->when($keyword, function($query) use ($keyword) {
+                $query->where('stores.name','=',$keyword)
+                ->orWhere('stores.business_name', $keyword)
+                ->orWhere('stores.owner_fname', $keyword)
+                ->orWhere('stores.contact','=', $keyword);
+            });
+
+            $loginCountWiseReport = $query->where('stores.state_id',$state)->where('secret_pin','!=',NULL)->where('stores.user_id','!=','')->latest('stores.id')->paginate(25);
+        }
+        else{		
+		
+		$loginCountWiseReport=Store::where('state_id',$state)->where('secret_pin','!=',NULL)->orderby('name')->paginate(25);
+        }
+		return view('reward.user.login-store', compact('loginCountWiseReport',  'request','allDistributors','allASEs','allASMs','stateData','state','areaData'));
+	}
+	
 
 
 }
