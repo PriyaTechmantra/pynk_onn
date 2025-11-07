@@ -403,8 +403,8 @@ class RetailerUserController extends Controller
 		
             $query->when($keyword, function($query) use ($keyword) {
                 $query->where('stores.name','=',$keyword)
-                ->orWhere('stores.business_name', $keyword)
-                ->orWhere('stores.owner_fname', $keyword)
+                ->orWhere('stores.bussiness_name', $keyword)
+                ->orWhere('stores.owner_name', $keyword)
                 ->orWhere('stores.contact','=', $keyword);
             });
 
