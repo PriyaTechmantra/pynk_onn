@@ -1,5 +1,5 @@
 @php
-    $state = DB::select("SELECT name FROM `states` GROUP BY name ORDER BY name");
+    $state = DB::select("SELECT id,name FROM `states` GROUP BY name ORDER BY name");
 @endphp
 @extends('layouts.app')
 
@@ -16,184 +16,159 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-xl-3 col-lg-2 col-12"></div>
-                            <form method="POST" action="" enctype="multipart/form-data">@csrf
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <p class="small text-muted mb-2">TYPE</p>
+                               <div class="col-xl-6 col-lg-8 col-12">
+                                <form method="POST" action="{{route('reward.retailer.user.update',$data->id)}}" enctype="multipart/form-data" class="data-form">
+                                @csrf
+                                    <h4 class="page__subtitle">Edit New Register Store</h4>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Owner Name<span class="text-danger">*</span></label>
+                                        <input type="text" name="owner_name" placeholder="" class="form-control" value="{{ $data->owner_name }}">
+                                        @error('owner_name') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <select class="form-select" id="user_type" name="user_type">
-                                                    <option value="" selected disabled>Select</option>
-                                                    <option value="1" {{ ($data->user_type == 1) ? 'selected' : '' }}>VP</option>
-                                                    <option value="2" {{ ($data->user_type == 2) ? 'selected' : '' }}>RSM</option>
-                                                    <option value="3" {{ ($data->user_type == 3) ? 'selected' : '' }}>ASM</option>
-                                                    <option value="4" {{ ($data->user_type == 4) ? 'selected' : '' }}>ASE</option>
-                                                    <option value="5" {{ ($data->user_type == 5) ? 'selected' : '' }}>Distributor</option>
-                                                    <option value="6" {{ ($data->user_type == 6) ? 'selected' : '' }}>Retailer</option>
-                                                </select>
-                                                <label for="mobile">Type *</label>
-                                            </div>
-                                            @error('mobile') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="designation" name="designation" placeholder="name@example.com" value="{{ old('designation') ? old('designation') : $data->designation }}">
-                                                <label for="designation">Designation *</label>
-                                            </div>
-                                            @error('designation') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="employee_id" name="employee_id" placeholder="name@example.com" value="{{ old('employee_id') ? old('employee_id') : $data->employee_id }}">
-                                                <label for="employee_id">Employee ID</label>
-                                            </div>
-                                            @error('employee_id') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <p class="small text-muted mb-2">Name details</p>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Shop Name<span class="text-danger">*</span></label>
+                                        <input type="text" name="shop_name" placeholder="" class="form-control" value="{{ $data->name }}">
+                                        @error('shop_name') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <select class="form-select" id="title" name="title" aria-label="Floating label select example">
-                                                    <option value="" selected disabled>Select</option>
-                                                    <option value="" selected>NA</option>
-                                                    <option value="Mr" {{ ($data->title == "Mr") ? 'selected' : '' }}>Mr</option>
-                                                    <option value="Miss" {{ ($data->title == "Miss") ? 'selected' : '' }}>Miss</option>
-                                                    <option value="Mrs" {{ ($data->title == "Mrs") ? 'selected' : '' }}>Mrs</option>
-                                                    <option value="Dr" {{ ($data->title == "Dr") ? 'selected' : '' }}>Dr</option>
-                                                    <option value="CA" {{ ($data->title == "CA") ? 'selected' : '' }}>CA</option>
-                                                    <option value="Prof" {{ ($data->title == "Prof") ? 'selected' : '' }}>Prof</option>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Shop Name<span class="text-danger">*</span></label>
+                                        <textarea row="2" name="shop_address" class="form-control" >{{ $data->address }}</textarea>
+                                        @error('shop_address') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Contact<span class="text-danger">*</span></label>
+                                        <input type="number" name="contact" placeholder="" class="form-control" value="{{ $data->contact }}">
+                                        @error('contact') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Whatsapp Contact</label>
+                                        <input type="number" name="whatsapp_contact" placeholder="" class="form-control" value="{{ $data->whatsapp }}">
+                                        @error('whatsapp_contact') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">State<span class="text-danger">*</span></label>
+                                        <select name="state" id="state" class="form-control">
+                                            <option value="" disabled>Select</option>
+                                            @foreach ($state as $item)
+                                                <option value="{{ $item->id }}" {{ $data->state_id == $item->id ? 'selected' : '' }}>
+                                                    {{ $item->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('state') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">City<span class="text-danger">*</span></label>
+                                        <select class="form-control" id="area" name="area" {{ empty($data->state_id) ? 'disabled' : '' }}>
+                                            @if(!empty($data->state_id))
+                                                <option value="{{ $data->area_id }}">{{ $data->area->name ?? 'Selected area' }}</option>
+                                            @else
+                                                <option value="">Select state first</option>
+                                            @endif
+                                        </select>
 
-                                                    {{-- <option value="Mr" {{ (old('title') == "Mr" || old('title') == "") ? 'selected' : '' }}>Mr</option>
-                                                    <option value="Miss" {{ (old('title') == "Miss") ? 'selected' : '' }}>Miss</option>
-                                                    <option value="Mrs" {{ (old('title') == "Mrs") ? 'selected' : '' }}>Mrs</option>
-                                                    <option value="Dr" {{ (old('title') == "Dr") ? 'selected' : '' }}>Dr</option>
-                                                    <option value="CA" {{ (old('title') == "CA") ? 'selected' : '' }}>CA</option>
-                                                    <option value="Prof" {{ (old('title') == "Prof") ? 'selected' : '' }}>Prof</option> --}}
-                                                </select>
-                                                <label for="title">Name Prefix</label>
-                                            </div>
-                                            @error('title') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
+                                        @error('city') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="name" name="name" placeholder="name@example.com" value="{{ old('name') ? old('name') : $data->name }}">
-                                                <label for="name">Full name *</label>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">
+                                            Brand Permission:
+                                        </label>
+                                            <div class="form-check">
+                                                <input type="checkbox" id="brandOnn" value="1" onchange="updateBrandValue()" 
+                                                    @checked(old('brand', $data->brand ?? '') == 1 )>
+                                                <label class="form-check-label" for="brandOnn">Onn</label>
                                             </div>
-                                            @error('name') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="fname" name="fname" placeholder="name@example.com" value="{{ old('fname') ? old('fname') : $data->fname }}">
-                                                <label for="fname">First name *</label>
+                                            <div class="form-check">
+                                                <input type="checkbox" id="brandPynk" value="2" onchange="updateBrandValue()" 
+                                                    @checked(old('brand', $data->brand ?? '') == 2)>
+                                                <label class="form-check-label" for="brandPynk">Pynk</label>
                                             </div>
-                                            @error('fname') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="lname" name="lname" placeholder="name@example.com" value="{{ old('lname') ? old('lname') : $data->lname }}">
-                                                <label for="lname">Last name *</label>
+                                            <div class="form-check">
+                                                <input type="checkbox" id="brandBoth" value="3" onchange="updateBrandValue()" 
+                                                    @checked(old('brand', $data->brand ?? '') == 3)>
+                                                <label class="form-check-label" for="brandBoth">Both</label>
                                             </div>
-                                            @error('lname') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
+                                        <input type="hidden" name="brand" id="brandValue" value="{{$data->brand}}">
                                     </div>
-                                </div>
+                                    <div class="form-group mb-3">
+                                            <label class="label-control">Aadhar</label>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="product__thumb">
+                                                    <label for="aadhar">
+                                                        <img id="iconOutput" src="{{ asset($data->aadhar) }}" width="200px" style="object-fit:cover; cursor:pointer;" />
+                                                    </label>
+                                                </div>
 
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <p class="small text-muted mb-2">Contact details</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <input type="number" class="form-control" id="mobile" name="mobile" placeholder="name@example.com" value="{{ old('mobile') ? old('mobile') : $data->mobile }}">
-                                                <label for="mobile">Mobile number *</label>
+                                                    <input type="file" name="aadhar" id="aadhar" accept="image/*" onchange="loadIcon(event)" class="d-none">
                                             </div>
-                                            @error('mobile') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" value="{{ old('email') ? old('email') : $data->email }}">
-                                                <label for="email">Email ID</label>
-                                            </div>
-                                            @error('email') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <p class="small text-danger mb-2">Update Password</p>
+                                            @error('aadhar') 
+                                                <p class="small text-danger">{{ $message }}</p> 
+                                            @enderror
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <input type="text" class="form-control" id="password" name="password" placeholder="name@example.com" value="">
-                                                <label for="password">Password</label>
+                                    <script>
+                                    let loadIcon = function(event) {
+                                        let iconOutput = document.getElementById('iconOutput');
+                                        iconOutput.src = URL.createObjectURL(event.target.files[0]);
+                                        iconOutput.onload = function() {
+                                            URL.revokeObjectURL(iconOutput.src)
+                                        }
+                                    };
+                                    </script>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">PAN</label>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="product__thumb">
+                                                <label for="pan">
+                                                    <img id="Output" src="{{ asset($data->pan) }}" width="200px" style="object-fit:cover; cursor:pointer;" />
+                                                </label>
                                             </div>
-                                            @error('password') <p class="small text-danger">{{$message}}</p> @enderror
+                                                <input type="file" name="pan" id="pan" accept="image/*" onchange="panImage(event)"(event)" class="d-none">
                                         </div>
+                                        @error('pan') 
+                                            <p class="small text-danger">{{ $message }}</p> 
+                                        @enderror
                                     </div>
-                                </div>
+                                    <script>
+                                        let panImage = function(event) {
+                                            let iconOutput = document.getElementById('Output');
+                                            iconOutput.src = URL.createObjectURL(event.target.files[0]);
+                                            iconOutput.onload = function() {
+                                                URL.revokeObjectURL(iconOutput.src)
+                                            }
+                                        };
+                                    </script>
+                                    <div class="form-group mb-3">
+                                            <label class="label-control">GST</label>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="product__thumb">
+                                                    <label for="gst">
+                                                        <img id="icon" src="{{ asset($data->gst) }}" width="200px" style="object-fit:cover; cursor:pointer;" />
+                                                    </label>
+                                                </div>
 
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <p class="small text-muted mb-2">Location details</p>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <select class="form-select" id="state" name="state" aria-label="Floating label select example">
-                                                    <option value="" selected disabled>Select</option>
-                                                    @foreach ($state as $index => $item)
-                                                        <option value="{{ $item->name }}" {{ (strtolower($data->state) == strtolower($item->name)) ? 'selected' : '' }}>
-                                                            {{ $item->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <label for="state">State *</label>
+                                                    <input type="file" name="gst" id="gst" accept="image/*" onchange="gstImage(event)" class="d-none">
                                             </div>
-                                            @error('state') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <div class="form-floating mb-3">
-                                                <select class="form-select" id="area" name="area" aria-label="Floating label select example" disabled>
-                                                    <option value="">Select State first</option>
-                                                </select>
-                                                <label for="area">City/ Area *</label>
-                                            </div>
-                                            @error('area') <p class="small text-danger">{{$message}}</p> @enderror
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <div class="row">
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-danger">Update changes</button>
+                                            @error('gst') 
+                                                <p class="small text-danger">{{ $message }}</p> 
+                                            @enderror
                                     </div>
-                                </div>
-                            </form>
+                                    <script>
+                                    let gstImage = function(event) {
+                                        let iconOutput = document.getElementById('icon');
+                                        iconOutput.src = URL.createObjectURL(event.target.files[0]);
+                                        iconOutput.onload = function() {
+                                            URL.revokeObjectURL(iconOutput.src)
+                                        }
+                                    };
+                                    </script>
+                                    <div class="form-group">
+                                        <button type="submit" class="btn btn-sm btn-danger">Update</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -204,40 +179,50 @@
 
 @endsection
 @section('script')
-    <script>
-        function stateWiseArea(value) {
-			$.ajax({
-				url: '{{url("/")}}/state-wise-area/'+value,
-                method: 'GET',
-                success: function(result) {
-					var content = '';
-					var slectTag = 'select[name="area"]';
-					// var displayCollection = (result.data.state == "all") ? "All Area" : "All "+" area";
-					// content += '<option value="" selected>'+displayCollection+'</option>';
+  <script>
+    function updateBrandValue() {
+        let brandOnn = document.getElementById('brandOnn');
+        let brandPynk = document.getElementById('brandPynk');
+        let brandBoth = document.getElementById('brandBoth');
+        let brandValueInput = document.getElementById('brandValue');
 
-					let cat = "{{ strtolower($data->city) }}";
+        if (brandBoth.checked) {
+            // brandOnn.checked = false;
+            // brandPynk.checked = false;
+            brandValueInput.value = 3;
+            return;
+        }
 
-					$.each(result.data.area, (key, value) => {
-						if(value.area == '') return;
-						if (value.area.toLowerCase() == cat) {
-                            content += '<option value="'+value.area+'" selected>'+value.area+'</option>';
-                        } else {
-                            content += '<option value="'+value.area+'">'+value.area+'</option>';
-                        }
-						//content += '<option value="'+value.area+'">'+value.area+'</option>';
-					});
-					$(slectTag).html(content).attr('disabled', false);
-                }
-			});
-		}
+        if (!brandBoth.checked) {
+            if (brandOnn.checked && brandPynk.checked) {
+                brandValueInput.value = 3;
+            } else if (brandOnn.checked) {
+                brandValueInput.value = 1;
+            } else if (brandPynk.checked) {
+                brandValueInput.value = 2;
+            } else {
+                brandValueInput.value = '';
+            }
+        }
+    }
+    $('select[name="state"]').on('change', (event) => {
+        var value = $('select[name="state"]').val();
+      
+        $.ajax({
+            url: '{{url("/")}}/employees/state/'+value,
+            method: 'GET',
+            success: function(result) {
+                var content = '';
+                var slectTag = 'select[name="area"]';
+                var displayCollection =  "All";
 
-		$('select[name="state"]').on('change', (event) => {
-			var value = $('select[name="state"]').val();
-			stateWiseArea(value);
-		});
-
-        @if(!empty($data->state))
-            stateWiseArea('{{$data->state}}')
-        @endif
-    </script>
+                content += '<option value="" selected>'+displayCollection+'</option>';
+                $.each(result.data.area, (key, value) => {
+                    content += '<option value="'+value.area_id+'">'+value.area+'</option>';
+                });
+                $(slectTag).html(content).attr('disabled', false);
+            }
+        });
+    });
+</script>
 @endsection

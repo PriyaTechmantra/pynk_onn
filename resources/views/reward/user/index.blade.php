@@ -43,21 +43,10 @@
                     <div class="card-header">
                         <h4 class="d-flex">
                             New Register Store
-                            @can('store export')
-                            <a href="{{ url('stores/csv/export',['brand'=>$request->brand,'date_from'=>$request->date_from,'date_to'=>$request->date_to,'state'=>$request->state,'area'=>$request->area,'distributor'=>$request->distributor,'ase'=>$request->ase,'keyword'=>$request->keyword]) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
+                            <a href="{{ route('reward.retailer.user.exportCSV', request()->all()) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 CSV
                             </a>
-                            @endcan
-                            {{--@can('store bulk update')
-                            <a href="#csvModal" data-bs-toggle="modal" class="btn btn-sm btn-cta">Bulk distributor transfer</a>
-                            @endcan
-                            @can('store ase bulk transfer')
-                            <a href="#csvASEModal" data-bs-toggle="modal" class="btn btn-sm btn-cta">Bulk ase transfer</a>
-                            @endcan
-                            @can('create store')
-                            <a href="{{ url('stores/create') }}" class="btn btn-sm btn-cta">Add Store</a>
-                            @endcan--}}
                         </h4>
                                 <div class="search__filter mb-0">
                                     <div class="row">
@@ -146,17 +135,12 @@
                                                             
                                                     </div>
                                                     
-                                                        <!--<div class="btn-group books_btn_group">-->
-                                                            
-                                                        
-                                                        <!--</div>-->
-                                                    
+                                        
                                                 </div>
 
                                                 <div class="row mt-2">
                                                     
                                                     <div class="col-12 text-end">
-                                                        <!--<div class="btn-group books_btn_group">-->
                                                             
                                                             <button type="submit" class="btn btn-sm btn-cta">
                                                                 Filter
@@ -165,7 +149,6 @@
                                                             <a href="{{ url()->current() }}" class="btn btn-sm btn-cta" data-bs-toggle="tooltip" title="Clear Filter">
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                                             </a>
-                                                        <!--</div>-->
                                                     </div>
                                                 </div>
                                             </form>

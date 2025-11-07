@@ -197,63 +197,24 @@ class RetailerUserController extends Controller
 
 	public function update(Request $request, string $id)
     {
-        //  Validation
         $request->validate([
-            'ase' => 'required|array',
-            'name' => 'required|string|min:2|max:255',
-            'bussiness_name' => 'required|string|min:2|max:255',
-            'distributor_id' => 'required|array',
-            'owner_name' => 'required|string|max:255',
-            'gst_no' => 'nullable|string|max:255',
-            'contact' => 'required|integer|digits:10',
-            'whatsapp' => 'nullable|integer|digits:10',
-            'email' => 'nullable|email',
-            'date_of_birth' => 'nullable|date',
-            'date_of_anniversary' => 'nullable|date',
-            'address' => 'required|string|max:500',
-            'area' => 'nullable|string',
-            'state' => 'nullable|string',
-            'city' => 'nullable|string',
-            'pin' => 'required|integer|digits:6',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10000000',
-            'pan' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10000000',
+            'owner_name'        => 'required|string|max:255',
+            'shop_name'         => 'required|string|min:2|max:255',
+            'shop_address'      => 'required|string|max:500',
+            'contact'           => 'required|digits:10',
+            'whatsapp_contact'  => 'nullable|digits:10',
+            'state'             => 'required|integer',
+            'area'              => 'nullable|integer',
+            'brand'             => 'nullable|integer|in:1,2,3',
+            'aadhar'            => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10000',
+            'pan'               => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10000',
+            'gst'               => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10000',
         ]);
 
-        // Collect ASE + Distributor data
-        $aseEmployees = Employee::whereIn('id', $request->ase)->get();
-        if ($aseEmployees->isEmpty()) {
-            return back()->with('error', 'Please change distributor. No ASE found as user.');
-        }
-
-        $aseIds = $aseEmployees->pluck('id')->toArray();
-        $aseNames = $aseEmployees->pluck('name')->toArray();
-        $distributorIds = $request->distributor_id;
-
-        // Fetch team hierarchy based on ASE + Distributor
-        $teams = Team::where(function ($query) use ($aseIds) {
-                foreach ($aseIds as $aseId) {
-                    $query->orWhereRaw("FIND_IN_SET(?, ase_id)", [$aseId]);
-                }
-            })
-            ->where(function ($query) use ($distributorIds) {
-                foreach ($distributorIds as $distId) {
-                    $query->orWhereRaw("FIND_IN_SET(?, distributor_id)", [$distId]);
-                }
-            })
-            ->orderBy('id', 'ASC')
-            ->groupBy('distributor_id')
-            ->get();
-
-        $vpIds = $teams->pluck('vp_id')->filter()->unique()->implode(',');
-        $rsmIds = $teams->pluck('rsm_id')->filter()->unique()->implode(',');
-        $asmIds = $teams->pluck('asm_id')->filter()->unique()->implode(',');
-
-        //  Update Store details
         $store = Store::findOrFail($id);
 
-        // If name changed, regenerate slug
-        if ($store->name !== $request->name) {
-            $slug = Str::slug($request->name, '-');
+        if ($store->name !== $request->shop_name) {
+            $slug = Str::slug($request->shop_name, '-');
             $exists = Store::where('slug', $slug)->where('id', '!=', $id)->exists();
             if ($exists) {
                 $slug .= '-' . time();
@@ -261,74 +222,127 @@ class RetailerUserController extends Controller
             $store->slug = $slug;
         }
 
-        // Update fields
-        $store->fill([
-            'user_id' => implode(',', $request->ase),
-            'gst_no' => $request->gst_no,
-            'name' => $request->name,
-            'bussiness_name' => $request->bussiness_name,
-            'retailer_list_occ_id' => $request->retailer_list_of_occ_id ?? null,
-            'store_OCC_number' => $request->store_OCC_number ?? null,
-            'owner_name' => $request->owner_name,
-            'owner_lname' => $request->owner_lname,
-            'contact' => $request->contact,
-            'email' => $request->email,
-            'whatsapp' => $request->whatsapp,
-            'date_of_birth' => $request->date_of_birth,
-            'date_of_anniversary' => $request->date_of_anniversary,
-            'address' => $request->address,
-            'area_id' => $request->area,
-            'pan_no' => $request->pan_no,
-            'state_id' => $request->state,
-            'city' => $request->city,
-            'pin' => $request->pin,
-            'contact_person' => $request->contact_person,
-            'contact_person_lname' => $request->contact_person_lname,
-            'contact_person_phone' => $request->contact_person_phone,
-            'contact_person_whatsapp' => $request->contact_person_whatsapp,
-            'contact_person_date_of_birth' => $request->contact_person_date_of_birth,
-            'contact_person_date_of_anniversary' => $request->contact_person_date_of_anniversary,
-        ]);
+        $store->owner_name   = $request->owner_name;
+        $store->name         = $request->shop_name;
+        $store->address      = $request->shop_address;
+        $store->contact      = $request->contact;
+        $store->whatsapp     = $request->whatsapp_contact;
+        $store->state_id     = $request->state;
+        $store->area_id      = $request->area;
+        $store->brand        = $request->brand;
 
-        // Handle image uploads
-        if ($request->hasFile('image')) {
-            $imageName = mt_rand() . '.' . $request->image->extension();
-            $uploadPath = 'public/uploads/store';
-            $request->image->move($uploadPath, $imageName);
-            $store->image = $uploadPath . '/' . $imageName;
+
+          $upload_path = "public/uploads/new-store/";
+
+        if (isset($request['aadhar'])) {
+            $image = $request['aadhar'];
+            $imageName = time() . "." . $image->getClientOriginalName();
+            $image->move($upload_path, $imageName);
+            $uploadedImage = $imageName;
+            $store->aadhar = $upload_path . $uploadedImage;
         }
-
-        if ($request->hasFile('pan')) {
-            $panName = mt_rand() . '.' . $request->pan->extension();
-            $uploadPath = 'public/uploads/retailer/document';
-            $request->pan->move($uploadPath, $panName);
-            $store->pan = $uploadPath . '/' . $panName;
+        if (isset($request['pan'])) {
+            $image = $request['pan'];
+            $imageName = time() . "." . $image->getClientOriginalName();
+            $image->move($upload_path, $imageName);
+            $uploadedImage = $imageName;
+            $store->pan = $upload_path . $uploadedImage;
+        }
+        if (isset($request['gst'])) {
+            $image = $request['gst'];
+            $imageName = time() . "." . $image->getClientOriginalName();
+            $image->move($upload_path, $imageName);
+            $uploadedImage = $imageName;
+            $store->gst = $upload_path . $uploadedImage;
         }
 
         $store->updated_at = now();
         $store->save();
 
-        // 6. Update Retailer OCC team mapping
-        if (!empty($request->retailer_list_of_occ_id)) {
-            $retailerListOfOcc = Team::find($request->retailer_list_of_occ_id);
-            if ($retailerListOfOcc) {
-                $retailerListOfOcc->fill([
-                    'vp_id' => $vpIds,
-                    'rsm_id' => $request->rsm ?? $rsmIds,
-                    'asm_id' => $request->asm ?? $asmIds,
-                    'ase_id' => implode(',', array_filter($aseIds)),
-                    'distributor_id' => implode(',', $distributorIds),
-                    'state_id' => $request->state,
-                    'area_id' => $request->area,
-                    'status' => '1',
-                    'is_deleted' => '0',
-                ]);
-                $retailerListOfOcc->save();
-            }
+        return redirect()
+            ->route('reward.retailer.user.index')
+            ->with('success', 'Store information updated successfully.');
+    }
+   
+
+    public function destroy($id)
+    {
+        $data = Store::find($id);
+
+        if (!$data) {
+            return redirect()->route('reward.retailer.user.index')
+                ->with('error', 'Store not found.');
         }
 
-        // Redirect with success
-        return redirect()->back()->with('success', 'Store information updated successfully.');
+        // Soft delete (mark as deleted)
+        $data->is_deleted = 1;
+        $data->save();
+
+        return redirect()->route('reward.retailer.user.index')
+            ->with('success', 'Store deleted successfully.');
+    }
+
+    public function exportCSV(Request $request)
+    {
+        // dd($request->all());
+        $query = Store::query(); // Example model
+
+        // Apply filters if present
+        if ($request->filled('brand')) {
+            $query->where('brand', $request->brand);
+        }
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
+        }
+        if ($request->filled('state')) {
+            $query->where('state_id', $request->state);
+        }
+        if ($request->filled('distributor')) {
+            $query->where('distributor_id', $request->distributor);
+        }
+
+        // Fetch data
+        $data = $query->get();
+
+        // Prepare CSV
+        $csvData = [];
+        foreach ($data as $item) {
+            $csvData[] = [
+                'Store Name' => $item->name,
+                'Contact' => $item->contact,
+                'Distributor' => $item->name,
+                'Date' => $item->created_at->format('Y-m-d'),
+                // Add more fields as needed
+            ];
+        }
+
+        // CSV Headers
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="stores.csv"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        // Open output stream
+        $handle = fopen('php://output', 'w');
+        fputcsv($handle, array_keys($csvData[0])); // Write header row
+
+        // Write rows
+        foreach ($csvData as $row) {
+            fputcsv($handle, $row);
+        }
+
+        fclose($handle);
+
+        return response()->stream(
+            function () {
+                // Output the data
+            },
+            200,
+            $headers
+        );
     }
 
 
