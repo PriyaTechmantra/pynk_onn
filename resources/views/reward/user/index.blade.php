@@ -181,10 +181,8 @@
                                 <thead>
                                     <tr>
                                         {{-- <th>#SR</th> --}}
-                                        
                                         <th>Uniquecode</th> 
                                         <th>Store</th>
-                                    
                                         <th>Contact</th>
                                         <th>Distributor</th>
                                         <th>Address</th>
@@ -196,8 +194,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse ($data as $index => $item)
-                                    
+                                    @forelse ($data as $index => $item)                                  
                                         @php
                                         if (!empty($_GET['status'])) {
                                             if ($_GET['status'] == 'active') {
