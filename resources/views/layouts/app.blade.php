@@ -205,6 +205,9 @@
                         <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
                             <a href="{{ route('reward.retailer.product.index') }}"><i class="fi fi-br-box"></i> <span>Product</span></a>
                         </li>
+                         <li class="{{ request()->is('reward/qrcode*') ? 'active' : '' }}">
+                            <a href="{{ route('reward.retailer.barcode.index') }}"><i class="fi fi-br-box"></i> <span>Qrcode</span></a>
+                        </li>
                         <li class="{{ ( request()->is('reward/order*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.order.index') }}"><i class="fi fi-br-database"></i> <span>Order</span></a></li> 
                         <li class="{{ ( request()->is('reward/terms*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.terms.index') }}"><i class="fi fi-br-database"></i> <span>Terms & Condition</span></a></li> 
 
