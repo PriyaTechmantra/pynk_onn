@@ -181,6 +181,7 @@ class CategoryController extends Controller
         ]);
 
         $data = Category::findOrfail($id);
+        $oldData = $data->replicate(); // clone old values before update
         $data->name = $request->title;
         $data->description = $request->description;
         $data->brand = $request->brand;
@@ -227,6 +228,26 @@ class CategoryController extends Controller
             $data->sketch_icon = $upload_path.$uploadedImage;
         }
         $data->save();
+
+        // ✅ Compare old vs new and log only changed fields
+        $changedFields = $data->getChanges(); // only changed attributes
+
+        foreach ($changedFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue; // skip timestamps
+
+            $oldValue = $oldData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'categories',
+                'record_id' => $data->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
         
         if ($data) {
             return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
@@ -245,6 +266,14 @@ class CategoryController extends Controller
         $data=Category::destroy($id);
         $data->is_deleted=1;
         $data->save();
+
+        DB::table('edit_logs')->insert([
+            'table_name' => 'categories',
+            'record_id' => $data->id,
+            'action' => 'deleted',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         if ($data) {
             return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
         } else {

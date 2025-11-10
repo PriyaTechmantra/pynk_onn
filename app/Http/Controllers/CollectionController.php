@@ -189,6 +189,7 @@ class CollectionController extends Controller
             "banner_image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000"
         ]);
         $storeData=Collection::findOrfail($id);
+        $oldData = $storeData->replicate(); // clone old values before update
         $storeData->name=$request->title;
         $storeData->description=$request->description;
         $storeData->brand =$request->brand;
@@ -233,6 +234,25 @@ class CollectionController extends Controller
         }
         $storeData->save();
 		
+        // ✅ Compare old vs new and log only changed fields
+        $changedFields = $storeData->getChanges(); // only changed attributes
+
+        foreach ($changedFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue; // skip timestamps
+
+            $oldValue = $oldData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'collections',
+                'record_id' => $storeData->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
         if ($storeData) {
             return redirect()->route('collections.index')->with('success', 'Collection updated successfully.');
         } else {
@@ -242,10 +262,22 @@ class CollectionController extends Controller
 
     public function status(Request $request, $id)
     {
+        $isReferenced = DB::table('products')->where('collection_id', $id)->exists();
+    
+        if ($isReferenced) {
+            return redirect()->route('collections.index')->with('error', 'Category cannot be deleted because it is referenced in another table.');
+        }
         $category = Collection::findOrFail($id);
         $status = ( $category->status == 1 ) ? 0 : 1;
         $category->status = $status;
         $category->save();
+        DB::table('edit_logs')->insert([
+            'table_name' => 'collections',
+            'record_id' => $category->id,
+            'action' => 'deleted',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         if ($category) {
             return redirect()->route('collections.index')->with('success', 'Status changed successfully.');
         } else {

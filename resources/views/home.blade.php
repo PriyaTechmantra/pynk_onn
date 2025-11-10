@@ -64,7 +64,13 @@
             <div class="card home__card bg-gradient-danger">
                 <div class="card-body">
                     <h4>VP <i class="fi fi-br-user"></i></h4>
-                    <h2><a href="{{ url('employees',['type'=>1]) }}"> {{$data->vp->count()}}</a></h2>
+                    <h2>
+                        @can('view employee')
+                        <a href="{{ route('employees.index',['type'=>1,'brand'=>$brandValue]) }}"> {{$data->vp->count()}}</a>
+                        @else
+                        {{$data->vp->count()}}
+                        @endcan
+                    </h2>
                 </div>
             </div>
         </div>
@@ -73,7 +79,13 @@
             <div class="card home__card bg-gradient-info">
                 <div class="card-body">
                     <h4>RSM <i class="fi fi-br-chart-histogram"></i></h4>
-                    <h2><a href="{{ url('employees',['type'=>2]) }}"> {{$data->rsm->count()}}</a></h2>
+                    <h2>
+                        @can('view employee')
+                        <a href="{{ route('employees.index',['type'=>2,'brand'=>$brandValue]) }}"> {{$data->rsm->count()}}</a>
+                        @else
+                        {{$data->rsm->count()}}
+                        @endif
+                    </h2>
                 </div>
             </div>
         </div>
@@ -82,7 +94,13 @@
             <div class="card home__card bg-gradient-secondary">
                 <div class="card-body">
                     <h4>ASM <i class="fi fi-br-cube"></i></h4>
-                    <h2><a href="{{ url('employees',['type'=>3]) }}"> {{$data->asm->count()}}</a></h2>
+                    <h2>
+                        @can('view employee')
+                          <a href="{{ route('employees.index',['type'=>3,'brand'=>$brandValue]) }}"> {{$data->asm->count()}}</a>
+                        @else
+                          {{$data->asm->count()}}
+                        @endif
+                    </h2>
                 </div>
             </div>
         </div>
@@ -91,7 +109,13 @@
             <div class="card home__card bg-gradient-secondary">
                 <div class="card-body">
                     <h4>ASE <i class="fi fi-br-cube"></i></h4>
-                    <h2><a href="{{ url('employees',['type'=>4]) }}"> {{$data->ase->count()}}</a></h2>
+                    <h2>
+                        @can('view employee')
+                        <a href="{{ route('employees.index',['type'=>4,'brand'=>$brandValue]) }}"> {{$data->ase->count()}}</a>
+                        @else
+                          {{$data->ase->count()}}
+                        @endif
+                    </h2>
                 </div>
             </div>
         </div>
@@ -100,7 +124,13 @@
             <div class="card home__card bg-gradient-success">
                 <div class="card-body">
                     <h4>Distributor <i class="fi fi-br-user"></i></h4>
-                    <h2><a href="{{ url('distributors') }}"> {{$data->distributor->count()}}</a></h2>
+                    <h2>
+                        @can('view distributor')
+                          <a href="{{ route('distributors.index',['brand'=>$brandValue]) }}"> {{$data->distributor->count()}}</a>
+                        @else
+                          {{$data->distributor->count()}}
+                        @endif
+                    </h2>
                 </div>
             </div>
         </div>
@@ -108,7 +138,13 @@
             <div class="card home__card bg-gradient-success">
                 <div class="card-body">
                     <h4>All Store <i class="fi fi-br-chart-histogram"></i></h4>
-                    <h2><a href="{{ url('stores') }}">{{$data->allstore}}</a></h2>
+                    <h2>
+                        @can('view store')
+                        <a href="{{ route('stores.index',['brand'=>$brandValue]) }}">{{$data->allstore}}</a>
+                        @else
+                          {{$data->allstore}}
+                        @endif
+                    </h2>
                 </div>
             </div>
         </div>
@@ -117,7 +153,13 @@
             <div class="card home__card bg-gradient-success">
                 <div class="card-body">
                     <h4>Active Store <i class="fi fi-br-chart-histogram"></i></h4>
-                    <h2><a href="{{ url('stores',['status_id'=>'active']) }}">{{$data->store}}</a></h2>
+                    <h2>
+                        @can('view store')
+                          <a href="{{ route('stores.index',['status_id'=>'active','brand'=>$brandValue]) }}">{{$data->store}}</a>
+                        @else
+                          {{$data->store}}
+                        @endif
+                    </h2>
                 </div>
             </div>
         </div>
@@ -128,7 +170,13 @@
                 <div class="card-body">
                     <h4>Today's Primary Order Value <i class="fi fi-br-chart-histogram"></i></h4>
                     {{-- <h2>&#8377; {{number_format($data->primary)}}</h2> --}}
-                    <h2><a href="{{ url('primary/order/report',['date_from'=>date('Y-m-d'),'date_to'=>date('Y-m-d')]) }}">&#8377; {{number_format($data->primary)}}</a></h2>
+                    <h2>
+                        @can('view primary order')
+                        <a href="{{ route('primary.order.report',['date_from'=>date('Y-m-d'),'date_to'=>date('Y-m-d'),'brand'=>$brandValue]) }}">&#8377; {{number_format($data->primary)}}</a>
+                        @else
+                          &#8377; {{number_format($data->primary)}}
+                        @endif
+                    </h2>
                 </div>
             </div>
         </div>
@@ -137,7 +185,13 @@
             <div class="card home__card bg-gradient-success">
                 <div class="card-body">
                     <h4>Today Secondary Order Quantity <i class="fi fi-br-chart-histogram"></i></h4>
-                    <h2><a href="{{ url('secondary/order/report',['date_from'=>date('Y-m-d'),'date_to'=>date('Y-m-d')]) }}">{{number_format($data->secondary)}}</a></h2>
+                    <h2>
+                        @can('view secondary order')
+                        <a href="{{ route('secondary.order.report',['date_from'=>date('Y-m-d'),'date_to'=>date('Y-m-d'),'brand'=>$brandValue]) }}">{{number_format($data->secondary)}}</a>
+                        @else
+                          {{number_format($data->secondary)}}
+                        @endif
+                    </h2>
                 </div>
             </div>
         </div>
@@ -181,68 +235,78 @@
 				<div class="col-md-6">
 					<div class="card h-100">
 						<div class="card-body">
-							<a href="{{ url('dashboard/store/export/csv') }}" class="btn btn-sm btn-danger text-end" data-bs-toggle="tooltip" title="Export data in CSV">
+                            @can('dashboard store report export')
+							<a href="{{ route('dashboard.store.export.csv',['brand'=>$brandValue]) }}" class="btn btn-sm btn-danger text-end" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             </a>
+                            @endcan
 							<canvas id="myChart" width="600" height="600"></canvas>
 						</div>
 					</div>
 				</div>
 				<div class="col-md-6">
-                <div class="card h-100" id="distributorCard" style="max-height: 680px;overflow:hidden">
-                    <div class="card-body">
-						
-                        <h5 class="card-title">ASE wise retailer/store report</h5>
-						<a href="{{ url('ase/store/export/csv',['keyword' =>$request->keyword]) }}" class="btn btn-sm btn-danger text-end" data-bs-toggle="tooltip" title="Export data in CSV">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                            </a>
-						<form class="row align-items-end justify-content-end" action="{{url('home')}}">
-						
-                        <div class="col-auto">
-                            <input type="search" name="keyword" id="keyword" class="form-control form-control-sm" placeholder="Search by name" value="{{request()->input('keyword')}}" autocomplete="off">
-                        </div>
-                        <div class="col-auto">
-                            <div class="btn-group">
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    Filter
-                                </button>
+                    <div class="card h-100" id="distributorCard" style="max-height: 680px;overflow:hidden">
+                        <div class="card-body">
+                            
+                            <h5 class="card-title">ASE wise retailer/store report</h5>
+                                
+                            <form class="" action="{{url('home')}}">
+                            <div class="row xt-4">
+                                <div class="col-md-6">
+                                    <input type="search" name="keyword" id="keyword" class="form-control form-control-sm" placeholder="Search by name" value="{{request()->input('keyword')}}" autocomplete="off">
+                                </div>
+                                <div class="col-md-3">
+                                    
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            Filter
+                                        </button>
 
-                               
+                                    
+                                    
+                                </div>
+                                <div class="col-md-3">
+                                    @can('dashboard ase wise store count report export')
+                                        <a href="{{ route('dashboard.ase.store.export.csv',['keyword' =>$request->keyword,'brand'=>$brandValue]) }}" class="btn btn-sm btn-danger text-end" data-bs-toggle="tooltip" title="Export data in CSV">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                        </a>
+                                    @endcan
+                                </div>
                             </div>
+                        </form>
+                        <div class="row">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ASE Name</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    @foreach ($aseWiseReport as $aseKey => $item)
+                                
+                                        <tr>
+
+                                            <td>
+
+                                                <a href="{{route('stores.index',['ase'=>$item->id,'brand'=>$brandValue])}}"> {{ ($item->name == null) ? 'NA' : $item->name }} ({{$item->state_name}})</a>
+                                            </td>
+                                            <td> {{number_format($item->count)}}</td>
+                                        </tr>
+                                        @if($aseKey == 10)
+                                        <tr>
+                                            <td colspan="100%" class="text-end">
+                                                <a href="javascript: void(0)" id="distributorShowMore">Show more</a>
+                                            </td>
+                                        </tr>
+                                        @endif
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                    </form>
-                        <table class="table table-sm table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ASE Name</th>
-                                    <th>Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-
-                                @foreach ($aseWiseReport as $aseKey => $item)
-							   
-                                    <tr>
-
-                                        <td>
-
-                                            <a href="{{url('stores',['ase'=>$item->id])}}"> {{ ($item->name == null) ? 'NA' : $item->name }} ({{$item->state_name}})</a>
-                                        </td>
-                                        <td> {{number_format($item->count)}}</td>
-                                    </tr>
-                                    @if($aseKey == 10)
-                                    <tr>
-                                        <td colspan="100%" class="text-end">
-                                            <a href="javascript: void(0)" id="distributorShowMore">Show more</a>
-                                        </td>
-                                    </tr>
-                                    @endif
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <a href="{{url('stores')}}" class="btn btn-sm btn-danger float-right">View complete report</a>
+                            <a href="{{route('stores.index',['brand'=>$brandValue])}}" class="btn btn-sm btn-danger float-right">View complete report</a>
+                        </div>
                     </div>
-                </div>
             </div>
 			</div>
 			
@@ -295,7 +359,7 @@
 
                                         <td>
 
-                                            <a href="{{url('employees',['ase'=>$item->name])}}"> {{ ($item->name == null) ? 'NA' : $item->name }}</a>
+                                            <a href="{{route('employees.index',['type'=>$item->type,'brand'=>$brandValue])}}"> {{ ($item->name == null) ? 'NA' : $item->name }}</a>
                                         </td>
                                         <td> {{$item->mobile ?? ''}}</td>
 										 <td> {{$item->area->name ?? ''}}</td>
@@ -507,7 +571,7 @@
 <script>
 	  $('#distributorShowMore').on('click', function() {
             $(this).parent().parent().hide();
-            $('#distributorCard').css('maxHeight', '100%');
+            $('#distributorCard').css('maxHeight', '40%');
         });
 	 $('#aseShowMore').on('click', function() {
             $(this).parent().parent().hide();

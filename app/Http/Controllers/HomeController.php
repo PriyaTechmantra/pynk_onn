@@ -72,15 +72,19 @@ class HomeController extends Controller
         if ($brandPermissions === 'Both' && count($brandsToShow) > 1) {
             // Superadmin with both brand access and both dashboard permissions
             $brandCode = $request->brand ?? session('selected_brand', 1); // Default ONN
-            session(['selected_brand' => $brandCode]);
+            session(['selected_brand' => 1]);
         } else if($brandPermissions === 'ONN' && $brandsToShow == [1]) {
             // For single-brand users
-            $brandCode = 1 ?? null;
+            $brandCode =  1;
+            session(['selected_brand' => 1]);
         }else if($brandPermissions === 'PYNK' && $brandsToShow == [2]) {
+           
             // For single-brand users
-            $brandCode = 2 ?? null;
+            $brandCode =  2;
+            session(['selected_brand' => 2]);
         }else{
-            $brandCode  =  0;
+            $brandCode  =   0;
+            session(['selected_brand' => 0]);
         }
 
     // // 🔹 Step 1: Detect which brand(s) the user has permission to view

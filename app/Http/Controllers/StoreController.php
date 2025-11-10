@@ -237,6 +237,7 @@ class StoreController extends Controller
          $vp_arr1= array();
          $app_dist =array();
          $store=Store::where('id',$id)->first();
+         $oldData = $store->replicate(); // clone old values before update
 		 $new_ase=Employee::whereIN('id',$request->ase)->get();
         foreach($new_ase as $lang)
         {
@@ -342,6 +343,7 @@ class StoreController extends Controller
 		//dd($store);
         // retailer list of occ update
         $retailerListOfOcc = Team::findOrFail($request->retailer_list_of_occ_id);
+        $oldretailerData = $retailerListOfOcc->replicate(); // clone old values before update
          $retailerListOfOcc->vp_id = implode(',', $request->vp);
         $retailerListOfOcc->state_id = $request->state;
         $retailerListOfOcc->distributor_id = implode(',', $request->distributor_id);
@@ -358,6 +360,45 @@ class StoreController extends Controller
 		$retailerListOfOcc->updated_at = now();
         $retailerListOfOcc->save();
         
+        // ✅ Compare old vs new and log only changed fields
+        $changedFields = $store->getChanges(); // only changed attributes
+
+        foreach ($changedFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue; // skip timestamps
+
+            $oldValue = $oldData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'stores',
+                'record_id' => $store->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
+
+
+        $changedFields = $retailerListOfOcc->getChanges(); // only changed attributes
+
+        foreach ($changedFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue; // skip timestamps
+
+            $oldValue = $oldretailerData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'teams',
+                'record_id' => $retailerListOfOcc->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
 		//dd($retailerListOfOcc);
         return redirect()->back()->with('success', 'Store information updated successfully');
     }
@@ -376,9 +417,23 @@ class StoreController extends Controller
             $data = Store::findOrfail($id);
             $data->is_deleted=1;
             $data->save();
+            DB::table('edit_logs')->insert([
+                'table_name' => 'stores',
+                'record_id' => $data->id,
+                'action' => 'deleted',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
             $team = Team::where('store_id',$id)->first();
             $team->is_deleted=1;
             $team->save();
+            DB::table('edit_logs')->insert([
+                'table_name' => 'teams',
+                'record_id' => $team->id,
+                'action' => 'deleted',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
             return redirect()->route('stores.index')
                             ->with('success','Store deleted successfully');
         } else {

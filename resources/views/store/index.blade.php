@@ -92,11 +92,11 @@
                                                     @endif
                                                     <div class="col">
                                                         <label for="date_from" class="small text-muted">Date from</label>
-                                                        <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_from') ?? date('Y-m-01') }}">
+                                                        <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_from') }}">
                                                     </div>
                                                     <div class="col">
                                                         <label for="date_to" class="small text-muted">Date to</label>
-                                                        <input type="date" name="date_to" id="date_to" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_to') ?? date('Y-m-d') }}">
+                                                        <input type="date" name="date_to" id="date_to" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_to')  }}">
                                                     </div>
                                                     <div class="col">
                                                         <label for="distributor" class="small text-muted">Distributor</label>
@@ -211,9 +211,9 @@
                                         $distName='';
                                         foreach(explode(',',$item->user_id) as $aseKey => $aseVal) 
                                         {
-                                            //dd($distVal);
+                                            //dd($aseVal);
                                             $catDetails = DB::table('employees')->where('id', $aseVal)->get();
-                                    
+                                            
                                             if(count($catDetails)>0){
                                                 $displayASEName .=  $catDetails[0]->name.',';
                                             }else{
@@ -225,7 +225,7 @@
 
                                             $distributor = $item->distributor_id;
                                             //$username = \App\Models\Distributor::select('name')->where('id', $distributor)->first();
-                                            $displayASEName = '';
+                                            
                                             foreach(explode(',',$item->distributor_id) as $distKey => $distVal) 
                                             {
                                                 //dd($distVal);

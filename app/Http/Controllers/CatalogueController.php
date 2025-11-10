@@ -12,25 +12,72 @@ use DB;
 
 class CatalogueController extends Controller
 {
+
+    function __construct()
+    {
+         $this->middleware('permission:view catalogue', ['only' => ['index','show']]);
+         $this->middleware('permission:create catalogue', ['only' => ['create','store']]);
+         $this->middleware('permission:update catalogue', ['only' => ['update','edit']]);
+         $this->middleware('permission:delete catalogue', ['only' => ['destroy']]);
+    }
     public function index(Request $request)
     {
-        $query = ProductCatalogue::query();
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
 
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
+        $query = ProductCatalogue::query();
+        
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand_selection')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand_selection == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('product_catelogues.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('product_catelogues.brand', $request->brand_selection)
+                    ->orWhere('product_catelogues.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('product_catelogues.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('product_catelogues.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
         if (!empty($request->term)) {
             $query->where('title', 'LIKE', '%' . $request->term . '%');
         }
 
-        if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
-
-            if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
-            } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
-            } elseif ($brand == '3') {
-                $query->where('brand', 3);
-            }
-        }
+        
 
         $query->latest(); 
 
@@ -140,7 +187,7 @@ class CatalogueController extends Controller
 
         $upload_path = "public/uploads/catalogue/";
         $storeData = ProductCatalogue::findOrFail($id);
-
+        $oldData = $storeData->replicate(); // clone old values before update
         $storeData->title = $request->title;
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
@@ -163,7 +210,25 @@ class CatalogueController extends Controller
             $storeData->pdf = $upload_path . $pdfName;
         }
         $storeData->save();
+        // ✅ Compare old vs new and log only changed fields
+        $changedFields = $storeData->getChanges(); // only changed attributes
 
+        foreach ($changedFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue; // skip timestamps
+
+            $oldValue = $oldData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'product_catelogues',
+                'record_id' => $storeData->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
         if ($storeData) {
             return redirect('/catalogues');
         } else {
@@ -174,8 +239,19 @@ class CatalogueController extends Controller
 
     public function destroy(Request $request, $id)
     {
-        ProductCatalogue::destroy($id);
+        
+        $data = ProductCatalogue::findOrfail($id);
+        $data->is_deleted=1;
+        $data->save();
 
+        // ✅ Log the delete action only (no old/new value)
+        DB::table('edit_logs')->insert([
+            'table_name' => 'product_catelogues',
+            'record_id' => $data->id,
+            'action' => 'deleted',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         return redirect('/catalogues');
     }
 

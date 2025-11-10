@@ -48,7 +48,7 @@
                 <div class="card data-card mt-3">
                     <div class="card-header">
                         <h4 class="d-flex">
-                            Secondary Order
+                            Primary Order
                             @can('view primary order report')
                                 <a 
                                     href="{{ url('primary/order/report/csv/export') . '?' . http_build_query([
