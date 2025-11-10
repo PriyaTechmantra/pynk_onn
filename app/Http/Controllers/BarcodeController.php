@@ -169,7 +169,7 @@ class BarcodeController extends Controller
         $data = RetailerBarcode::findOrfail($id);
         $allDistributors = User::select('id','name')->where('type',7)->where('name', '!=', null)->where('status',1)->groupBy('name')->orderBy('name')->get();
         $state = State::where('status',1)->groupBy('name')->orderBy('name')->get();
-        return view('reward.barcode.detail-edit', compact('data','allDistributors','state'));
+        return view('reward.barcode.edit', compact('data','allDistributors','state'));
     }
     public function update(Request $request, $id)
     {
@@ -194,12 +194,12 @@ class BarcodeController extends Controller
         }
         $storeData->name = $request['name'];
         $storeData->state_id = $request['state_id'];
-       // $storeData->distributor_id = $request['distributor_id'];
         $storeData->amount = $request['amount'];
         $storeData->max_time_of_use = $request['max_time_of_use'];
         $storeData->max_time_one_can_use = $request['max_time_one_can_use'];
         $storeData->start_date = $request['start_date'];
         $storeData->end_date = $request['end_date'];
+        $storeData->brand = $request['brand'];
         $storeData->save();
 
         if ($storeData) {
@@ -224,37 +224,6 @@ class BarcodeController extends Controller
         }
     }
 
-    public function destroy(Request $request, $id)
-    {
-        $storeData=RetailerBarcode::destroy($id);
-
-        return redirect()->route('reward.retailer.barcode.index');
-    }
-
-    public function bulkDestroy(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'bulk_action' => 'required',
-            'delete_check' => 'required|array',
-        ], [
-            'delete_check.*' => 'Please select at least one item'
-        ]);
-
-        if (!$validator->fails()) {
-            if ($request['bulk_action'] == 'delete') {
-                foreach ($request->delete_check as $index => $delete_id) {
-                    RetailerBarcode::where('id', $delete_id)->delete();
-                }
-
-                return redirect()->route('reward.retailer.barcode.index')->with('success', 'Selected items deleted');
-            } else {
-                return redirect()->route('reward.retailer.barcode.index')->with('failure', 'Please select an action')->withInput($request->all());
-            }
-        } else {
-            return redirect()->route('reward.retailer.barcode.index')->with('failure', $validator->errors()->first())->withInput($request->all());
-        }
-    }
-
     public function csvExport(Request $request)
     {
         $coupon = RetailerBarcode::where('slug', $request->slug)->with('distributor','state')->first();
@@ -266,13 +235,13 @@ class BarcodeController extends Controller
 		}
         if (count($data) > 0) {
             $delimiter = ","; 
-            $filename = $coupon->distributor->distributor_position_code."-".$coupon->name.".csv"; 
+            $filename = $coupon->name.".csv"; 
 
             // Create a file pointer 
             $f = fopen('php://memory', 'w'); 
 
             // Set column headers 
-            $fields = array('SR', 'CODE','NOTE','STATE'); 
+            $fields = array('SR', 'CODE','NOTE'); 
             fputcsv($f, $fields, $delimiter); 
 
             $count = 1;
@@ -284,7 +253,6 @@ class BarcodeController extends Controller
                     $count,
                     $row['code'],
                     $row['note'],
-                    $row['state']['name']??'',
                 );
 
                 fputcsv($f, $lineData, $delimiter);
