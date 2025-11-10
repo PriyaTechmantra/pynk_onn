@@ -130,6 +130,7 @@ class AreaController extends Controller
                 'field' => $field,
                 'old_value' => $oldValue,
                 'new_value' => $newValue,
+                'action' => 'updated',
                 'updated_by' => Auth::id(),
                 'created_at' => now(),
             ]);
@@ -148,9 +149,24 @@ class AreaController extends Controller
      */
     public function destroy($id): RedirectResponse
     {
+        $isReferenced = DB::table('stores')->where('area_id', $id)->exists();
+        $isDReferenced = DB::table('distributors')->where('area_id', $id)->exists();
+        $isEReferenced = DB::table('employees')->where('city', $id)->exists();
+        if ($isReferenced || $isDReferenced || $isEReferenced) {
+            return redirect()->route('areas.index')->with('error', 'Area cannot be deleted because it is referenced in another table.');
+        }
         $data = Area::findOrfail($id);
         $data->is_deleted=1;
         $data->save();
+
+         // ✅ Log the delete action only (no old/new value)
+        DB::table('edit_logs')->insert([
+            'table_name' => 'areas',
+            'record_id' => $data->id,
+            'action' => 'deleted',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         return redirect()->route('areas.index')
                         ->with('success','Area deleted successfully');
     }

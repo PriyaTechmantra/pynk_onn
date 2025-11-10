@@ -7,7 +7,7 @@
 @php
 $monthName = ucfirst(strtolower(request('month'))); // "April"
 $year = request('year');                            // "2025"
-
+$brand= request('brand');
 $monthNumber = date('m', strtotime("1 $monthName $year")); // always returns correct month
 $monthValue = $year . '-' . $monthNumber;
 
@@ -90,7 +90,7 @@ $date_to = $date->format('Y-m-t');
                                     @foreach ($data as $row)
                                     
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['state'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row->name ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['state'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to,'brand'=>$brand])}}" target="_blank">{{ $row->name ?? 'N/A' }}</a></td>
                                             <td>{{ $row->total_sales }}</td>
                                         </tr>
                                          @php
@@ -141,7 +141,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['product'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row->style_no ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['product'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to,'brand'=>$brand])}}" target="_blank">{{ $row->style_no ?? 'N/A' }}</a></td>
                                             <td>{{ $row->total_sales }}</td>
                                         </tr>
                                         @php
@@ -192,7 +192,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['ase'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row->name ?? 'N/A' }}</a>({{$row->status == 1 ? 'Active' : 'Inactive'}} user)  </td>
+                                            <td><a href="{{route('secondary.order.report',['ase'=>$row->id,'date_from'=>$date_from,'date_to'=>$date_to,'brand'=>$brand])}}" target="_blank">{{ $row->name ?? 'N/A' }}</a>({{$row->status == 1 ? 'Active' : 'Inactive'}} user)  </td>
                                             <td>{{ $row->total_sales }}</td>
                                         </tr>
 					@php
@@ -246,7 +246,7 @@ $date_to = $date->format('Y-m-t');
                                     
                                    
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['asm'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['asm'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to,'brand'=>$brand])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
                                             <td>{{ $row['total_sales'] }}</td>
                                         </tr>
 					                    @php
@@ -299,7 +299,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['rsm'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['rsm'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to,'brand'=>$brand])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
                                             <td>{{ $row['total_sales'] }}</td>
                                         </tr>
 					@php
@@ -351,7 +351,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['vp'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
+                                            <td><a href="{{route('secondary.order.report',['vp'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to,'brand'=>$brand])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</a></td>
                                             <td>{{ $row['total_sales'] }}</td>
                                         </tr>
 					@php
@@ -403,7 +403,7 @@ $date_to = $date->format('Y-m-t');
                                     @endphp
                                     @foreach ($data as $row)
                                         <tr>
-                                            <td><a href="{{route('secondary.order.report',['distributor'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</div></td>
+                                            <td><a href="{{route('secondary.order.report',['distributor'=>$row['id'],'date_from'=>$date_from,'date_to'=>$date_to,'brand'=>$brand])}}" target="_blank">{{ $row['name'] ?? 'N/A' }}</div></td>
                                             <td>{{ $row['total_sales'] }}</td>
                                         </tr>
 					@php
