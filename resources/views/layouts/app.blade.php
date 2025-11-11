@@ -26,6 +26,9 @@
 </head>
 
 <body>
+    @php
+        $user = Auth::user();
+    @endphp
     <aside class="side__bar shadow-sm">
         <div class="admin__logo">
             <div class="logo">
@@ -64,7 +67,7 @@
                 
                
                 
-               @can('view employee')
+               @if($user->can('view employee') || $user->can('view employee hierarchy') || $user->can('view employee activities') || $user->can('view notifications'))
                 <li class="@if(request()->is('employees*')||request()->is('employees/hierarchy/details*')||request()->is('activity*')||request()->is('employees/notifications*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Employee</span></a>
                     <ul>
@@ -85,9 +88,9 @@
                         
                     </ul>
                 </li>
-                @endcan
+                @endif
 
-                @can('view distributor')
+                @if($user->can('view distributor') || $user->can('view distributor hierarchy') || $user->can('view distributor note'))
                 <li class="@if(request()->is('distributors*')||request()->is('distributors/hierarchy/details*')||request()->is('distributors/note*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Distributor</span></a>
                     <ul>
@@ -104,9 +107,9 @@
                         
                     </ul>
                 </li>
-                @endcan
+                @endif
                 
-                @can('view collection')
+                @if ($user->can('view collection') ||$user->can('view category') ||$user->can('view color') ||$user->can('view size') ||$user->can('view product') ||$user->can('view catalogue') ||$user->can('view scheme') ||$user->can('view news'))
                 <li class="@if(request()->is('collections*')||request()->is('categories*')||request()->is('colors*')||request()->is('sizes*')||request()->is('products*')||request()->is('catalogues*')||request()->is('schemes*')||request()->is('news*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Product Master</span></a>
                     <ul>
@@ -139,8 +142,8 @@
                         @endcan
                     </ul>
                 </li>
-                @endcan
-                @can('view store')
+                @endif
+                @if($user->can('view store') || $user->can('view no order reason'))
                 <li class="@if(request()->is('stores*')||request()->is('stores/noorderreason*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Store</span></a>
                     <ul>
@@ -156,7 +159,7 @@
                         
                     </ul>
                 </li>
-                @endcan
+                @endif
                 {{--@can('view primary order')
                 <li class="@if(request()->is('primary/order*')||request()->is('secondary/order*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Order</span></a>
@@ -175,7 +178,7 @@
                 </li>
                 @endcan--}}
 
-                @can('view primary order report')
+                @if($user->can('view primary order report') || $user->can('view secondary order report') || $user->can('view attendance report'))
                 <li class="@if(request()->is('primary/order/report*')||request()->is('secondary/order/report*')||request()->is('attendance/report*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Report</span></a>
                     <ul>
@@ -193,7 +196,7 @@
                         
                     </ul>
                 </li>
-                @endcan
+                @endif
 
                
                  {{--<li class="{{ request()->is('reward*') ? 'active' : '' }}">

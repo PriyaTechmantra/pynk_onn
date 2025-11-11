@@ -237,7 +237,10 @@
                                             <a href="{{ url('employees/'.$item->id.'/status/change') }}">
                                                 <span class="badge badge-status bg-{{ $item->status == 1 ? 'success' : 'danger' }}">{{ $item->status == 1 ? 'Active' : 'Inactive' }}</span>
                                             </a>
+                                            @else
+                                              <span class="badge badge-status bg-{{($item->status == 1) ? 'success' : 'danger'}}">{{($item->status == 1) ? 'Active' : 'Inactive'}}</span>
                                             @endcan
+                                           
                                         </td>
                                         <td>{{date('d-m-Y', strtotime($item->created_at))}}</td>
                                        

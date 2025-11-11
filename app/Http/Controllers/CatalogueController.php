@@ -9,7 +9,7 @@ use App\Models\Employee;
 use App\Interfaces\CatalogueInterface;
 use App\Models\ProductCatalogue;
 use DB;
-
+use Auth;
 class CatalogueController extends Controller
 {
 
@@ -106,9 +106,9 @@ class CatalogueController extends Controller
             "start_date" => "nullable|date",
             "end_date" => "nullable|date",
             "state" => "required|array",
-            "vp" => "required|array",
+            "vp" => "nullable|array",
             "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
+            "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
         ]);
 
         $upload_path = "public/uploads/catalogue/";
@@ -117,10 +117,33 @@ class CatalogueController extends Controller
         $storeData->title = $request->title;
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
-        $storeData->state = $request->state;
+        if(!empty($request->state)){
+            $storeData->state_id = implode(',',$request->state);
+        }
+        if(!empty($request->vp)){
+            $storeData->vp_id = implode(',',$request->vp);
+        }
+        if(empty($request->brand)){
+            $user = auth()->user();
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
         
-        $storeData->vp = $request->vp;
-        $storeData->brand = $request->brand;
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = 3;
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = 1;
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = 2;
+            }
+            $storeData->brand = $brandsToShow;
+        }else{
+           $storeData->brand = $request->brand;
+        }
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
