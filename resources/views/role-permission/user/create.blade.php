@@ -65,7 +65,7 @@
                                                     name="brand" 
                                                     value="1" 
                                                     id="mediumOnn"
-                                                    onchange="toggleSelectBox()"
+                                                     onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumLMS">Onn</label>
                                             </div>
@@ -76,7 +76,7 @@
                                                     name="brand" 
                                                     value="2" 
                                                     id="mediumPynk"
-                                                    onchange="toggleSelectBox()"
+                                                     onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumFMS">Pynk</label>
                                             </div>
@@ -88,7 +88,7 @@
                                                     name="brand" 
                                                     value="3" 
                                                     id="mediumBoth"
-                                                    onchange="toggleSelectBox()"
+                                                    onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumCave">Both</label>
                                             </div>

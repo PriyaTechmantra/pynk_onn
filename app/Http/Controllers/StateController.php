@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Controller;
+use DB;
+use Auth;
 class StateController extends Controller
 {
      /**
@@ -151,16 +153,6 @@ class StateController extends Controller
      */
     public function destroy($id): RedirectResponse
     {
-        $data = State::findOrfail($id);
-        $data->is_deleted=1;
-        $data->save();
-        return redirect()->route('states.index')
-                        ->with('success','State deleted successfully');
-    }
-
-
-    public function status($id): RedirectResponse
-    {
         $isReferenced = DB::table('stores')->where('state_id', $id)->exists();
         $isTReferenced = DB::table('teams')->where('state_id', $id)->exists();
         $isDReferenced = DB::table('distributors')->where('state_id', $id)->exists();
@@ -168,12 +160,11 @@ class StateController extends Controller
         if ($isReferenced || $isDReferenced || $isEReferenced || $isTReferenced) {
             return redirect()->route('states.index')->with('failure', 'State cannot be deleted because it is referenced in another table.');
         }
-        $data = State::find($id);
-        $status = ($data->status == 1) ? 0 : 1;
-        $data->status = $status;
+        $data = State::findOrfail($id);
+        $data->is_deleted=1;
         $data->save();
 
-         // ✅ Log the delete action only (no old/new value)
+        // ✅ Log the delete action only (no old/new value)
         DB::table('edit_logs')->insert([
             'table_name' => 'states',
             'record_id' => $data->id,
@@ -181,6 +172,20 @@ class StateController extends Controller
             'updated_by' => Auth::id(),
             'created_at' => now(),
         ]);
+        return redirect()->route('states.index')
+                        ->with('success','State deleted successfully');
+    }
+
+
+    public function status($id): RedirectResponse
+    {
+        
+        $data = State::find($id);
+        $status = ($data->status == 1) ? 0 : 1;
+        $data->status = $status;
+        $data->save();
+
+         
     
         return redirect()->route('states.index')
                         ->with('success','State status changed successfully');

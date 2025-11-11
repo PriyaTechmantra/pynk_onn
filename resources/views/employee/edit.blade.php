@@ -241,5 +241,23 @@
     }
 });
 </script>
+
+<script>
+function checkOnlyOne(checkbox) {
+    const checkboxes = document.querySelectorAll('.medium-checkbox');
+    checkboxes.forEach(cb => {
+        if (cb !== checkbox) cb.checked = false;
+    });
+}
+
+// ✅ Prevent form submission if none is selected
+document.querySelector('form').addEventListener('submit', function (e) {
+    const selected = document.querySelector('.medium-checkbox:checked');
+    if (!selected) {
+        e.preventDefault();
+        alert('Please select a brand permission before submitting.');
+    }
+});
+</script>
 @endsection
 

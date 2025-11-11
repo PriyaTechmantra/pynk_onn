@@ -150,17 +150,18 @@
                                             <!-- Communication Medium -->
                                             <h6>Brand Permission:  <span class="text-danger">*</span></h6>
                                              @error('brand') <p class="small text-danger">{{ $message }}</p> @enderror
-                                            <div class="form-check">
+                                             <div class="form-check">
                                                 <input 
                                                     class="form-check-input medium-checkbox" 
                                                     type="checkbox" 
                                                     name="brand" 
                                                     value="1" 
                                                     id="mediumOnn"
-                                                   onchange="checkOnlyOne(this)"
+                                                    onchange="checkOnlyOne(this)"
                                                 >
-                                                <label class="form-check-label" for="mediumLMS">Onn</label>
+                                                <label class="form-check-label" for="mediumOnn">Onn</label>
                                             </div>
+
                                             <div class="form-check">
                                                 <input 
                                                     class="form-check-input medium-checkbox" 
@@ -170,9 +171,9 @@
                                                     id="mediumPynk"
                                                     onchange="checkOnlyOne(this)"
                                                 >
-                                                <label class="form-check-label" for="mediumFMS">Pynk</label>
+                                                <label class="form-check-label" for="mediumPynk">Pynk</label>
                                             </div>
-                                            
+
                                             <div class="form-check">
                                                 <input 
                                                     class="form-check-input medium-checkbox" 
@@ -182,8 +183,7 @@
                                                     id="mediumBoth"
                                                     onchange="checkOnlyOne(this)"
                                                 >
-                                               
-                                                <label class="form-check-label" for="mediumCave">Both</label>
+                                                <label class="form-check-label" for="mediumBoth">Both</label>
                                             </div>
                                         </div>
                                         @endcan
@@ -224,6 +224,24 @@
             }
         });
     });
+</script>
+
+<script>
+function checkOnlyOne(checkbox) {
+    const checkboxes = document.querySelectorAll('.medium-checkbox');
+    checkboxes.forEach(cb => {
+        if (cb !== checkbox) cb.checked = false;
+    });
+}
+
+// ✅ Prevent form submission if none is selected
+document.querySelector('form').addEventListener('submit', function (e) {
+    const selected = document.querySelector('.medium-checkbox:checked');
+    if (!selected) {
+        e.preventDefault();
+        alert('Please select a brand permission before submitting.');
+    }
+});
 </script>
 @endsection
 

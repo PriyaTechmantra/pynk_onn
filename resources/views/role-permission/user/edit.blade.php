@@ -79,7 +79,7 @@
                                                     value="1" 
                                                     id="mediumOnn"
                                                     {{ isset($assignedPermissions) && in_array('1', $brand) ? 'checked' : '' }}
-                                                    onchange="toggleSelectBox()"
+                                                     onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumOnn">Onn</label>
                                             </div>
@@ -91,7 +91,7 @@
                                                     value="2" 
                                                     id="mediumPynk"
                                                     {{ isset($assignedPermissions) && in_array('2', $brand) ? 'checked' : '' }}
-                                                    onchange="toggleSelectBox()"
+                                                     onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumPynk">Pynk</label>
                                             </div>
@@ -104,7 +104,7 @@
                                                     value="3" 
                                                     id="mediumBoth"
                                                     {{ isset($assignedPermissions) && in_array('3', $brand) ? 'checked' : '' }}
-                                                    onchange="toggleSelectBox()"
+                                                    onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumBoth">Both</label>
                                             </div>
