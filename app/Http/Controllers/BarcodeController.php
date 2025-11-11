@@ -607,6 +607,7 @@ class BarcodeController extends Controller
                 'stores.bussiness_name',
                 'stores.status',
                 'stores.wallet',
+                'stores.secret_pin',
                 'teams.distributor_id'
             )->leftJoin('teams', 'teams.store_id', '=', 'stores.id')
             ->where('stores.is_deleted', 0);
@@ -623,8 +624,7 @@ class BarcodeController extends Controller
             $query->where(function ($q) use ($keyword) {
                 $q->where('stores.name', 'like', "%$keyword%")
                 ->orWhere('stores.contact', 'like', "%$keyword%")
-                ->orWhere('stores.unique_code', 'like', "%$keyword%")
-                ->orWhere('stores.bussiness_name', 'like', "%$keyword%");
+                ->orWhere('stores.unique_code', 'like', "%$keyword%");
             });
         }
 
@@ -633,6 +633,117 @@ class BarcodeController extends Controller
 
         // Pass to view
         return view('reward.barcode.scan-report', compact('data', 'request', 'month'));
+    }
+
+    public function retailerscanReportCsv(Request $request)
+    {
+        $month = $request->month ?? date('Y-m');
+        $keyword = $request->keyword ?? null;
+
+        // Base query: stores joined with teams
+        $query = Store::select(
+                'stores.id',
+                'stores.unique_code',
+                'stores.created_at',
+                'stores.name',
+                'stores.user_id',
+                'stores.state_id',
+                'stores.area_id',
+                'stores.city',
+                'stores.pin',
+                'stores.address',
+                'stores.email',
+                'stores.contact',
+                'stores.bussiness_name',
+                'stores.status',
+                'stores.wallet',
+                'stores.secret_pin',
+                'teams.distributor_id'
+            )->leftJoin('teams', 'teams.store_id', '=', 'stores.id')
+            ->where('stores.is_deleted', 0);
+
+        //  Filter by month (based on store created_at)
+        if ($request->filled('month')) {
+            $startOfMonth = date('Y-m-01 00:00:00', strtotime($month));
+            $endOfMonth   = date('Y-m-t 23:59:59', strtotime($month));
+            $query->whereBetween('stores.created_at', [$startOfMonth, $endOfMonth]);
+        }
+
+        //  Keyword filter
+        if (!empty($keyword)) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('stores.name', 'like', "%$keyword%")
+                ->orWhere('stores.contact', 'like', "%$keyword%")
+                ->orWhere('stores.unique_code', 'like', "%$keyword%");
+            });
+        }
+
+        // Fetch paginated data
+        $data = $query->orderByDesc('stores.id')->get();
+   
+          if (count($data) > 0) {
+            $delimiter = ",";
+            $filename = "retailer scan report monthly-".date('Y-m-d').".csv";
+
+            // Create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            // Set column headers
+            $fields = array('SR','UNIQUE CODE', 'STORE', 'FIRM', 'MOBILE', 'DISTRIBUTOR', 'ASE',  'SCAN LIMIT PER MONTH','SCAN COUNT MONTHLY','SCAN LEFT MONTHLY','ONN CURRENCY');
+            fputcsv($f, $fields, $delimiter);
+
+            $count = 1;
+
+            foreach($data as $row) {
+				//dd($row);
+                $datetime = date('j F, Y', strtotime($row['created_at']));
+                //$ase = $row->user_id;
+               // $username = User::select('name')->where('id', $ase)->first();
+				$displayASEName = '';
+				if(!empty($row->user_id))
+				{
+                foreach(explode(',',$row->user_id) as $aseKey => $aseVal) 
+                {
+                    //dd($distVal);
+                    $catDetails = DB::table('employees')->where('id', $aseVal)->first();
+                    $displayASEName .= $catDetails->name.',';
+                }
+				}
+                $scanCount=RetailerWalletTxn::where('user_id', $row->id)->where('type',1)->where('created_at', 'like','%'.$month.'%')->count();
+                $dis_name = Distributor::select('name')->where('id', $row->distributor_id)->first();
+                                               
+                //dd(\DB::getQueryLog());
+                $scanLeft=20-$scanCount;
+                $lineData = array(
+                    $count,
+					$row->unique_code,
+                    ucwords($row->name),
+                    ucwords($row->bussiness_name),
+                    $row->contact,
+                    $dis_name->name ?? '',
+                    substr($displayASEName, 0, -1) ? substr($displayASEName,0, -1) : 'Self',
+                    20,
+                    $scanCount,
+                    $scanLeft,
+                    $row->wallet
+                  
+                );
+
+                fputcsv($f, $lineData, $delimiter);
+
+                $count++;
+            }
+
+            // Move back to beginning of file
+            fseek($f, 0);
+
+            // Set headers to download file rather than displayed
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '";');
+
+            //output all remaining data on a file pointer
+            fpassthru($f);
+        }
     }
 		
 }
