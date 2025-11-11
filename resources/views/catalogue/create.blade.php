@@ -11,7 +11,32 @@
                     @endforeach
                 </ul>
                 @endif
+                @php
+                            $assignedPermissions = DB::table('user_permission_categories')
+                            ->select('user_permission_categories.*')
+                            ->join('users','users.id','=','user_permission_categories.user_id')
+                            ->where('user_permission_categories.user_id', Auth::user()->id)
+                            ->get();
 
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+                            // Check conditions
+                                if (in_array(3, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } else {
+                                    $brandPermissions = collect($brands)
+                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                        ->implode(', ');
+                                }
+                                @endphp
                 <div class="card data-card">
                     <div class="card-header">
                         <h4 class="d-flex">Create Catalogue
@@ -67,7 +92,7 @@
                                             <p class="small text-danger">{{ $message }}</p>
                                         @enderror
                                     </div>
-
+                                    @if($brandPermissions=='Both')
                                     <div class="form-group mb-3">
                                         <label class="label-control">Brand Permission</label>
                                         <div class="form-check">
@@ -102,6 +127,7 @@
                                         </div>
                                         <input type="hidden" name="brand" id="brandValue">
                                     </div>
+                                    @endif
                                     <div class="form-group mb-3">
                                         <label class="label-control">Image <span class="text-danger">*</span></label>
                                         <div class="d-flex align-items-center gap-3">
