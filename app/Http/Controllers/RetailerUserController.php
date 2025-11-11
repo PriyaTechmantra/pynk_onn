@@ -78,6 +78,10 @@ class RetailerUserController extends Controller
             $query->whereBetween('stores.created_at', [$from, $to]);
         }
 
+        if ($request->filled('status_id')) {
+            $query->where('stores.status', $request->status_id === 'active' ? 1 : 0);
+        }
+
         /**
          * STEP 5: Distributor, ASE, State, Area filters
          */
