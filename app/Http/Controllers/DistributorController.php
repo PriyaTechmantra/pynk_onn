@@ -173,7 +173,28 @@ class DistributorController extends Controller
             'contact' => 'required',
             'brand' => 'required',
         ]);
-        $data = Employee::create([
+        if(empty($request->brand)){
+            $user = auth()->user();
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = 3;
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = 1;
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = 2;
+            }
+            $brand = $brandsToShow;
+        }else{
+           $brand = $request->brand;
+        }
+        $data = Distributor::create([
             'name'        => $request->name,
             'code' =>   $request->code,
             'email'       => $request->email,
@@ -182,7 +203,7 @@ class DistributorController extends Controller
             'state_id'       => $request->state,
             'area_id'        => $request->area,
             'date_of_joining'  => $request->date_of_joining,
-            'brand'  => $request->brand,
+            'brand'  => $brand,
             'user_id'  => auth()->id(),
             'password'    => Hash::make($request->password), // hash here ✅
         ]);
@@ -386,13 +407,34 @@ class DistributorController extends Controller
         ]);
         $data = Distributor::findOrfail($id);
        
-        $updateData = $request->except('password','_token','_method'); // take everything except password
+        $updateData = $request->except('brand','password','_token','_method'); // take everything except password
         //dd($updateData);
         // If password is present, hash it
         if ($request->filled('password')) {
             $updateData['password'] = Hash::make($request->password);
         }
-       
+        
+        if(empty($request->brand)){
+            $user = auth()->user();
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = 3;
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = 1;
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = 2;
+            }
+            $updateData['brand'] = $brandsToShow;
+        }else{
+            $updateData['brand'] = $request->brand;
+        }
         
 
         $data->update($updateData);

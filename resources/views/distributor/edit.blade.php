@@ -18,6 +18,33 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                 </ul>
                 @endif
 
+                @php
+                            $assignedPermissions = DB::table('user_permission_categories')
+                            ->select('user_permission_categories.*')
+                            ->join('users','users.id','=','user_permission_categories.user_id')
+                            ->where('user_permission_categories.user_id', Auth::user()->id)
+                            ->get();
+
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+                            // Check conditions
+                                if (in_array(3, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } else {
+                                    $brandPermissions = collect($brands)
+                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                        ->implode(', ');
+                                }
+                    @endphp
+
                 <div class="card data-card">
                     <div class="card-header">
                         <h4 class="d-flex">Edit Distributor
@@ -88,6 +115,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                         <input type="password" name="password" placeholder="" class="form-control" value="{{old('password',$data->password)}}">
                                         @error('password') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
+                                    @if($brandPermissions=='Both')
                                     <div class="mb-3">
                                             <!-- Communication Medium -->
                                             <h6>Brand Permission:  <span class="text-danger">*</span></h6>
@@ -131,7 +159,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 <label class="form-check-label" for="mediumCave">Both</label>
                                             </div>
                                         </div>
-                                    
+                                        @endif
                                     <div class="text-end mb-3">
                                         <button type="submit" class="btn btn-submit">Save</button>
                                     </div>
@@ -205,6 +233,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                             
                                             <div class="row g-3">
                                                 {{-- VP --}}
+                                                @if($brandPermissions=='Both')
                                                 <div class="col-md-6">
                                                     <label class="small text-muted">Brand</label>
                                                     
@@ -220,6 +249,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                    
                                                     @error('brand') <p class="small text-danger">{{$message}}</p> @enderror
                                                 </div>
+                                                @endif
                                                 <div class="col-md-6">
                                                     <label for="vp" class="small text-muted">VP *</label>
                                                     <select class="form-select form-select-sm" name="nsm_id">
@@ -342,23 +372,27 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                 <form action="{{route('team.add')}}" method="POST">@csrf
                     <input type="hidden" name="distributor_id" value="{{$data->id}}">
                     <div class="row">
+                        @if($brandPermissions=='Both')
                          <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="small text-muted">Brand</label>
-                                <div class="form-floating mb-3">
-                                <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
-                                    <option value="" selected disabled>Select</option>
-                                            <option value="3" {{ (request()->input('brand') == 3) ? 'selected' : '' }}>All</option>
-                                    
-                                        <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
-                                        <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
-                                        
-                                        
-                                </select>
+                            
+                                <div class="form-group">
+                                    <label class="small text-muted">Brand</label>
+                                    <div class="form-floating mb-3">
+                                        <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
+                                            <option value="" selected disabled>Select</option>
+                                                    <option value="3" {{ (request()->input('brand') == 3) ? 'selected' : '' }}>All</option>
+                                            
+                                                <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
+                                                <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
+                                                
+                                                
+                                        </select>
+                                    </div>
+                                    @error('brand') <p class="small text-danger">{{$message}}</p> @enderror
                                 </div>
-                                @error('brand') <p class="small text-danger">{{$message}}</p> @enderror
+                            
                             </div>
-                            </div>
+                            @endif
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="small text-muted" for="vp">VP *</label>
