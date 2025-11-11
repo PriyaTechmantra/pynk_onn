@@ -8,12 +8,15 @@ use App\Models\RetailerWalletTxn;
 use App\Models\CouponUsage;
 use App\Models\User;
 use App\Models\Distributor;
+use App\Models\RetailerOrder;
+use App\Models\RewardOrderProduct;
 use App\Models\State;
 use App\Models\RetailerUserTxnHistory;
 use App\Models\Store;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Auth;
@@ -64,11 +67,7 @@ class BarcodeController extends Controller
             $query->where('start_date', '<=', $request->date_to);
         }
 
-        // Group & sort
-        $query->groupBy('name')->orderBy('id', 'desc');
-
-        // Paginate
-        $data = $query->paginate(25);
+        $data = $query->groupBy('name')->orderBy('id', 'desc')->paginate(25);
 
         return view('reward.barcode.index', compact('data'));
     }
@@ -109,6 +108,14 @@ class BarcodeController extends Controller
          $slug = \Str::slug($request['name'], '-');
          $slugExistCount = RetailerBarcode::where('slug', $slug)->count();
          if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
+          // Get the last serial number and increment for each new entry
+            $lastSerial = RetailerBarcode::max('serial_number');
+        
+            if (!$lastSerial) {
+                $lastSerial = 111; // Start from 111 if no serial numbers exist
+            } else {
+                $lastSerial = (int)$lastSerial;
+            }
 
         for($i = 0; $i < $noOfEntries; $i++) {
             $storeData = new RetailerBarcode;
@@ -123,7 +130,21 @@ class BarcodeController extends Controller
             $storeData->start_date = $request['start_date'];
             $storeData->end_date = $request['end_date'];
             $storeData->brand = $request['brand'];
-            $storeData->is_print = 0;
+            $storeData->is_print = 1;
+            // if(Auth::guard('admin')->user()->email=='testprinter@gmail.com')
+			// {
+			// 	 $storeData->is_print = 1;
+			// }else{
+			// 	$storeData->is_print = 0;
+			// }
+
+            $serialNumber = $lastSerial++; // Increment serial number for each entry
+            if ($serialNumber <= 999999) {
+                $formattedSerialNumber = str_pad($serialNumber, 6, '0', STR_PAD_LEFT);
+            } else {
+                $formattedSerialNumber = str_pad($serialNumber, 7, '0', STR_PAD_LEFT);
+            }
+            $storeData->serial_number = $formattedSerialNumber;
             $storeData->save();
         }
         if ($storeData) {
@@ -167,9 +188,7 @@ class BarcodeController extends Controller
 	public function edit(Request $request, $id)
     {
         $data = RetailerBarcode::findOrfail($id);
-        $allDistributors = User::select('id','name')->where('type',7)->where('name', '!=', null)->where('status',1)->groupBy('name')->orderBy('name')->get();
-        $state = State::where('status',1)->groupBy('name')->orderBy('name')->get();
-        return view('reward.barcode.edit', compact('data','allDistributors','state'));
+        return view('reward.barcode.edit', compact('data'));
     }
     public function update(Request $request, $id)
     {
@@ -193,7 +212,6 @@ class BarcodeController extends Controller
             $storeData->slug = $slug;
         }
         $storeData->name = $request['name'];
-        $storeData->state_id = $request['state_id'];
         $storeData->amount = $request['amount'];
         $storeData->max_time_of_use = $request['max_time_of_use'];
         $storeData->max_time_one_can_use = $request['max_time_one_can_use'];
@@ -226,7 +244,7 @@ class BarcodeController extends Controller
 
     public function csvExport(Request $request)
     {
-        $coupon = RetailerBarcode::where('slug', $request->slug)->with('distributor','state')->first();
+        $coupon = RetailerBarcode::where('slug', $request->slug)->first();
         
 		if (!empty($request->keyword)) {
 			$data = RetailerBarcode::where([['code', 'LIKE', '%' . $request->keyword . '%']])->get();
@@ -270,6 +288,351 @@ class BarcodeController extends Controller
             //output all remaining data on a file pointer
             fpassthru($f);
         }
+    }
+
+    public function retailerwiseReport(Request $request)
+    {
+        
+    $from = $request->date_from ? $request->date_from : date('Y-m-01');
+    $to = $request->date_to ? $request->date_to : date('Y-m-d');
+    $storeId = $request->store;
+    $store = Store::find($storeId);
+
+    // Calculate opening balance (total credit - total debit before the date range)
+    $openingBalance = RetailerWalletTxn::where('user_id', $storeId)
+                        ->where('type', 1)
+                        ->whereDate('created_at', '<', $from)
+                        ->sum('amount')
+                     - RetailerOrder::where('user_id', $storeId)
+                        ->where('admin_status', '!=', 0)
+                        ->whereDate('created_at', '<', $from)
+                        ->sum('final_amount');
+
+    $ledgerData = [];
+    $currentDate = $from;
+
+    // Loop through each day in the range
+    while (strtotime($currentDate) <= strtotime($to)) {
+        // Fetch daily credit and debit
+        $dailyCredit = RetailerWalletTxn::where('user_id', $storeId)
+            ->where('type', 1)
+            ->whereDate('created_at', $currentDate)
+            ->sum('amount');
+
+        $dailyDebit = RetailerOrder::where('user_id', $storeId)->where('admin_status', '!=', 0)
+           
+            ->whereDate('created_at', $currentDate)
+            ->sum('final_amount');
+            $dailyDebitOrders = RetailerOrder::where('user_id', $storeId)
+            ->where('admin_status', '!=', 0)
+            
+            ->whereDate('created_at', $currentDate)
+            ->pluck('id');
+             $productNames = RewardOrderProduct::whereIn('order_id', $dailyDebitOrders)
+                ->pluck('product_name')
+                ->toArray();
+
+        // Calculate available balance
+        $availableBalance = $openingBalance + $dailyCredit - $dailyDebit;
+        if ($dailyDebit > 0 && $dailyCredit > 0) {
+            // Both debit and credit are present
+            $remarks = 'Qr Scan, Gift Redeem (' . implode(', ', $productNames) . ')';
+        } elseif ($dailyDebit > 0) {
+            // Only debit is present
+            $remarks = 'Gift Redeem (' . implode(', ', $productNames) . ')';
+        } elseif ($dailyCredit > 0) {
+            // Only credit is present
+            $remarks = 'Qr Scan';
+        }
+        
+        if ($dailyDebit > 0 || $dailyCredit > 0) {
+        // Add to ledger data
+        $ledgerData[] = [
+            'date' => date('d-m-Y', strtotime($currentDate)),
+            'unique_code' =>$store->unique_code,
+            'remarks'=>$remarks,
+            'opening_balance' => $openingBalance,
+            'debit' => $dailyDebit,
+            'credit' => $dailyCredit,
+            'available_balance' => $availableBalance,
+        ];
+        }
+        // Update opening balance for the next day
+        $openingBalance = $availableBalance;
+
+        // Move to the next day
+        $currentDate = date('Y-m-d', strtotime($currentDate . ' +1 day'));
+    }
+        $store = Cache::remember('active_stores', 3600, function () {
+            return Store::where('status', 1)
+                ->orderBy('name')
+                
+                ->get();
+        });
+        
+    
+        return view('reward.barcode.retailer-report',compact('request','store','ledgerData'));
+    }
+
+    public function fetchStores(Request $request)
+    {
+        $search = $request->input('search');
+
+        // Query to fetch stores matching the search term
+        $stores = Store::where('status', 1)
+            ->when($search, function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('unique_code', 'like', "%{$search}%")
+                    ->orWhere('contact', 'like', "%{$search}%");
+            })
+            ->orderBy('name')
+            ->select('id', 'name', 'unique_code')
+            ->limit(20) // Limit the results to avoid heavy queries
+            ->get();
+
+        return response()->json($stores);
+    }
+    
+    public function retailerReportcsvExport(Request $request)
+    {
+        // Set default date range if not provided
+        $from = $request->date_from ? $request->date_from : date('Y-m-01');
+        $to = $request->date_to ? date('Y-m-d', strtotime($request->date_to . ' +1 day')) : date('Y-m-d', strtotime('+1 day'));
+        
+        // Fetch all stores
+        $stores = Store::all();
+
+        // Prepare store-wise data
+        $storeData = [];
+        
+        foreach ($stores as $store) {
+            // Fetch transactions grouped by store and calculate points
+            
+                
+            $pointsEarned = RetailerWalletTxn::select( DB::raw('SUM(retailer_wallet_txns.amount) as points_earned'))->where('user_id', $store->id)->where('type',1)->whereBetween('retailer_wallet_txns.created_at', [$from, $to])->get();
+            //dd($pointsEarned);
+            $pointsRedeemed = RetailerOrder::select(DB::raw('SUM(retailer_orders.final_amount) as points_redeemed'))->where('user_id', $store->id)->where('admin_status', '!=', 0)->whereBetween('retailer_orders.created_at', [$from, $to])->get();
+            $availablePoints = Store::where('id', $store->id)
+                        
+                        ->first();
+            // Prepare data row for CSV
+            $storeData[] = [
+                'unique_code' => $store->unique_code,
+                'name' => $store->name,
+                'contact' => $store->contact,
+                'email' => $store->email,
+                'state' => $store->state,
+                'address' => $store->address,
+                'points_earned' => $pointsEarned ? $pointsEarned[0]->points_earned : 0,
+                'points_redeemed' => $pointsRedeemed ? $pointsRedeemed[0]->points_redeemed : 0,
+                'available_points' => ($pointsEarned[0]->points_earned - $pointsRedeemed[0]->points_redeemed ) ?? 0,
+            ];
+        }
+
+        // Check if there is data to export
+        if (!empty($storeData)) {
+            $delimiter = ",";
+            $filename = "store-wise-report-" . date('Y-m-d') . ".csv";
+
+            // Create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            // Set column headers
+            $fields = ['SR', 'STORE UNIQUE CODE', 'STORE NAME', 'STORE MOBILE', 'STORE EMAIL', 'STORE STATE', 'STORE ADDRESS', 'POINTS EARNED', 'POINTS REDEMPTION', 'AVAILABLE POINTS'];
+            fputcsv($f, $fields, $delimiter);
+
+            // Add data to CSV
+            $count = 1;
+            foreach ($storeData as $row) {
+                $lineData = array_merge([$count], array_values($row));
+                fputcsv($f, $lineData, $delimiter);
+                $count++;
+            }
+
+            // Move back to the beginning of the file
+            fseek($f, 0);
+
+            // Set headers for download
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '";');
+
+            // Output all data on the file pointer
+            fpassthru($f);
+            exit;
+        } else {
+            return redirect()->back()->with('error', 'No data found for the selected criteria.');
+        }
+    }
+    
+    public function retailerProductReportcsvExport(Request $request)
+    {
+        // Validate inputs
+        $from = $request->date_from ? $request->date_from : date('Y-m-01');
+        $to = $request->date_to ? $request->date_to : date('Y-m-d');
+        $storeId = $request->store;
+        $store = Store::find($storeId);
+
+        
+
+        // Calculate opening balance (total credit - total debit before the date range)
+        $openingBalance = RetailerWalletTxn::where('user_id', $storeId)
+                            ->where('type', 1)
+                            ->whereDate('created_at', '<', $from)
+                            ->sum('amount')
+                        - RetailerOrder::where('user_id', $storeId)
+                            ->where('admin_status', '!=', 0)
+                            ->whereDate('created_at', '<', $from)
+                            ->sum('final_amount');
+
+        $ledgerData = [];
+        $currentDate = $from;
+
+        // Loop through each day in the range
+        while (strtotime($currentDate) <= strtotime($to)) {
+            // Fetch daily credit and debit
+            $dailyCredit = RetailerWalletTxn::where('user_id', $storeId)
+                ->where('type', 1)
+                ->whereDate('created_at', $currentDate)
+                ->sum('amount');
+
+            $dailyDebit = RetailerOrder::where('user_id', $storeId)->where('admin_status', '!=', 0)
+            
+                ->whereDate('created_at', $currentDate)
+                ->sum('final_amount');
+                $dailyDebitOrders = RetailerOrder::where('user_id', $storeId)
+                ->where('admin_status', '!=', 0)
+                
+                ->whereDate('created_at', $currentDate)
+                ->pluck('id');
+                $productNames = RewardOrderProduct::whereIn('order_id', $dailyDebitOrders)
+                    ->pluck('product_name')
+                    ->toArray();
+
+            // Calculate available balance
+            $availableBalance = $openingBalance + $dailyCredit - $dailyDebit;
+            if ($dailyDebit > 0 && $dailyCredit > 0) {
+                // Both debit and credit are present
+                $remarks = 'Qr Scan, Gift Redeem (' . implode(', ', $productNames) . ')';
+            } elseif ($dailyDebit > 0) {
+                // Only debit is present
+                $remarks = 'Gift Redeem (' . implode(', ', $productNames) . ')';
+            } elseif ($dailyCredit > 0) {
+                // Only credit is present
+                $remarks = 'Qr Scan';
+            }
+            
+            if ($dailyDebit > 0 || $dailyCredit > 0) {
+                // Add to ledger data
+                $ledgerData[] = [
+                    'date' => date('d-m-Y', strtotime($currentDate)),
+                    'unique_code' => $store->unique_code,
+                    'remarks' => $remarks,
+                    'opening_balance' => $openingBalance,
+                
+                    'credit' => $dailyCredit,
+                    'debit' => $dailyDebit,
+                    'available_balance' => $availableBalance,
+                ];
+            }
+            // Update opening balance for the next day
+            $openingBalance = $availableBalance;
+
+            // Move to the next day
+            $currentDate = date('Y-m-d', strtotime($currentDate . ' +1 day'));
+        }
+
+        // Check if there is data to export
+        if (!empty($ledgerData)) {
+            $delimiter = ",";
+            $filename = $store->name . "_" . $store->contact . "-ledger-report-" . date('Y-m-d') . ".csv";
+
+            // Create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            // Set column headers
+            $headers = [
+                ['STORE NAME', $store->name],
+                ['CONTACT NO', $store->contact],
+                ['STORE STATE',$store->state],
+                ['LEDGER DATE RANGE', $from, $to],
+                ['DATE', 'RETAILER UNIQUE CODE', 'PARTICULARS', 'OPENING BALANCE', 'CREDIT', 'DEBIT', 'AVAILABLE BALANCE']
+            ];
+
+            // Write headers to the file
+            foreach ($headers as $header) {
+                fputcsv($f, $header, $delimiter);
+            }
+
+            // Add data to CSV
+            foreach ($ledgerData as $row) {
+                fputcsv($f, $row, $delimiter);
+            }
+
+            // Move back to the beginning of the file
+            fseek($f, 0);
+
+            // Set headers for CSV download
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '";');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+
+            // Output the CSV file
+            fpassthru($f);
+            exit;
+        } else {
+            return redirect()->back()->with('error', 'No transactions found for the selected criteria.');
+        }
+    }
+
+    public function retailerscanReport(Request $request)
+    {
+        $month = $request->month ?? date('Y-m');
+        $keyword = $request->keyword ?? null;
+
+        // Base query: stores joined with teams
+        $query = Store::select(
+                'stores.id',
+                'stores.unique_code',
+                'stores.created_at',
+                'stores.name',
+                'stores.user_id',
+                'stores.state_id',
+                'stores.area_id',
+                'stores.city',
+                'stores.pin',
+                'stores.address',
+                'stores.email',
+                'stores.contact',
+                'stores.bussiness_name',
+                'stores.status',
+                'stores.wallet',
+                'teams.distributor_id'
+            )->leftJoin('teams', 'teams.store_id', '=', 'stores.id')
+            ->where('stores.is_deleted', 0);
+
+        //  Filter by month (based on store created_at)
+        if ($request->filled('month')) {
+            $startOfMonth = date('Y-m-01 00:00:00', strtotime($month));
+            $endOfMonth   = date('Y-m-t 23:59:59', strtotime($month));
+            $query->whereBetween('stores.created_at', [$startOfMonth, $endOfMonth]);
+        }
+
+        //  Keyword filter
+        if (!empty($keyword)) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('stores.name', 'like', "%$keyword%")
+                ->orWhere('stores.contact', 'like', "%$keyword%")
+                ->orWhere('stores.unique_code', 'like', "%$keyword%")
+                ->orWhere('stores.bussiness_name', 'like', "%$keyword%");
+            });
+        }
+
+        // Fetch paginated data
+        $data = $query->orderByDesc('stores.id')->paginate(25);
+
+        // Pass to view
+        return view('reward.barcode.scan-report', compact('data', 'request', 'month'));
     }
 		
 }

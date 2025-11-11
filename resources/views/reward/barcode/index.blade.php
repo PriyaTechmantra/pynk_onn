@@ -24,7 +24,7 @@
                             <div class="row">
                                         
                                 <div class="col-12">
-                                    <form action="">
+                                    <form action="{{route('reward.retailer.barcode.index')}}">
                                         <div class="row g-2 align-items-center">
                                             
                                             <div class="col-2 d-flex align-items-center gap-2">
