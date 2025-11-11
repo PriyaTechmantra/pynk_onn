@@ -10,7 +10,8 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\RedirectResponse;
-
+use DB;
+use Auth;
 class AreaController extends Controller
 {
     /**
@@ -61,16 +62,31 @@ class AreaController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        request()->validate([
-            'name' => 'required|unique:areas',
-            'state_id' => 'required',
+        $request->validate([
+            'name' => 'required|unique:areas,name',
+            'state_id' => 'required|integer',
         ]);
-    
-        Area::create($request->all());
-    
-        return redirect()->route('areas.index')
-                        ->with('success','Area created successfully.');
+
+        // ✅ Only fill allowed fields (avoids mass-assignment vulnerability)
+        $data = Area::create([
+            'name' => $request->name,
+            'state_id' => $request->state_id,
+        ]);
+
+        // ✅ Log the create action (no old/new values)
+        DB::table('edit_logs')->insert([
+            'table_name' => 'areas',
+            'record_id'  => $data->id,
+            'action'     => 'created',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
+
+        return redirect()
+            ->route('areas.index')
+            ->with('success', 'Area created successfully.');
     }
+
     
     /**
      * Display the specified resource.
@@ -150,10 +166,11 @@ class AreaController extends Controller
     public function destroy($id): RedirectResponse
     {
         $isReferenced = DB::table('stores')->where('area_id', $id)->exists();
+        $isTReferenced = DB::table('teams')->where('area_id', $id)->exists();
         $isDReferenced = DB::table('distributors')->where('area_id', $id)->exists();
         $isEReferenced = DB::table('employees')->where('city', $id)->exists();
-        if ($isReferenced || $isDReferenced || $isEReferenced) {
-            return redirect()->route('areas.index')->with('error', 'Area cannot be deleted because it is referenced in another table.');
+        if ($isReferenced || $isDReferenced || $isEReferenced || $isTReferenced) {
+            return redirect()->back()->with('failure', 'Area cannot be deleted because it is referenced in another table.');
         }
         $data = Area::findOrfail($id);
         $data->is_deleted=1;
@@ -188,111 +205,110 @@ class AreaController extends Controller
     public function bulkUpload(Request $request): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
-        'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
-            ], [
-                'file.mimes' => 'Please upload a valid CSV file.',
-                'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
-            ]);
+            'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
+        ], [
+            'file.mimes' => 'Please upload a valid CSV file.',
+            'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
+        ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
-        if (!empty($request->file)) {
-            $file = $request->file('file');
-            $filename = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension();
-            $fileSize = $file->getSize();
 
-            // Validate CSV extension and file size
-            $valid_extension = ["csv"];
-            $maxFileSize = 50097152; // Max 50MB
-
-            if (in_array(strtolower($extension), $valid_extension)) {
-                if ($fileSize <= $maxFileSize) {
-                    // Upload the file to the storage location
-                    $location = 'public/uploads/csv';
-                    $file->move($location, $filename);
-                    $filepath = $location . "/" . $filename;
-
-                    // Open the CSV file and read it
-                    $file = fopen($filepath, "r");
-                    $importData_arr = [];
-                    $i = 0;
-                    $successCount=0;
-                    // Read the CSV file row by row
-                    while (($filedata = fgetcsv($file, 10000, ",")) !== false) {
-                        // Skip the header row
-                        if ($i == 0) {
-                            $i++;
-                            continue;
-                        }
-
-                         // Step 3: Extract the data from each row
-                        $rowData = [
-                        
-                            'name' => isset($filedata[0]) ? $filedata[0] : null,
-                            'state_id' => isset($filedata[1]) ? $filedata[1] : null,
-                           
-                            
-                        ];
-                        
-                        // Step 4: Validate each row's data
-                        $validator = Validator::make($rowData, [
-                            'name' => 'required|string|max:255|unique:areas',
-                           
-                            'state_id' => 'required',
-                        
-                        ]);
-
-                    if ($validator->fails()) {
-                        // Accumulate errors with row number context
-                        $errors[$i] = $validator->errors()->all();
-                    } else {
-                           $stateName=State::where('name',$rowData['state_id'])->first();
-                        // Step 5: Save data if validation passes
-                        $insertData = [
-                            
-                            "name" => $rowData['name'],
-                            "state_id" => $stateName->id,
-                           
-                            "status" => 1,
-                            "is_deleted" => 0,
-                            "created_at" => date('Y-m-d H:i:s'),
-                            "updated_at" => date('Y-m-d H:i:s'),
-                        ];
-                        
-                        Area::create($insertData);
-                        $successCount++;
-
-                        
-                    }
-
-                    $i++;
-                }
-
-                fclose($file);
-                
-                if (!empty($errors)) {
-                    // Redirect back to upload page if there are row-level validation errors
-                    return redirect()->back()->with([
-                        'csv_errors' => $errors, // pass errors to display
-                    ]);
-                }else{
-
-                    Session::flash('message', 'CSV Import Complete. Total number of entries: ' . $successCount);
-                }
-                } else {
-                    Session::flash('message', 'File too large. File must be less than 50MB.');
-                }
-            } else {
-                Session::flash('message', 'Invalid File Extension. Supported extensions are ' . implode(', ', $valid_extension));
-            }
-        } else {
-            Session::flash('message', 'No file found.');
+        if (!$request->hasFile('file')) {
+            return redirect()->back()->with('error', 'No file found.');
         }
 
-        // return redirect()->back();
+        $file = $request->file('file');
+        $filename = $file->getClientOriginalName();
+        $extension = strtolower($file->getClientOriginalExtension());
+        $fileSize = $file->getSize();
+
+        $valid_extension = ["csv"];
+        $maxFileSize = 50097152; // 50MB
+        $errors = [];
+        $successCount = 0;
+
+        if (!in_array($extension, $valid_extension)) {
+            return redirect()->back()->with('error', 'Invalid file type. Please upload a CSV file.');
+        }
+
+        if ($fileSize > $maxFileSize) {
+            return redirect()->back()->with('error', 'File too large. Must be less than 50MB.');
+        }
+
+        // ✅ Upload to storage
+        $location = public_path('uploads/csv');
+        if (!file_exists($location)) {
+            mkdir($location, 0755, true);
+        }
+
+        $file->move($location, $filename);
+        $filepath = $location . '/' . $filename;
+
+        // ✅ Open and process CSV
+        if (($handle = fopen($filepath, "r")) !== false) {
+            $i = 0;
+            while (($filedata = fgetcsv($handle, 10000, ",")) !== false) {
+                if ($i == 0) { // Skip header
+                    $i++;
+                    continue;
+                }
+
+                $rowData = [
+                    'name' => trim($filedata[0] ?? ''),
+                    'state_id' => trim($filedata[1] ?? ''),
+                ];
+
+                // Validate row data
+                $rowValidator = Validator::make($rowData, [
+                    'name' => 'required|string|max:255|unique:areas,name',
+                    'state_id' => 'required|string',
+                ]);
+
+                if ($rowValidator->fails()) {
+                    $errors[$i] = $rowValidator->errors()->all();
+                } else {
+                    $state = State::where('name', $rowData['state_id'])->first();
+
+                    if ($state) {
+                        $data = Area::create([
+                            'name' => $rowData['name'],
+                            'state_id' => $state->id,
+                            'status' => 1,
+                            'is_deleted' => 0,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        // ✅ Log create action
+                        DB::table('edit_logs')->insert([
+                            'table_name' => 'areas',
+                            'record_id'  => $data->id,
+                            'action'     => 'created',
+                            'updated_by' => Auth::id(),
+                            'created_at' => now(),
+                        ]);
+
+                        $successCount++;
+                    } else {
+                        $errors[$i][] = "State '{$rowData['state_id']}' not found.";
+                    }
+                }
+
+                $i++;
+            }
+            fclose($handle);
+        }
+
+        // ✅ Handle results
+        if (!empty($errors)) {
+            return redirect()->back()->with(['csv_errors' => $errors]);
+        }
+
+        return redirect()->back()->with('success', "CSV import complete. Total entries created: {$successCount}");
     }
+
 
 
     //export
