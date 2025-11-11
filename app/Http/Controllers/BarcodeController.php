@@ -607,6 +607,7 @@ class BarcodeController extends Controller
                 'stores.bussiness_name',
                 'stores.status',
                 'stores.wallet',
+                'stores.brand',
                 'stores.secret_pin',
                 'teams.distributor_id'
             )->leftJoin('teams', 'teams.store_id', '=', 'stores.id')
@@ -626,6 +627,18 @@ class BarcodeController extends Controller
                 ->orWhere('stores.contact', 'like', "%$keyword%")
                 ->orWhere('stores.unique_code', 'like', "%$keyword%");
             });
+        }
+        // Brand filter
+        if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
+
+            if ($brand == '1') {
+                $query->whereIn('stores.brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('stores.brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('stores.brand', 3);
+            }
         }
 
         // Fetch paginated data
@@ -657,6 +670,7 @@ class BarcodeController extends Controller
                 'stores.bussiness_name',
                 'stores.status',
                 'stores.wallet',
+                'stores.brand',
                 'stores.secret_pin',
                 'teams.distributor_id'
             )->leftJoin('teams', 'teams.store_id', '=', 'stores.id')
@@ -676,6 +690,18 @@ class BarcodeController extends Controller
                 ->orWhere('stores.contact', 'like', "%$keyword%")
                 ->orWhere('stores.unique_code', 'like', "%$keyword%");
             });
+        }
+        // Brand filter
+        if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
+
+            if ($brand == '1') {
+                $query->whereIn('stores.brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('stores.brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('stores.brand', 3);
+            }
         }
 
         // Fetch paginated data
