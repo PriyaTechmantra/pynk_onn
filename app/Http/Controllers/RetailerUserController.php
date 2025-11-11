@@ -160,9 +160,9 @@ class RetailerUserController extends Controller
 
         if ($storeData) {
             return redirect()->back()->with('success','Status Updated');
-            // return redirect()->route('admin.user.list');
+            // return redirect()->route('user.list');
         } else {
-            return redirect()->route('admin.reward.retailer.user.index')->withInput($request->all());
+            return redirect()->route('reward.retailer.user.index')->withInput($request->all());
         }
     }
     public function show(Request $request,string $id)
