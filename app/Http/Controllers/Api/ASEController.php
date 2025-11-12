@@ -2958,7 +2958,7 @@ public function aseSalesreport(Request $request)
             ->join('reward_order_products', 'retailer_orders.id', '=', 'reward_order_products.order_id')
             ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
-            ->whereRaw("FIND_IN_SET(?, retailer_orders.ase_id)", [$aseId]);
+            ->whereRaw("FIND_IN_SET(?, stores.user_id)", [$aseId]);
 
         // Optional brand filter
         if (!empty($brand)) {
