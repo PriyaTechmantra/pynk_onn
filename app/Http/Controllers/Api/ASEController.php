@@ -2870,12 +2870,12 @@ public function aseSalesreport(Request $request)
         if (!$brandCode) {
             return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
         }
-		if(isset($distributor) ||isset($keyword)||isset($ase_id)) 
+		if(isset($distributor_id) ||isset($keyword)||isset($ase_id)) 
         {
 		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$ase_id.', stores.user_id)');
 		
-		$query->when($distributor, function($query) use ($distributor) {
-                    $query->where('teams.distributor_id', $distributor);
+		$query->when($distributor_id, function($query) use ($distributor_id) {
+                    $query->where('teams.distributor_id', $distributor_id);
         });
 		$query->when($keyword, function($query) use ($keyword) {
                     $query->where('stores.name','like','%' .$keyword. '%')
