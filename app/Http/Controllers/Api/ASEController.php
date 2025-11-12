@@ -3537,7 +3537,7 @@ public function aseSalesreport(Request $request)
         }
 		if(isset($distributor_id) ||isset($keyword)||isset($asm_id)) 
         {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$asm_id.', teams.asm_id)');
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$asm_id.', teams.asm_id)');
 		
 		$query->when($distributor_id, function($query) use ($distributor_id) {
                     $query->where('teams.distributor_id', $distributor_id);
