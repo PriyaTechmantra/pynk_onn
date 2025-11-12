@@ -3516,6 +3516,169 @@ public function aseSalesreport(Request $request)
     }
 
 
+
+    public function onncurrencyASM(Request $request)
+	{
+		$keyword = $_GET['keyword']?? '';
+		$distributor_id = $_GET['distributor_id']?? '';
+        $asm_id = $_GET['asm_id']?? '';
+        $brand = $_GET['brand']?? '';
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+       
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+		if(isset($distributor_id) ||isset($keyword)||isset($asm_id)) 
+        {
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$asm_id.', teams.asm_id)');
+		
+		$query->when($distributor_id, function($query) use ($distributor_id) {
+                    $query->where('teams.distributor_id', $distributor_id);
+        });
+		$query->when($keyword, function($query) use ($keyword) {
+                    $query->where('stores.name','like','%' .$keyword. '%')
+                    ->orWhere('stores.contact' ,'=',$keyword);
+        });
+
+        $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
+		}else{
+            $stores=DB::table('stores')
+            ->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$asm_id.', teams.asm_id)')->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->get();
+        }
+		if ($stores) {
+            return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
+		}else{
+			  return response()->json(['error' => true, 'message' => 'No data found']);
+		}
+	}
+
+
+    public function rewardorderasmDetail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'asm_id'     => ['required'],
+            'brand'      => ['nullable'], // brand optional filter
+            'date_from'  => ['nullable', 'date'],
+            'date_to'    => ['nullable', 'date'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => true,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $asmId = $request->asm_id;
+        $brand = $request->brand;
+        $dateFrom = $request->date_from;
+        $dateTo = $request->date_to;
+        // 🔹 Brand mapping
+            $brandMap = [
+                'ONN'  => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+            $brandText = $request->brand;
+            $brandCode = $brandMap[$brandText] ?? null;
+        
+            if (!$brandCode) {
+                return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+            }
+        // Build query dynamically
+        $query = RetailerOrder::select(
+                'retailer_orders.id',
+                'retailer_orders.order_no',
+                'retailer_orders.user_id',
+                'stores.name',
+                'stores.contact as mobile',
+                'retailer_orders.qty',
+                'retailer_orders.final_amount',
+                'retailer_orders.billing_address',
+                'retailer_orders.billing_landmark',
+                'retailer_orders.billing_country',
+                'retailer_orders.billing_state',
+                'retailer_orders.billing_city',
+                'retailer_orders.billing_pin',
+                'retailer_orders.status',
+                'retailer_orders.asm_approval',
+                'retailer_orders.rsm_approval',
+                'retailer_orders.vp_approval',
+                'retailer_orders.distributor_approval',
+                'retailer_orders.distributor_note',
+                'retailer_orders.created_at',
+                'reward_order_products.product_name',
+                'reward_order_products.qty as product_qty',
+                'retailer_orders.brand',
+                'reward_order_products.points as product_points'
+            )
+            ->join('reward_order_products', 'retailer_orders.id', '=', 'reward_order_products.order_id')
+            ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->whereRaw("FIND_IN_SET(?, teams.asm_id)", [$asmId]);
+
+        // Optional brand filter
+        if (!empty($brand)) {
+            $query->where('retailer_orders.brand', $brandCode);
+        }
+
+        // Optional date filters
+        if (!empty($dateFrom)) {
+            $query->whereDate('retailer_orders.created_at', '>=', $dateFrom);
+        }
+        if (!empty($dateTo)) {
+            $query->whereDate('retailer_orders.created_at', '<=', $dateTo);
+        }
+
+        $query->orderByDesc('retailer_orders.id');
+
+        $data = $query->get();
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Product orders with quantity and brand filter',
+            'data' => $data,
+        ]);
+    }
+
+
+    public function rewardorderasmStatus(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'order_id' => ['required'],
+			'asm_approval'=>['required'],
+            'asm_note' => ['nullable'],
+        ]);
+
+        if (!$validator->fails()) {
+            
+                $order = RetailerOrder::findOrFail($request->order_id);
+
+                $order->asm_approval = $request['asm_approval'];
+        		$order->asm_note = $request['asm_note'];
+				$order->save();
+			//dd($orders);
+            
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Status updated',
+                'data' => $order,
+            ]);
+
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+    }
+
+
     //RSM
     public function rsmareaList(Request $request,$id)
     {
@@ -3962,6 +4125,168 @@ public function aseSalesreport(Request $request)
             'resp'  => 'RSM Product-wise report fetched successfully',
             'data'  => array_values($finalData),
         ]);
+    }
+
+
+      public function onncurrencyRSM(Request $request)
+	{
+		$keyword = $_GET['keyword']?? '';
+		$distributor_id = $_GET['distributor_id']?? '';
+        $rsm_id = $_GET['rsm_id']?? '';
+        $brand = $_GET['brand']?? '';
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+       
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+		if(isset($distributor_id) ||isset($keyword)||isset($rsm_id)) 
+        {
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$rsm_id.', teams.rsm_id)');
+		
+		$query->when($distributor_id, function($query) use ($distributor_id) {
+                    $query->where('teams.distributor_id', $distributor_id);
+        });
+		$query->when($keyword, function($query) use ($keyword) {
+                    $query->where('stores.name','like','%' .$keyword. '%')
+                    ->orWhere('stores.contact' ,'=',$keyword);
+        });
+
+        $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
+		}else{
+            $stores=DB::table('stores')
+            ->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$rsm_id.', teams.rsm_id)')->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->get();
+        }
+		if ($stores) {
+            return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
+		}else{
+			  return response()->json(['error' => true, 'message' => 'No data found']);
+		}
+	}
+
+
+    public function rewardorderrsmDetail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'rsm_id'     => ['required'],
+            'brand'      => ['nullable'], // brand optional filter
+            'date_from'  => ['nullable', 'date'],
+            'date_to'    => ['nullable', 'date'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => true,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $rsmId = $request->rsm_id;
+        $brand = $request->brand;
+        $dateFrom = $request->date_from;
+        $dateTo = $request->date_to;
+        // 🔹 Brand mapping
+            $brandMap = [
+                'ONN'  => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+            $brandText = $request->brand;
+            $brandCode = $brandMap[$brandText] ?? null;
+        
+            if (!$brandCode) {
+                return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+            }
+        // Build query dynamically
+        $query = RetailerOrder::select(
+                'retailer_orders.id',
+                'retailer_orders.order_no',
+                'retailer_orders.user_id',
+                'stores.name',
+                'stores.contact as mobile',
+                'retailer_orders.qty',
+                'retailer_orders.final_amount',
+                'retailer_orders.billing_address',
+                'retailer_orders.billing_landmark',
+                'retailer_orders.billing_country',
+                'retailer_orders.billing_state',
+                'retailer_orders.billing_city',
+                'retailer_orders.billing_pin',
+                'retailer_orders.status',
+                'retailer_orders.asm_approval',
+                'retailer_orders.rsm_approval',
+                'retailer_orders.vp_approval',
+                'retailer_orders.distributor_approval',
+                'retailer_orders.distributor_note',
+                'retailer_orders.created_at',
+                'reward_order_products.product_name',
+                'reward_order_products.qty as product_qty',
+                'retailer_orders.brand',
+                'reward_order_products.points as product_points'
+            )
+            ->join('reward_order_products', 'retailer_orders.id', '=', 'reward_order_products.order_id')
+            ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->whereRaw("FIND_IN_SET(?, teams.rsm_id)", [$rsmId]);
+
+        // Optional brand filter
+        if (!empty($brand)) {
+            $query->where('retailer_orders.brand', $brandCode);
+        }
+
+        // Optional date filters
+        if (!empty($dateFrom)) {
+            $query->whereDate('retailer_orders.created_at', '>=', $dateFrom);
+        }
+        if (!empty($dateTo)) {
+            $query->whereDate('retailer_orders.created_at', '<=', $dateTo);
+        }
+
+        $query->orderByDesc('retailer_orders.id');
+
+        $data = $query->get();
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Product orders with quantity and brand filter',
+            'data' => $data,
+        ]);
+    }
+
+
+    public function rewardorderrsmStatus(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'order_id' => ['required'],
+			'rsm_approval'=>['required'],
+            'rsm_note' => ['nullable'],
+        ]);
+
+        if (!$validator->fails()) {
+            
+                $order = RetailerOrder::findOrFail($request->order_id);
+
+                $order->rsm_approval = $request['rsm_approval'];
+        		$order->rsm_note = $request['rsm_note'];
+				$order->save();
+			//dd($orders);
+            
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Status updated',
+                'data' => $order,
+            ]);
+
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
     }
 
 
@@ -4435,6 +4760,168 @@ public function aseSalesreport(Request $request)
     }
 
 
+    public function onncurrencyVP(Request $request)
+	{
+		$keyword = $_GET['keyword']?? '';
+		$distributor_id = $_GET['distributor_id']?? '';
+        $vp_id = $_GET['vp_id']?? '';
+        $brand = $_GET['brand']?? '';
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+       
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+		if(isset($distributor_id) ||isset($keyword)||isset($vp_id)) 
+        {
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$vp_id.', teams.vp_id)');
+		
+		$query->when($distributor_id, function($query) use ($distributor_id) {
+                    $query->where('teams.distributor_id', $distributor_id);
+        });
+		$query->when($keyword, function($query) use ($keyword) {
+                    $query->where('stores.name','like','%' .$keyword. '%')
+                    ->orWhere('stores.contact' ,'=',$keyword);
+        });
+
+        $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
+		}else{
+            $stores=DB::table('stores')
+            ->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$vp_id.', teams.vp_id)')->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->get();
+        }
+		if ($stores) {
+            return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
+		}else{
+			  return response()->json(['error' => true, 'message' => 'No data found']);
+		}
+	}
+
+
+    public function rewardordervpDetail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'vp_id'     => ['required'],
+            'brand'      => ['nullable'], // brand optional filter
+            'date_from'  => ['nullable', 'date'],
+            'date_to'    => ['nullable', 'date'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => true,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $vpId = $request->vp_id;
+        $brand = $request->brand;
+        $dateFrom = $request->date_from;
+        $dateTo = $request->date_to;
+        // 🔹 Brand mapping
+            $brandMap = [
+                'ONN'  => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+            $brandText = $request->brand;
+            $brandCode = $brandMap[$brandText] ?? null;
+        
+            if (!$brandCode) {
+                return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+            }
+        // Build query dynamically
+        $query = RetailerOrder::select(
+                'retailer_orders.id',
+                'retailer_orders.order_no',
+                'retailer_orders.user_id',
+                'stores.name',
+                'stores.contact as mobile',
+                'retailer_orders.qty',
+                'retailer_orders.final_amount',
+                'retailer_orders.billing_address',
+                'retailer_orders.billing_landmark',
+                'retailer_orders.billing_country',
+                'retailer_orders.billing_state',
+                'retailer_orders.billing_city',
+                'retailer_orders.billing_pin',
+                'retailer_orders.status',
+                'retailer_orders.asm_approval',
+                'retailer_orders.rsm_approval',
+                'retailer_orders.vp_approval',
+                'retailer_orders.distributor_approval',
+                'retailer_orders.distributor_note',
+                'retailer_orders.created_at',
+                'reward_order_products.product_name',
+                'reward_order_products.qty as product_qty',
+                'retailer_orders.brand',
+                'reward_order_products.points as product_points'
+            )
+            ->join('reward_order_products', 'retailer_orders.id', '=', 'reward_order_products.order_id')
+            ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->whereRaw("FIND_IN_SET(?, teams.vp_id)", [$vpId]);
+
+        // Optional brand filter
+        if (!empty($brand)) {
+            $query->where('retailer_orders.brand', $brandCode);
+        }
+
+        // Optional date filters
+        if (!empty($dateFrom)) {
+            $query->whereDate('retailer_orders.created_at', '>=', $dateFrom);
+        }
+        if (!empty($dateTo)) {
+            $query->whereDate('retailer_orders.created_at', '<=', $dateTo);
+        }
+
+        $query->orderByDesc('retailer_orders.id');
+
+        $data = $query->get();
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Product orders with quantity and brand filter',
+            'data' => $data,
+        ]);
+    }
+
+
+    public function rewardordervpStatus(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'order_id' => ['required'],
+			'vp_approval'=>['required'],
+            'vp_note' => ['nullable'],
+        ]);
+
+        if (!$validator->fails()) {
+            
+                $order = RetailerOrder::findOrFail($request->order_id);
+
+                $order->vp_approval = $request['vp_approval'];
+        		$order->vp_note = $request['vp_note'];
+				$order->save();
+			//dd($orders);
+            
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Status updated',
+                'data' => $order,
+            ]);
+
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+    }
+
+
     //distributor
     
     public function distributorAddTocart(Request $request)
@@ -4819,6 +5306,168 @@ public function aseSalesreport(Request $request)
                 'error' => true,
                 'resp' => 'No orders found for the given filters'
             ]);
+        }
+    }
+
+
+
+    public function onncurrencyDistributor(Request $request)
+	{
+		$keyword = $_GET['keyword']?? '';
+		$distributor_id = $_GET['distributor_id']?? '';
+        $brand = $_GET['brand']?? '';
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandText = $brand;
+        $brandCode = $brandMap[$brandText] ?? null;
+       
+        if (!$brandCode) {
+            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+        }
+		if(isset($distributor_id) ||isset($keyword)) 
+        {
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$distributor_id.', teams.distributor_id)');
+		
+		$query->when($distributor_id, function($query) use ($distributor_id) {
+                    $query->where('teams.distributor_id', $distributor_id);
+        });
+		$query->when($keyword, function($query) use ($keyword) {
+                    $query->where('stores.name','like','%' .$keyword. '%')
+                    ->orWhere('stores.contact' ,'=',$keyword);
+        });
+
+        $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
+		}else{
+            $stores=DB::table('stores')
+            ->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$distributor_id.', teams.distributor_id)')->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->get();
+        }
+		if ($stores) {
+            return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
+		}else{
+			  return response()->json(['error' => true, 'message' => 'No data found']);
+		}
+	}
+
+
+    public function rewardorderdistributorDetail(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'distributor_id'     => ['required'],
+            'brand'      => ['nullable'], // brand optional filter
+            'date_from'  => ['nullable', 'date'],
+            'date_to'    => ['nullable', 'date'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => true,
+                'message' => $validator->errors()->first(),
+            ]);
+        }
+
+        $distributorId = $request->distributor_id;
+        $brand = $request->brand;
+        $dateFrom = $request->date_from;
+        $dateTo = $request->date_to;
+        // 🔹 Brand mapping
+            $brandMap = [
+                'ONN'  => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+            $brandText = $request->brand;
+            $brandCode = $brandMap[$brandText] ?? null;
+        
+            if (!$brandCode) {
+                return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
+            }
+        // Build query dynamically
+        $query = RetailerOrder::select(
+                'retailer_orders.id',
+                'retailer_orders.order_no',
+                'retailer_orders.user_id',
+                'stores.name',
+                'stores.contact as mobile',
+                'retailer_orders.qty',
+                'retailer_orders.final_amount',
+                'retailer_orders.billing_address',
+                'retailer_orders.billing_landmark',
+                'retailer_orders.billing_country',
+                'retailer_orders.billing_state',
+                'retailer_orders.billing_city',
+                'retailer_orders.billing_pin',
+                'retailer_orders.status',
+                'retailer_orders.asm_approval',
+                'retailer_orders.rsm_approval',
+                'retailer_orders.vp_approval',
+                'retailer_orders.distributor_approval',
+                'retailer_orders.distributor_note',
+                'retailer_orders.created_at',
+                'reward_order_products.product_name',
+                'reward_order_products.qty as product_qty',
+                'retailer_orders.brand',
+                'reward_order_products.points as product_points'
+            )
+            ->join('reward_order_products', 'retailer_orders.id', '=', 'reward_order_products.order_id')
+            ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->whereRaw("FIND_IN_SET(?, teams.distributor_id)", [$distributorId]);
+
+        // Optional brand filter
+        if (!empty($brand)) {
+            $query->where('retailer_orders.brand', $brandCode);
+        }
+
+        // Optional date filters
+        if (!empty($dateFrom)) {
+            $query->whereDate('retailer_orders.created_at', '>=', $dateFrom);
+        }
+        if (!empty($dateTo)) {
+            $query->whereDate('retailer_orders.created_at', '<=', $dateTo);
+        }
+
+        $query->orderByDesc('retailer_orders.id');
+
+        $data = $query->get();
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Product orders with quantity and brand filter',
+            'data' => $data,
+        ]);
+    }
+
+
+    public function rewardorderdistributorStatus(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'order_id' => ['required'],
+			'distributor_approval'=>['required'],
+            'distributor_note' => ['nullable'],
+        ]);
+
+        if (!$validator->fails()) {
+            
+                $order = RetailerOrder::findOrFail($request->order_id);
+
+                $order->distributor_approval = $request['distributor_approval'];
+        		$order->distributor_note = $request['distributor_note'];
+				$order->save();
+			//dd($orders);
+            
+
+            return response()->json([
+                'error' => false,
+                'message' => 'Status updated',
+                'data' => $order,
+            ]);
+
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
     }
 
