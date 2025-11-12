@@ -356,12 +356,24 @@ class RetailerUserController extends Controller
         $stateId = $request->input('state_id');
 
         $query = \DB::table('stores as s')
-            ->select('s.state_id', \DB::raw('COUNT(s.secret_pin) AS count'))
+            ->select('s.state_id','s.brand', \DB::raw('COUNT(s.secret_pin) AS count'))
             ->groupBy('s.state_id')
             ->orderByDesc('count');
 
         if ($stateId) {
             $query->where('s.state_id', $stateId);
+        }
+
+        if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
+
+            if ($brand == '1') {
+                $query->whereIn('s.brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('s.brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('s.brand', 3);
+            }
         }
 
         $loginCountWiseReport = $query->get();
@@ -375,11 +387,10 @@ class RetailerUserController extends Controller
     public function loginCountexportCSV(Request $request)
     {
         $stateId = $request->input('state_id');
-        $brand = $request->input('brand_selection');
 
         // Base query
         $query = DB::table('stores as s')
-            ->select('s.state_id', DB::raw('COUNT(s.secret_pin) AS count'))
+            ->select('s.state_id','s.brand', DB::raw('COUNT(s.secret_pin) AS count'))
             ->groupBy('s.state_id')
             ->orderByDesc('count');
 
@@ -388,8 +399,16 @@ class RetailerUserController extends Controller
             $query->where('s.state_id', $stateId);
         }
 
-        if ($brand && $brand != 3) { // brand=3 means "ALL"
-            $query->where('s.brand_id', $brand);
+        if (!empty($request->brand_selection)) {
+            $brand = $request->brand_selection;
+
+            if ($brand == '1') {
+                $query->whereIn('s.brand', [1, 3]);
+            } elseif ($brand == '2') {
+                $query->whereIn('s.brand', [2, 3]);
+            } elseif ($brand == '3') {
+                $query->where('s.brand', 3);
+            }
         }
 
         $data = $query->get();
@@ -454,7 +473,17 @@ class RetailerUserController extends Controller
                 $query->where('stores.area_id', $area);
             });
 		
-		
+            if (!empty($request->brand_selection)) {
+                $brand = $request->brand_selection;
+
+                if ($brand == '1') {
+                    $query->whereIn('stores.brand', [1, 3]);
+                } elseif ($brand == '2') {
+                    $query->whereIn('stores.brand', [2, 3]);
+                } elseif ($brand == '3') {
+                    $query->where('stores.brand', 3);
+                }
+            }
 		
             $query->when($keyword, function($query) use ($keyword) {
                 $query->where('stores.name','=',$keyword)
@@ -513,10 +542,18 @@ class RetailerUserController extends Controller
             });
         }
 
-        if ($request->brand_selection && $request->brand_selection != 3) { // 3 = ALL
-            $query->where('stores.brand_id', $request->brand_selection);
-        }
+        if (!empty($request->brand_selection)) {
+                $brand = $request->brand_selection;
 
+                if ($brand == '1') {
+                    $query->whereIn('stores.brand', [1, 3]);
+                } elseif ($brand == '2') {
+                    $query->whereIn('stores.brand', [2, 3]);
+                } elseif ($brand == '3') {
+                    $query->where('stores.brand', 3);
+                }
+        }
+		
         $stores = $query->get();
 
         $filename = 'store_login_count_' . now()->format('Y-m-d_H-i-s') . '.csv';
