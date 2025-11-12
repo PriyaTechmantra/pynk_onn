@@ -2872,7 +2872,7 @@ public function aseSalesreport(Request $request)
         }
 		if(isset($distributor) ||isset($keyword)||isset($ase_id)) 
         {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$id.', stores.user_id)');
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$ase_id.', stores.user_id)');
 		
 		$query->when($distributor, function($query) use ($distributor) {
                     $query->where('teams.distributor_id', $distributor);
@@ -2885,7 +2885,7 @@ public function aseSalesreport(Request $request)
         $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
 		}else{
             $stores=DB::table('stores')
-            ->select('id','name','wallet')->whereRaw('FIND_IN_SET('.$id.', user_id)')->where('brand',$brandCode)->where('status',1)->where('is_deleted',0)->get();
+            ->select('id','name','wallet')->whereRaw('FIND_IN_SET('.$ase_id.', user_id)')->where('brand',$brandCode)->where('status',1)->where('is_deleted',0)->get();
         }
 		if ($stores) {
             return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
