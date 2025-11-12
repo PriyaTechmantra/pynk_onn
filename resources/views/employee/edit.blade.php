@@ -145,7 +145,7 @@
                                         @error('password') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     @if($brandPermissions=='Both')
-                                    <div class="mb-3">
+                                    <div class="mb-3" id="brandPermissionBlock">
                                             <!-- Communication Medium -->
                                             <h6>Brand Permission:  <span class="text-danger">*</span></h6>
                                             @error('brand') <p class="small text-danger">{{ $message }}</p> @enderror
@@ -250,13 +250,31 @@ function checkOnlyOne(checkbox) {
     });
 }
 
-// ✅ Prevent form submission if none is selected
-document.querySelector('form').addEventListener('submit', function (e) {
-    const selected = document.querySelector('.medium-checkbox:checked');
-    if (!selected) {
-        e.preventDefault();
-        alert('Please select a brand permission before submitting.');
-    }
+// ✅ Show toast only if brand section is visible & none selected
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    if (!form) return; // safety check
+
+    form.addEventListener('submit', function (e) {
+        const brandBlock = document.getElementById('brandPermissionBlock');
+
+        // ✅ Only run validation if the block exists
+        if (brandBlock) {
+            const selected = document.querySelector('.medium-checkbox:checked');
+            if (!selected) {
+                e.preventDefault();
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'Please select a brand permission before submitting.',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+        }
+    });
 });
 </script>
 @endsection

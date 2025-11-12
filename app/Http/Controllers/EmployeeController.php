@@ -979,7 +979,7 @@ public function index(Request $request): View
                 $city = Area::where('name', $rowData['city'])->first();
 
                 // Brand mapping
-                $brandText = strtolower(trim($rowData['brand'] ?? ''));
+                $brandText = (trim($rowData['brand'] ?? ''));
                 $brandValue = match ($brandText) {
                     'ONN' => 1,
                     'PYNK' => 2,

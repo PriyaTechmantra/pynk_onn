@@ -123,3 +123,34 @@
     </div>
 
 @endsection
+
+
+@section('script')
+
+<script>
+    function checkOnlyOne(checkbox) {
+        const checkboxes = document.querySelectorAll('.medium-checkbox');
+        checkboxes.forEach(cb => {
+            if (cb !== checkbox) cb.checked = false;
+        });
+    }
+
+    // ✅ Prevent form submission if none is selected
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const selected = document.querySelector('.medium-checkbox:checked');
+        if (!selected) {
+            e.preventDefault();
+            Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Please select a brand permission before submitting.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        }
+    });
+    </script>
+
+@endsection

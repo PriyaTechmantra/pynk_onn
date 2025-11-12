@@ -138,6 +138,11 @@ Route::get('distributor/order/pdf/view/{id}', [ASEController::class, 'distributo
 
 Route::get('activity', [ASEController::class, 'activityList']);
 
+Route::get('store/onn/currency/ase', [ASEController::class, 'onncurrencyASE']);
+Route::post('store/reward/order/detail/ase', [ASEController::class, 'rewardorderaseDetail']);
+//order approval 
+Route::post('store/reward/order/status/ase', [ASEController::class, 'rewardorderaseStatus']);
+
 //ASM
 Route::get('notification/list', [ASEController::class, 'notificationList']);
 Route::post('read-notification', [ASEController::class, 'readNotification']);
@@ -155,6 +160,11 @@ Route::post('team-wise-report-asm', [ASEController::class, 'storeReportASM']);
 
 Route::post('product-wise-report-asm', [ASEController::class, 'productReportASM']);
 
+Route::get('store/onn/currency/asm', [ASEController::class, 'onncurrencyASM']);
+Route::post('store/reward/order/detail/asm', [ASEController::class, 'rewardorderasmDetail']);
+//order approval 
+Route::post('store/reward/order/status/asm', [ASEController::class, 'rewardorderasmStatus']);
+
 //RSM
 Route::get('inactive/ase/report/rsm', [ASEController::class, 'inactiveAseListRSM']);
 Route::get('rsm/area/list/{id}', [ASEController::class, 'rsmareaList']);
@@ -162,6 +172,11 @@ Route::get('rsm/area/list/{id}', [ASEController::class, 'rsmareaList']);
 Route::post('team-wise-report-rsm', [ASEController::class, 'storeReportRSM']);
 
 Route::post('product-wise-report-rsm', [ASEController::class, 'productReportRSM']);
+
+Route::get('store/onn/currency/rsm', [ASEController::class, 'onncurrencyRSM']);
+Route::post('store/reward/order/detail/rsm', [ASEController::class, 'rewardorderrsmDetail']);
+//order approval 
+Route::post('store/reward/order/status/rsm', [ASEController::class, 'rewardorderrsmStatus']);
 //VP
 
 Route::get('inactive/ase/report/vp', [ASEController::class, 'inactiveAseListVP']);
@@ -172,6 +187,11 @@ Route::get('vp/state/area/list', [ASEController::class, 'vpstateareaList']);
 Route::post('team-wise-report-vp', [ASEController::class, 'storeReportVP']);
 
 Route::post('product-wise-report-vp', [ASEController::class, 'productReportVP']);
+
+Route::get('store/onn/currency/vp', [ASEController::class, 'onncurrencyVP']);
+Route::post('store/reward/order/detail/vp', [ASEController::class, 'rewardordervpDetail']);
+//order approval 
+Route::post('store/reward/order/status/vp', [ASEController::class, 'rewardordervpStatus']);
 //Distributor
 
 
@@ -192,3 +212,8 @@ Route::get('distributor/app/order/pdf/view/{id}', [ASEController::class, 'distri
 
 
 Route::get('distributor/order/list', [ASEController::class, 'distributorprimaryorderList']);
+
+Route::get('store/onn/currency/distributor', [ASEController::class, 'onncurrencyDistributor']);
+Route::post('store/reward/order/detail/distributor', [ASEController::class, 'rewardorderdistributorDetail']);
+//order approval 
+Route::post('store/reward/order/status/distributor', [ASEController::class, 'rewardorderdistributorStatus']);

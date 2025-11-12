@@ -207,6 +207,14 @@ class DistributorController extends Controller
             'user_id'  => auth()->id(),
             'password'    => Hash::make($request->password), // hash here ✅
         ]);
+
+        DB::table('edit_logs')->insert([
+            'table_name' => 'distributors',
+            'record_id'  => $data->id,
+            'action'     => 'created',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         
         return redirect()->route('distributors.index')
                         ->with('success','distributor created successfully.');
@@ -406,7 +414,7 @@ class DistributorController extends Controller
             'brand' => 'required',
         ]);
         $data = Distributor::findOrfail($id);
-       
+        $oldUserData = $data->replicate();
         $updateData = $request->except('brand','password','_token','_method'); // take everything except password
         //dd($updateData);
         // If password is present, hash it
@@ -438,6 +446,26 @@ class DistributorController extends Controller
         
 
         $data->update($updateData);
+
+         // 🔹 Log user table changes
+        $changedUserFields = $data->getChanges();
+
+        foreach ($changedUserFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue;
+
+            $oldValue = $oldUserData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'distributors',
+                'record_id' => $data->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
         
         return redirect()->route('distributors.index')
                         ->with('success','distributor created successfully.');
@@ -451,10 +479,28 @@ class DistributorController extends Controller
      */
     public function destroy($id): RedirectResponse
     {
+        $isReferenced = DB::table('activities')->where('distributor_id', $id)->exists();
+        $isDReferenced = DB::table('directory_mom')->where('distributor_id', $id)->exists();
+        $isOReferenced = DB::table('order_distributors')->where('distributor_id', $id)->exists();
+        $isCReferenced = DB::table('cart_distributors')->where('distributor_id', $id)->exists();
+        $isEReferenced = DB::table('teams')->where('distributor_id', $id)->exists();
+        $isRReferenced = DB::table('distributor_ranges')->where('distributor_id', $id)->exists();
+        if ($isReferenced || $isDReferenced || $isEReferenced || $isOReferenced || $isCReferenced || $isNReferenced || $isRReferenced) {
+            return redirect()->back()->with('failure', 'Distributor cannot be deleted because it is referenced in another table.');
+        }
         $data = Distributor::find($id);
         $data->is_deleted=1;
         $data->save();
-    
+        
+
+        // ✅ Log the delete action only (no old/new value)
+        DB::table('edit_logs')->insert([
+            'table_name' => 'distributors',
+            'record_id' => $data->id,
+            'action' => 'deleted',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         return redirect()->route('distributors.index')
                         ->with('success','Distributor deleted successfully');
     }
