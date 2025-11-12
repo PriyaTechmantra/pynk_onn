@@ -4153,7 +4153,7 @@ public function aseSalesreport(Request $request)
         }
 		if(isset($distributor_id) ||isset($keyword)||isset($rsm_id)) 
         {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$rsm_id.', teams.rsm_id)');
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$rsm_id.', teams.rsm_id)');
 		
 		$query->when($distributor_id, function($query) use ($distributor_id) {
                     $query->where('teams.distributor_id', $distributor_id);
@@ -4789,7 +4789,7 @@ public function aseSalesreport(Request $request)
         }
 		if(isset($distributor_id) ||isset($keyword)||isset($vp_id)) 
         {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$vp_id.', teams.vp_id)');
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$vp_id.', teams.vp_id)');
 		
 		$query->when($distributor_id, function($query) use ($distributor_id) {
                     $query->where('teams.distributor_id', $distributor_id);
@@ -5342,7 +5342,7 @@ public function aseSalesreport(Request $request)
         }
 		if(isset($distributor_id) ||isset($keyword)) 
         {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet','stores.user_id')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$distributor_id.', teams.distributor_id)');
+		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$distributor_id.', teams.distributor_id)');
 		
 		$query->when($distributor_id, function($query) use ($distributor_id) {
                     $query->where('teams.distributor_id', $distributor_id);
