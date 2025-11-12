@@ -3651,6 +3651,7 @@ public function aseSalesreport(Request $request)
 
 
     public function rewardorderasmStatus(Request $request) {
+        
         $validator = Validator::make($request->all(), [
             'order_id' => ['required'],
 			'asm_approval'=>['required'],
@@ -3659,7 +3660,8 @@ public function aseSalesreport(Request $request)
 
         if (!$validator->fails()) {
             
-                $order = RetailerOrder::findOrFail($request->order_id);
+                $order = RetailerOrder::where('id',$request->order_id)->first();
+                
                 if(empty($order)){
                     return response()->json(['error' => true, 'message' => 'No order found']);
                 }else{
@@ -4273,7 +4275,7 @@ public function aseSalesreport(Request $request)
 
         if (!$validator->fails()) {
             
-                $order = RetailerOrder::findOrFail($request->order_id);
+                $order = RetailerOrder::where('id',$request->order_id)->first();
                 if(empty($order)){
                     return response()->json(['error' => true, 'message' => 'No order found']);
                 }else{
@@ -4909,7 +4911,7 @@ public function aseSalesreport(Request $request)
 
         if (!$validator->fails()) {
             
-                $order = RetailerOrder::findOrFail($request->order_id);
+                $order = RetailerOrder::where('id',$request->order_id)->first();
                 if(empty($order)){
                     return response()->json(['error' => true, 'message' => 'No order found']);
                 }else{
@@ -5462,7 +5464,7 @@ public function aseSalesreport(Request $request)
 
         if (!$validator->fails()) {
             
-                $order = RetailerOrder::findOrFail($request->order_id);
+                $order = RetailerOrder::where('id',$request->order_id)->first();
                 if(empty($order)){
                     return response()->json(['error' => true, 'message' => 'No order found']);
                 }else{
