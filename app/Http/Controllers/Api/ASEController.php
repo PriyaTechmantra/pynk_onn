@@ -3660,10 +3660,13 @@ public function aseSalesreport(Request $request)
         if (!$validator->fails()) {
             
                 $order = RetailerOrder::findOrFail($request->order_id);
-
-                $order->asm_approval = $request['asm_approval'];
-        		$order->asm_note = $request['asm_note'];
-				$order->save();
+                if(empty($order)){
+                    return response()->json(['error' => true, 'message' => 'No order found']);
+                }else{
+                    $order->asm_approval = $request['asm_approval'];
+                    $order->asm_note = $request['asm_note'];
+                    $order->save();
+                }
 			//dd($orders);
             
 
@@ -4271,10 +4274,14 @@ public function aseSalesreport(Request $request)
         if (!$validator->fails()) {
             
                 $order = RetailerOrder::findOrFail($request->order_id);
+                if(empty($order)){
+                    return response()->json(['error' => true, 'message' => 'No order found']);
+                }else{
 
                 $order->rsm_approval = $request['rsm_approval'];
         		$order->rsm_note = $request['rsm_note'];
 				$order->save();
+                }
 			//dd($orders);
             
 
@@ -4903,10 +4910,13 @@ public function aseSalesreport(Request $request)
         if (!$validator->fails()) {
             
                 $order = RetailerOrder::findOrFail($request->order_id);
-
+                if(empty($order)){
+                    return response()->json(['error' => true, 'message' => 'No order found']);
+                }else{
                 $order->vp_approval = $request['vp_approval'];
         		$order->vp_note = $request['vp_note'];
 				$order->save();
+                }
 			//dd($orders);
             
 
@@ -5453,10 +5463,13 @@ public function aseSalesreport(Request $request)
         if (!$validator->fails()) {
             
                 $order = RetailerOrder::findOrFail($request->order_id);
-
+                if(empty($order)){
+                    return response()->json(['error' => true, 'message' => 'No order found']);
+                }else{
                 $order->distributor_approval = $request['distributor_approval'];
         		$order->distributor_note = $request['distributor_note'];
 				$order->save();
+                }
 			//dd($orders);
             
 
