@@ -2962,7 +2962,7 @@ public function aseSalesreport(Request $request)
 
         // Optional brand filter
         if (!empty($brand)) {
-            $query->where('retailer_orders.brand_id', $brand);
+            $query->where('retailer_orders.brand', $brandCode);
         }
 
         // Optional date filters
