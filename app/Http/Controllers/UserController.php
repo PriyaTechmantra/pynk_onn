@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use  Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use DB;
+use Auth;
 class UserController extends Controller
 {
     public function __construct()
@@ -19,7 +20,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::paginate(25);
+        $users = User::where('is_deleted',0)->paginate(25);
         
         return view('role-permission.user.index', ['users' => $users]);
     }
@@ -78,54 +79,102 @@ class UserController extends Controller
         ]);
     }
 
+    // public function update(Request $request, User $user)
+    // {
+       
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'password' => 'nullable|string|min:8|max:20',
+    //         'roles' => 'required'
+    //     ]);
+    //      // ✅ Clone old data before updating
+    //     $oldData = clone $user;
+    //     $data = [
+    //         'name' => $request->name,
+    //         'email' => $request->email,
+    //     ];
+
+    //     if(!empty($request->password)){
+    //         $data += [
+    //             'password' => Hash::make($request->password),
+    //         ];
+    //     }
+
+    //     $user->update($data);
+    //     $user->syncRoles($request->roles);
+    //     $existing = DB::table('user_permission_categories')->where('user_id', $user->id)->first();
+
+    //     if ($existing) {
+    //         DB::table('user_permission_categories')
+    //             ->where('user_id', $user->id)
+    //             ->update([
+    //                 'brand' => $request->brand,
+    //                 'updated_at' => now()
+    //             ]);
+    //     } else {
+    //         DB::table('user_permission_categories')->insert([
+    //             'user_id' => $user->id,
+    //             'brand' => $request->brand,
+    //             'created_at' => now(),
+    //             'updated_at' => now(),
+    //         ]);
+    //     }
+
+        
+    //     // ✅ Compare old vs new and log only changed fields
+    //     $changedFields = $user->getChanges(); // only changed attributes
+
+    //     foreach ($changedFields as $field => $newValue) {
+    //         if (in_array($field, ['updated_at'])) continue; // skip timestamps
+
+    //         $oldValue = $oldData->$field ?? null;
+
+    //         DB::table('edit_logs')->insert([
+    //             'table_name' => 'users',
+    //             'record_id' => $user->id,
+    //             'field' => $field,
+    //             'old_value' => $oldValue,
+    //             'new_value' => $newValue,
+    //             'action' => 'updated',
+    //             'updated_by' => Auth::id(),
+    //             'created_at' => now(),
+    //         ]);
+    //     }
+    //     return redirect('/users')->with('success','User Updated Successfully with roles');
+    // }
+
+
     public function update(Request $request, User $user)
     {
-       
         $request->validate([
             'name' => 'required|string|max:255',
             'password' => 'nullable|string|min:8|max:20',
             'roles' => 'required'
         ]);
 
+        // Store old data before update (for logging)
+        $oldUserData = $user->replicate();
+
+        // Update user basic details
         $data = [
             'name' => $request->name,
             'email' => $request->email,
         ];
 
-        if(!empty($request->password)){
-            $data += [
-                'password' => Hash::make($request->password),
-            ];
+        if (!empty($request->password)) {
+            $data['password'] = Hash::make($request->password);
         }
 
         $user->update($data);
         $user->syncRoles($request->roles);
-        $existing = DB::table('user_permission_categories')->where('user_id', $user->id)->first();
 
-        if ($existing) {
-            DB::table('user_permission_categories')
-                ->where('user_id', $user->id)
-                ->update([
-                    'brand' => $request->brand,
-                    'updated_at' => now()
-                ]);
-        } else {
-            DB::table('user_permission_categories')->insert([
-                'user_id' => $user->id,
-                'brand' => $request->brand,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        // 🔹 Log user table changes
+        $changedUserFields = $user->getChanges();
 
-        $oldData = $user->replicate();
-        // ✅ Compare old vs new and log only changed fields
-        $changedFields = $user->getChanges(); // only changed attributes
+        foreach ($changedUserFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue;
 
-        foreach ($changedFields as $field => $newValue) {
-            if (in_array($field, ['updated_at'])) continue; // skip timestamps
-
-            $oldValue = $oldData->$field ?? null;
+            $oldValue = $oldUserData->$field ?? null;
 
             DB::table('edit_logs')->insert([
                 'table_name' => 'users',
@@ -138,8 +187,58 @@ class UserController extends Controller
                 'created_at' => now(),
             ]);
         }
-        return redirect('/users')->with('success','User Updated Successfully with roles');
+
+        // 🔹 Handle user_permission_categories
+        $existing = DB::table('user_permission_categories')->where('user_id', $user->id)->first();
+
+        if ($existing) {
+            // Log change before update
+            $oldBrand = $existing->brand;
+            DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->update([
+                    'brand' => $request->brand,
+                    'updated_at' => now(),
+                ]);
+
+            // ✅ Log update for user_permission_categories
+            if ($oldBrand != $request->brand) {
+                DB::table('edit_logs')->insert([
+                    'table_name' => 'user_permission_categories',
+                    'record_id' => $existing->id,
+                    'field' => 'brand',
+                    'old_value' => $oldBrand,
+                    'new_value' => $request->brand,
+                    'action' => 'updated',
+                    'updated_by' => Auth::id(),
+                    'created_at' => now(),
+                ]);
+            }
+        } else {
+            // Insert new record
+            $insertId = DB::table('user_permission_categories')->insertGetId([
+                'user_id' => $user->id,
+                'brand' => $request->brand,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // ✅ Log creation of new user_permission_categories record
+            DB::table('edit_logs')->insert([
+                'table_name' => 'user_permission_categories',
+                'record_id' => $insertId,
+                'field' => 'brand',
+                'old_value' => null,
+                'new_value' => $request->brand,
+                'action' => 'created',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
+
+        return redirect('/users')->with('success', 'User updated successfully with roles.');
     }
+
 
     public function destroy($userId)
     {
@@ -150,7 +249,7 @@ class UserController extends Controller
         }
         $user = User::findOrFail($userId);
         $user->is_deleted=1;
-        $user->delete();
+        $user->save();
         
 
         // ✅ Log the delete action only (no old/new value)

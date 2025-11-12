@@ -32,24 +32,29 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($users as $index=> $user)
-                                        @php
+                                    
+                                        {{--@php
                                             // Skip users who don't have any roles
                                             if ($user->getRoleNames()->isEmpty()) {
                                                 continue;
                                             }
-                                        @endphp
+                                        @endphp--}}
                                     <tr>
                                         <td class="index-col">{{($users->firstItem()) + $index}} </td>
                                         <td>{{ $user->name }}</td>
                                         <td>{{ $user->email }}</td>
                                         <td>
-                                            @if (!empty($user->getRoleNames()))
-                                                @foreach ($user->getRoleNames() as $rolename)
-                                                    <label class="badge bg-primary mx-1">{{ $rolename }}</label>
+                                            @if($user->getRoleNames()->isNotEmpty())
+                                               @foreach ($user->getRoleNames() as $rolename)
+                                                <label class="badge bg-primary mx-1">{{ $rolename }}</label>
                                                 @endforeach
+                                            @else
+                                                <span class="text-muted">No Role Assigned</span>
                                             @endif
                                         </td>
+                                        
                                         <td>
+                                           
                                             @if (!empty($user->getRoleNames()))
                                                 @foreach ($user->getRoleNames() as $rolename)
                                                     @if($rolename!='super-admin')
@@ -60,7 +65,7 @@
                                                         @endcan
                                                
                                                         @can('delete user')
-                                                        <a href="{{ url('users/'.$user->id.'/delete') }}" onclick="return confirm('Are you sure ?')" class="btn btn-cta">
+                                                        <a href="{{ url('users/'.$user->id.'/delete') }}" class="btn btn-cta delete-confirm">
                                                         <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 24 24" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M19 7a1 1 0 0 0-1 1v11.191A1.92 1.92 0 0 1 15.99 21H8.01A1.92 1.92 0 0 1 6 19.191V8a1 1 0 0 0-2 0v11.191A3.918 3.918 0 0 0 8.01 23h7.98A3.918 3.918 0 0 0 20 19.191V8a1 1 0 0 0-1-1ZM20 4h-4V2a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v2H4a1 1 0 0 0 0 2h16a1 1 0 0 0 0-2ZM10 4V3h4v1Z" fill="#ffffff" opacity="1" data-original="#000000" class=""></path><path d="M11 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0ZM15 17v-7a1 1 0 0 0-2 0v7a1 1 0 0 0 2 0Z" fill="#ffffff" opacity="1" data-original="#000000" class=""></path></g></svg>
                                                         </a>
                                                         @endcan
@@ -81,5 +86,36 @@
             </div>
         </div>
     </div>
+
+@endsection
+
+
+@section('script')
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.delete-confirm').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault(); // stop normal link
+
+            let url = this.getAttribute('href');
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url; // redirect if confirmed
+                }
+            });
+        });
+    });
+});
+</script>
+
 
 @endsection

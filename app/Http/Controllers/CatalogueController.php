@@ -214,10 +214,31 @@ class CatalogueController extends Controller
         $storeData->title = $request->title;
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
-        $storeData->state = $request->state;
+        $storeData->state_id = $request->state;
 
-        $storeData->vp = $request->vp;
-        $storeData->brand =$request->brand;
+        $storeData->vp_id = $request->vp;
+        //$storeData->brand =$request->brand;
+        if(empty($request->brand)){
+            $user = auth()->user();
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = 3;
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = 1;
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = 2;
+            }
+            $storeData->brand = $brandsToShow;
+        }else{
+           $storeData->brand = $request->brand;
+        }
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');

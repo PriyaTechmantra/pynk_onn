@@ -188,7 +188,27 @@ public function index(Request $request): View
             'password' => 'required',
             'brand' => 'required',
         ]);
+        if(empty($request->brand)){
+            $user = auth()->user();
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
         
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = 3;
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = 1;
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = 2;
+            }
+            $brand = $brandsToShow;
+        }else{
+           $brand = $request->brand;
+        }
         $data = Employee::create([
             'name'        => $request->name,
             'employee_id' => $request->employee_id,
@@ -204,9 +224,17 @@ public function index(Request $request): View
             'state'       => $request->state,
             'city'        => $request->area,
             'date_of_joining'  => $request->date_of_joining,
-            'brand'  => $request->brand,
+            'brand'  => $brand,
             'created_by'  => auth()->id(),
             'password'    => Hash::make($request->password), // hash here ✅
+        ]);
+
+        DB::table('edit_logs')->insert([
+            'table_name' => 'employees',
+            'record_id'  => $data->id,
+            'action'     => 'created',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
         ]);
         
         return redirect()->route('employees.index')
@@ -765,20 +793,59 @@ public function index(Request $request): View
         ]);
     
         $data = Employee::findOrfail($id);
-       
-        $updateData = $request->except('password','_token','_method'); // take everything except password
+        $oldUserData = $data->replicate();
+        $updateData = $request->except('brand','password','_token','_method'); // take everything except password
         //dd($updateData);
         // If password is present, hash it
         if ($request->filled('password')) {
             $updateData['password'] = Hash::make($request->password);
         }
-       
+        if ($request->filled('brand')) {
+            $updateData['brand'] = $request->brand;
+        }else{
+            $user = auth()->user();
+            $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = 3;
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = 1;
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = 2;
+            }
+            $updateData['brand'] = $brandsToShow;
+
+        }
         
 
         $data->update($updateData);
                 // Normalize brand value
         
-        
+        // 🔹 Log user table changes
+        $changedUserFields = $data->getChanges();
+
+        foreach ($changedUserFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue;
+
+            $oldValue = $oldUserData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'employees',
+                'record_id' => $data->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
         
         return redirect()->route('employees.index')
                         ->with('success','Employee updated successfully');
@@ -792,9 +859,27 @@ public function index(Request $request): View
      */
     public function destroy($id): RedirectResponse
     {
+        $isReferenced = DB::table('activities')->where('user_id', $id)->exists();
+        $isDReferenced = DB::table('stores')->where('user_id', $id)->exists();
+        $isOReferenced = DB::table('orders')->where('user_id', $id)->exists();
+        $isCReferenced = DB::table('carts')->where('user_id', $id)->exists();
+        $isNReferenced = DB::table('user_no_order_reasons')->where('user_id', $id)->exists();
+        $isEReferenced = DB::table('teams')->where('ase_id', $id)->orWhere('asm_id', $id)->orWhere('rsm_id', $id)->orWhere('vp_id', $id)->exists();
+        if ($isReferenced || $isDReferenced || $isEReferenced || $isOReferenced || $isCReferenced || $isNReferenced) {
+            return redirect()->back()->with('failure', 'Employee cannot be deleted because it is referenced in another table.');
+        }
         $data = Employee::findOrfail($id);
         $data->is_deleted=1;
         $data->save();
+
+         // ✅ Log the delete action only (no old/new value)
+        DB::table('edit_logs')->insert([
+            'table_name' => 'employees',
+            'record_id' => $data->id,
+            'action' => 'deleted',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         return redirect()->route('employees.index')
                         ->with('success','Employee deleted successfully');
     }
@@ -816,148 +901,138 @@ public function index(Request $request): View
     public function bulkUpload(Request $request): RedirectResponse
     {
         $validator = Validator::make($request->all(), [
-        'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
-            ], [
-                'file.mimes' => 'Please upload a valid CSV file.',
-                'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
-            ]);
+            'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
+        ], [
+            'file.mimes' => 'Please upload a valid CSV file.',
+            'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
+        ]);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
         }
-        if (!empty($request->file)) {
-            $file = $request->file('file');
-            $filename = $file->getClientOriginalName();
-            $extension = $file->getClientOriginalExtension();
-            $fileSize = $file->getSize();
 
-            // Validate CSV extension and file size
-            $valid_extension = ["csv"];
-            $maxFileSize = 50097152; // Max 50MB
-
-            if (in_array(strtolower($extension), $valid_extension)) {
-                if ($fileSize <= $maxFileSize) {
-                    // Upload the file to the storage location
-                    $location = 'public/uploads/csv';
-                    $file->move($location, $filename);
-                    $filepath = $location . "/" . $filename;
-
-                    // Open the CSV file and read it
-                    $file = fopen($filepath, "r");
-                    $importData_arr = [];
-                    $i = 0;
-                    $successCount=0;
-                    // Read the CSV file row by row
-                    while (($filedata = fgetcsv($file, 10000, ",")) !== false) {
-                        // Skip the header row
-                        if ($i == 0) {
-                            $i++;
-                            continue;
-                        }
-
-                         // Step 3: Extract the data from each row
-                        $rowData = [
-                            'brand' => isset($filedata[0]) ? $filedata[0] : null,
-                            'type' => isset($filedata[1]) ? $filedata[1] : null,
-                            'designation' => isset($filedata[2]) ? $filedata[2] : null,
-                            'employee_id' => isset($filedata[3]) ? $filedata[3] : null,
-                            'name' => isset($filedata[4]) ? $filedata[4] : null,
-                            'email' => isset($filedata[5]) ? $filedata[5] : null,
-                            'mobile' => isset($filedata[6]) ? $filedata[6] : null,
-                            
-                            'whatsapp_no' => isset($filedata[7]) ? $filedata[7] : null,
-                            'state' => isset($filedata[8]) ? $filedata[8] : null,
-                            'city' => isset($filedata[9]) ? $filedata[9] : null,
-                            'date_of_joining' => isset($filedata[10]) ? $filedata[10] : null,
-                            'password' => isset($filedata[11]) ? $filedata[11] : null,
-                            
-                            
-                        ];
-                            
-                        // Step 4: Validate each row's data
-                        $validator = Validator::make($rowData, [
-                            'name' => 'required|string|max:255',
-                            'employee_id' => 'required|string|max:255|unique:employees',
-                            'type' => 'required',
-                            'designation' => 'required',
-                            'mobile' => 'required',
-                        
-                        ]);
-
-                    if ($validator->fails()) {
-                        // Accumulate errors with row number context
-                        $errors[$i] = $validator->errors()->all();
-                    } else {
-                        $stateName=State::where('name',$rowData['state'])->first();
-                        $areaName=Area::where('name',$rowData['city'])->first();
-                            // Map brand text to numeric value
-                                $brandValue = null;
-                                if (!empty($rowData['brand'])) {
-                                    $brandText = strtolower(trim($rowData['brand']));
-                                    if ($brandText === 'ONN') {
-                                        $brandValue = 1;
-                                    } elseif ($brandText === 'PYNK') {
-                                        $brandValue = 2;
-                                    } elseif (in_array($brandText, ['Both', 'ONN,PYNK', 'PYNK,ONN'])) {
-                                        $brandValue = 3;
-                                    }
-                                }
-                        // Step 5: Save data if validation passes
-                        $insertData = [
-                            "type" => $rowData['type'],
-                            "designation" => $rowData['designation'],
-                            "employee_id" => $rowData['employee_id'],
-                            "name" => $rowData['name'],
-                            "email" => $rowData['email'],
-                            "mobile" => $rowData['mobile'],
-                            "whatsapp_no" => $rowData['whatsapp_no'],
-                            "state" => $stateName->id,
-                            "city" => $areaName->id,
-                            "date_of_joining" => $rowData['date_of_joining'],
-                             "brand" => $brandValue,
-                            "password" => $rowData['password'],
-                            
-                            "status" => 1,
-                            "is_deleted" => 0,
-                            "created_at" => date('Y-m-d H:i:s'),
-                            "updated_at" => date('Y-m-d H:i:s'),
-                        ];
-                        
-                        Employee::create($insertData);
-                        
-                       
-                        
-                        $successCount++;
-
-                        
-                    }
-
-                    $i++;
-                }
-
-                fclose($file);
-                
-                if (!empty($errors)) {
-                    // Redirect back to upload page if there are row-level validation errors
-                    return redirect()->back()->with([
-                        'csv_errors' => $errors, // pass errors to display
-                    ]);
-                }else{
-
-                    return redirect()->back()->with('success', 'CSV Import Complete. Total number of entries: ' . $successCount);
-                }
-                } else {
-                    return redirect()->back()->with('failure', 'File too large. File must be less than 50MB.');
-                }
-            } else {
-                return redirect()->back()->with('failure', 'Invalid File Extension. Supported extensions are ' . implode(', ', $valid_extension));
-            }
-        } else {
+        if (!$request->hasFile('file')) {
             return redirect()->back()->with('failure', 'No file found.');
         }
 
-        // return redirect()->back();
+        $file = $request->file('file');
+        $filename = $file->getClientOriginalName();
+        $extension = $file->getClientOriginalExtension();
+        $fileSize = $file->getSize();
+
+        $valid_extension = ["csv"];
+        $maxFileSize = 50097152; // 50MB
+
+        if (!in_array(strtolower($extension), $valid_extension)) {
+            return redirect()->back()->with('failure', 'Invalid File Extension. Supported: ' . implode(', ', $valid_extension));
+        }
+
+        if ($fileSize > $maxFileSize) {
+            return redirect()->back()->with('failure', 'File too large. Must be under 50MB.');
+        }
+
+        // Upload CSV
+        $location = 'public/uploads/csv';
+        $file->move($location, $filename);
+        $filepath = $location . "/" . $filename;
+
+        $handle = fopen($filepath, "r");
+        $i = 0;
+        $successCount = 0;
+        $errors = [];
+
+        while (($filedata = fgetcsv($handle, 10000, ",")) !== false) {
+            if ($i == 0) { // Skip header
+                $i++;
+                continue;
+            }
+
+            $rowData = [
+                'brand' => $filedata[0] ?? null,
+                'type' => $filedata[1] ?? null,
+                'designation' => $filedata[2] ?? null,
+                'employee_id' => $filedata[3] ?? null,
+                'name' => $filedata[4] ?? null,
+                'email' => $filedata[5] ?? null,
+                'mobile' => $filedata[6] ?? null,
+                'whatsapp_no' => $filedata[7] ?? null,
+                'state' => $filedata[8] ?? null,
+                'city' => $filedata[9] ?? null,
+                'date_of_joining' => $filedata[10] ?? null,
+                'password' => $filedata[11] ?? null,
+            ];
+
+            // Validate row
+            $rowValidator = Validator::make($rowData, [
+                'brand' => 'required',
+                'name' => 'required|string|max:255',
+                'employee_id' => 'required|string|max:255|unique:employees',
+                'type' => 'required',
+                'designation' => 'required',
+                'mobile' => 'required',
+            ]);
+
+            if ($rowValidator->fails()) {
+                $errors[$i] = $rowValidator->errors()->all();
+            } else {
+                $state = State::where('name', $rowData['state'])->first();
+                $city = Area::where('name', $rowData['city'])->first();
+
+                // Brand mapping
+                $brandText = strtolower(trim($rowData['brand'] ?? ''));
+                $brandValue = match ($brandText) {
+                    'ONN' => 1,
+                    'PYNK' => 2,
+                    'Both', 'ONN,PYNK', 'PYNK,ONN' => 3,
+                    default => null
+                };
+
+                // Insert data
+                $insertData = [
+                    "type" => $rowData['type'],
+                    "designation" => $rowData['designation'],
+                    "employee_id" => $rowData['employee_id'],
+                    "name" => $rowData['name'],
+                    "email" => $rowData['email'],
+                    "mobile" => $rowData['mobile'],
+                    "whatsapp_no" => $rowData['whatsapp_no'],
+                    "state" => $state?->id,
+                    "city" => $city?->id,
+                    "date_of_joining" => $rowData['date_of_joining'],
+                    "brand" => $brandValue,
+                    "password" => $rowData['password'],
+                    "status" => 1,
+                    "is_deleted" => 0,
+                    "created_at" => now(),
+                    "updated_at" => now(),
+                ];
+
+                $employee = Employee::create($insertData);
+
+                // ✅ Log creation
+                DB::table('edit_logs')->insert([
+                    'table_name' => 'employees',
+                    'record_id'  => $employee->id,
+                    'action'     => 'created',
+                    'updated_by' => Auth::id(),
+                    'created_at' => now(),
+                ]);
+
+                $successCount++;
+            }
+
+            $i++;
+        }
+
+        fclose($handle);
+
+        if (!empty($errors)) {
+            return redirect()->back()->with(['csv_errors' => $errors]);
+        }
+
+        return redirect()->back()->with('success', 'CSV Import Complete. Total entries: ' . $successCount);
     }
+
 
 
     //export

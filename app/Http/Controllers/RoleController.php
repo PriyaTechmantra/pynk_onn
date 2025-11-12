@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
-
+use Auth;
 class RoleController extends Controller
 {
     public function __construct()
@@ -21,7 +21,7 @@ class RoleController extends Controller
 
     public function index()
     {
-        $roles = Role::get();
+        $roles = Role::where('is_deleted',0)->paginate(25);
         return view('role-permission.role.index', ['roles' => $roles]);
     }
 
@@ -43,7 +43,14 @@ class RoleController extends Controller
         $role=Role::create([
             'name' => $request->name
         ]);
-
+        
+        DB::table('edit_logs')->insert([
+            'table_name' => 'roles',
+            'record_id'  => $role->id,
+            'action'     => 'created',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         return redirect('roles/'.$role->id.'/give-permissions')->with('success','Role Created Successfully');
     }
 
@@ -63,18 +70,51 @@ class RoleController extends Controller
                 'unique:roles,name,'.$role->id
             ]
         ]);
-
+        $oldUserData = $role->replicate();
         $role->update([
             'name' => $request->name
         ]);
 
+         // 🔹 Log user table changes
+        $changedUserFields = $role->getChanges();
+
+        foreach ($changedUserFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue;
+
+            $oldValue = $oldUserData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'roles',
+                'record_id' => $role->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
         return redirect('roles')->with('success','Role Updated Successfully');
     }
 
     public function destroy($roleId)
     {
+        $isEReferenced = DB::table('model_has_roles')->where('role_id', $roleId)->exists();
+        if ($isEReferenced) {
+            return redirect()->back()->with('failure', 'Role cannot be deleted because it is referenced in another table.');
+        }
         $role = Role::find($roleId);
-        $role->delete();
+        $role->is_deleted=1;
+        $role->save();
+
+        // ✅ Log the delete action only (no old/new value)
+        DB::table('edit_logs')->insert([
+            'table_name' => 'roles',
+            'record_id' => $role->id,
+            'action' => 'deleted',
+            'updated_by' => Auth::id(),
+            'created_at' => now(),
+        ]);
         return redirect('roles')->with('success','Role Deleted Successfully');
     }
 
@@ -101,8 +141,45 @@ class RoleController extends Controller
         ]);
 
         $role = Role::findOrFail($roleId);
+        // 🔹 Get old permissions before sync
+        $oldPermissions = $role->permissions->pluck('name')->toArray();
         $role->syncPermissions($request->permission);
 
+         // 🔹 Get new permissions after sync
+        $newPermissions = $role->permissions->pluck('name')->toArray();
+
+
+        // 🔹 Find differences for logging
+        $addedPermissions = array_diff($newPermissions, $oldPermissions);
+        $removedPermissions = array_diff($oldPermissions, $newPermissions);
+
+        // 🔹 Log added permissions
+        foreach ($addedPermissions as $perm) {
+            DB::table('edit_logs')->insert([
+                'table_name' => 'role_has_permissions',
+                'record_id' => $role->id,
+                'field' => 'permission',
+                'old_value' => null,
+                'new_value' => $perm,
+                'action' => 'permission_added',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
+
+        // 🔹 Log removed permissions
+        foreach ($removedPermissions as $perm) {
+            DB::table('edit_logs')->insert([
+                'table_name' => 'role_has_permissions',
+                'record_id' => $role->id,
+                'field' => 'permission',
+                'old_value' => $perm,
+                'new_value' => null,
+                'action' => 'permission_removed',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
         return redirect()->back()->with('success','Permissions added to role');
     }
 }

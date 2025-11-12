@@ -566,7 +566,7 @@ class StoreController extends Controller
 
         if (count($data) > 0) {
             $delimiter = ",";
-            $filename = "onn-store-list-".date('Y-m-d').".csv";
+            $filename = "store-list-".date('Y-m-d').".csv";
 
             // Create a file pointer
             $f = fopen('php://memory', 'w');
@@ -587,14 +587,14 @@ class StoreController extends Controller
                 foreach(explode(',',$row->user_id) as $aseKey => $aseVal) 
                 {
                     //dd($distVal);
-                    $catDetails = DB::table('users')->where('id', $aseVal)->first();
+                    $catDetails = DB::table('employees')->where('id', $aseVal)->first();
                     if(!empty($catDetails)){
                     $displayASEName .= $catDetails->name.',';
                     }
                 }
 				$store_name = $row->store_name ?? '';
                 //$storename = RetailerListOfOcc::select('distributor_name','vp','rsm','asm')->where('retailer', $store_name)->where('ase', $username->name)->where('area', $row->area)->first();
-				$storename = RetailerListOfOcc::select('distributor_name','vp','rsm','asm')->where('store_id', $row->id)->first();
+				$storename = Team::select('distributor_id','vp_id','rsm_id','asm_id')->where('store_id', $row->id)->first();
 				
                 // $store = Store::select('store_name')->where('id', $row['store_id'])->first();
                 // $ase = User::select('name', 'mobile', 'state', 'city', 'pin')->where('id', $row['user_id'])->first();
@@ -604,12 +604,12 @@ class StoreController extends Controller
                 $lineData = array(
                     $count,
 					$row->unique_code?? '',
-                    ucwords($row->store_name)?? '',
+                    ucwords($row->name)?? '',
                     ucwords($row->bussiness_name)?? '',
 					ucwords($row->address)?? '',
-                    $row->area?? '',
+                    $row->area->name?? '',
                     $row->pin?? '',
-					$row->state?? '',
+					$row->state->name?? '',
 					ucwords($row->owner_name.' '.$row->owner_lname),
                     $row->contact?? '',
 					$row->whatsapp?? '',
@@ -621,11 +621,11 @@ class StoreController extends Controller
                     $row->gst_no?? '',
                     $row->pan_no?? '',
 					$row->wallet?? '',
-                    $storename->distributor_name ?? '',
+                    $storename->distributor->name ?? '',
                     substr($displayASEName, 0, -1) ? substr($displayASEName,0, -1) : 'NA',
-                    $storename->asm ?? '',
-                    $storename->rsm ?? '',
-                    $storename->vp ?? '',
+                    $storename->asm->name ?? '',
+                    $storename->rsm->name ?? '',
+                    $storename->vp->name ?? '',
                  
                     
                    // $row->city,
