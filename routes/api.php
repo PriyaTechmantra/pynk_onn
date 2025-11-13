@@ -213,6 +213,12 @@ Route::get('distributor/app/order/pdf/view/{id}', [ASEController::class, 'distri
 
 Route::get('distributor/order/list', [ASEController::class, 'distributorprimaryorderList']);
 
+Route::post('distributor/store/order/datewise', [ASEController::class, 'storeOrder']);
+Route::post('distributor/store/order/datewise/csv', [ASEController::class, 'csvExport']);
+//product wise store order list for distributor
+Route::post('distributor/store/order/productwise', [ASEController::class, 'productOrder']);
+Route::post('distributor/store/order/productwise/csv', [ASEController::class, 'csvProductExport']);
+
 Route::get('store/onn/currency/distributor', [ASEController::class, 'onncurrencyDistributor']);
 Route::post('store/reward/order/detail/distributor', [ASEController::class, 'rewardorderdistributorDetail']);
 //order approval 
