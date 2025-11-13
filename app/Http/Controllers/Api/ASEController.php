@@ -5043,7 +5043,7 @@ public function aseSalesreport(Request $request)
         $brandId = $brandMap[$brandName] ?? null;
 
         // Base query
-        $query = CartDistributor::where('distributor_id', $request->distributorId)->whereHas('product')->with([
+        $query = CartDistributor::where('distributor_id', $request->distributorId)->where('user_id', 0)->whereHas('product')->with([
                 'size:id,name,size_details',
                 'color:id,name',
                 'product' => function ($q) {
@@ -5485,6 +5485,9 @@ public function aseSalesreport(Request $request)
             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
     }
+
+     
+
 
 
 
