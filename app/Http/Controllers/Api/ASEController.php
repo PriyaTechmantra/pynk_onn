@@ -3550,47 +3550,61 @@ public function aseSalesreport(Request $request)
 
 
 
-    public function onncurrencyASM(Request $request)
-	{
-		$keyword = $_GET['keyword']?? '';
-		$distributor_id = $_GET['distributor_id']?? '';
-        $asm_id = $_GET['asm_id']?? '';
-        $brand = $_GET['brand']?? '';
+   public function onncurrencyASM(Request $request)
+    {
+        $keyword = $request->get('keyword', '');
+        $distributor_id = $request->get('distributor_id', '');
+        $asm_id = $request->get('asm_id', '');
+        $brand = $request->get('brand', '');
+
         $brandMap = [
             'ONN'  => 1,
             'PYNK' => 2,
             'Both' => 3,
         ];
 
-        $brandText = $brand;
-        $brandCode = $brandMap[$brandText] ?? null;
-       
+        $brandCode = $brandMap[$brand] ?? null;
+
         if (!$brandCode) {
             return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
         }
-		if(isset($distributor_id) ||isset($keyword)||isset($asm_id)) 
-        {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$asm_id.', teams.asm_id)');
-		
-		$query->when($distributor_id, function($query) use ($distributor_id) {
-                    $query->where('teams.distributor_id', $distributor_id);
-        });
-		$query->when($keyword, function($query) use ($keyword) {
-                    $query->where('stores.name','like','%' .$keyword. '%')
-                    ->orWhere('stores.contact' ,'=',$keyword);
-        });
 
-        $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
-		}else{
-            $stores=DB::table('stores')
-            ->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$asm_id.', teams.asm_id)')->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->get();
+        // Base query
+        $query = DB::table('stores')
+            ->select('stores.id', 'stores.name', 'stores.wallet')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->whereRaw('FIND_IN_SET(?, teams.asm_id)', [$asm_id])
+            ->where('stores.brand', $brandCode)
+            ->where('stores.status', 1)
+            ->where('stores.is_deleted', 0);
+
+        // Optional filters
+        if (!empty($distributor_id)) {
+            $query->where('teams.distributor_id', $distributor_id);
         }
-		if ($stores) {
-            return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
-		}else{
-			  return response()->json(['error' => true, 'message' => 'No data found']);
-		}
-	}
+
+        if (!empty($keyword)) {
+            $query->where(function ($subQuery) use ($keyword) {
+                $subQuery->where('stores.name', 'like', '%' . $keyword . '%')
+                        ->orWhere('stores.contact', '=', $keyword);
+            });
+        }
+
+        // Execute query
+        $stores = $query->latest('stores.id')->get();
+
+        // Return response
+        if ($stores->isNotEmpty()) {
+            return response()->json([
+                'error' => false,
+                'resp' => 'Stores fetched successfully',
+                'data' => $stores
+            ]);
+        }
+
+        return response()->json(['error' => true, 'message' => 'No data found']);
+    }
+
 
 
     public function rewardorderasmDetail(Request $request)
@@ -4167,46 +4181,61 @@ public function aseSalesreport(Request $request)
 
 
       public function onncurrencyRSM(Request $request)
-	{
-		$keyword = $_GET['keyword']?? '';
-		$distributor_id = $_GET['distributor_id']?? '';
-        $rsm_id = $_GET['rsm_id']?? '';
-        $brand = $_GET['brand']?? '';
+    {
+        $keyword = $request->get('keyword', '');
+        $distributor_id = $request->get('distributor_id', '');
+        $rsm_id = $request->get('rsm_id', '');
+        $brand = $request->get('brand', '');
+
+        // Brand map
         $brandMap = [
             'ONN'  => 1,
             'PYNK' => 2,
             'Both' => 3,
         ];
 
-        $brandText = $brand;
-        $brandCode = $brandMap[$brandText] ?? null;
-       
+        $brandCode = $brandMap[$brand] ?? null;
+
         if (!$brandCode) {
             return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
         }
-		if(isset($distributor_id) ||isset($keyword)||isset($rsm_id)) 
-        {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$rsm_id.', teams.rsm_id)');
-		
-		$query->when($distributor_id, function($query) use ($distributor_id) {
-                    $query->where('teams.distributor_id', $distributor_id);
-        });
-		$query->when($keyword, function($query) use ($keyword) {
-                    $query->where('stores.name','like','%' .$keyword. '%')
-                    ->orWhere('stores.contact' ,'=',$keyword);
-        });
 
-        $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
-		}else{
-            $stores=DB::table('stores')
-            ->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$rsm_id.', teams.rsm_id)')->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->get();
+        // Base query
+        $query = DB::table('stores')
+            ->select('stores.id', 'stores.name', 'stores.wallet')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->whereRaw('FIND_IN_SET(?, teams.rsm_id)', [$rsm_id])
+            ->where('stores.brand', $brandCode)
+            ->where('stores.status', 1)
+            ->where('stores.is_deleted', 0);
+
+        // Optional filters
+        if (!empty($distributor_id)) {
+            $query->where('teams.distributor_id', $distributor_id);
         }
-		if ($stores) {
-            return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
-		}else{
-			  return response()->json(['error' => true, 'message' => 'No data found']);
-		}
-	}
+
+        if (!empty($keyword)) {
+            $query->where(function ($subQuery) use ($keyword) {
+                $subQuery->where('stores.name', 'like', '%' . $keyword . '%')
+                        ->orWhere('stores.contact', '=', $keyword);
+            });
+        }
+
+        // Execute query
+        $stores = $query->latest('stores.id')->get();
+
+        // Return response
+        if ($stores->isNotEmpty()) {
+            return response()->json([
+                'error' => false,
+                'resp' => 'Stores fetched successfully',
+                'data' => $stores
+            ]);
+        }
+
+        return response()->json(['error' => true, 'message' => 'No data found']);
+    }
+
 
 
     public function rewardorderrsmDetail(Request $request)
@@ -4802,47 +4831,67 @@ public function aseSalesreport(Request $request)
     }
 
 
-    public function onncurrencyVP(Request $request)
-	{
-		$keyword = $_GET['keyword']?? '';
-		$distributor_id = $_GET['distributor_id']?? '';
-        $vp_id = $_GET['vp_id']?? '';
-        $brand = $_GET['brand']?? '';
+   public function onncurrencyVP(Request $request)
+    {
+        $keyword = $request->get('keyword', '');
+        $distributor_id = $request->get('distributor_id', '');
+        $vp_id = $request->get('vp_id', '');
+        $brand = $request->get('brand', '');
+
+        // Map brand names to numeric codes
         $brandMap = [
             'ONN'  => 1,
             'PYNK' => 2,
             'Both' => 3,
         ];
 
-        $brandText = $brand;
-        $brandCode = $brandMap[$brandText] ?? null;
-       
+        $brandCode = $brandMap[$brand] ?? null;
+
         if (!$brandCode) {
             return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
         }
-		if(isset($distributor_id) ||isset($keyword)||isset($vp_id)) 
-        {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$vp_id.', teams.vp_id)');
-		
-		$query->when($distributor_id, function($query) use ($distributor_id) {
-                    $query->where('teams.distributor_id', $distributor_id);
-        });
-		$query->when($keyword, function($query) use ($keyword) {
-                    $query->where('stores.name','like','%' .$keyword. '%')
-                    ->orWhere('stores.contact' ,'=',$keyword);
-        });
 
-        $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
-		}else{
-            $stores=DB::table('stores')
-            ->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$vp_id.', teams.vp_id)')->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->get();
+        if (empty($vp_id)) {
+            return response()->json(['error' => true, 'resp' => 'VP ID is required']);
         }
-		if ($stores) {
-            return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
-		}else{
-			  return response()->json(['error' => true, 'message' => 'No data found']);
-		}
-	}
+
+        // Base query
+        $query = DB::table('stores')
+            ->select('stores.id', 'stores.name', 'stores.wallet')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->whereRaw('FIND_IN_SET(?, teams.vp_id)', [$vp_id])
+            ->where('stores.brand', $brandCode)
+            ->where('stores.status', 1)
+            ->where('stores.is_deleted', 0);
+
+        // Apply filters only if present
+        if (!empty($distributor_id)) {
+            $query->where('teams.distributor_id', $distributor_id);
+        }
+
+        if (!empty($keyword)) {
+            $query->where(function($q) use ($keyword) {
+                $q->where('stores.name', 'like', '%' . $keyword . '%')
+                ->orWhere('stores.contact', '=', $keyword);
+            });
+        }
+
+        $stores = $query->latest('stores.id')->get();
+
+        if ($stores->isNotEmpty()) {
+            return response()->json([
+                'error' => false,
+                'resp' => 'Stores fetched successfully',
+                'data' => $stores
+            ]);
+        } else {
+            return response()->json([
+                'error' => true,
+                'resp' => 'No data found'
+            ]);
+        }
+    }
+
 
 
     public function rewardordervpDetail(Request $request)
@@ -5709,45 +5758,67 @@ public function aseSalesreport(Request $request)
 
 
     public function onncurrencyDistributor(Request $request)
-	{
-		$keyword = $_GET['keyword']?? '';
-		$distributor_id = $_GET['distributor_id']?? '';
-        $brand = $_GET['brand']?? '';
+    {
+        $keyword = $request->get('keyword', '');
+        $distributor_id = $request->get('distributor_id', '');
+        $brand = $request->get('brand', '');
+
+        // Brand mapping
         $brandMap = [
             'ONN'  => 1,
             'PYNK' => 2,
             'Both' => 3,
         ];
 
-        $brandText = $brand;
-        $brandCode = $brandMap[$brandText] ?? null;
-       
-        if (!$brandCode) {
-            return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
-        }
-		if(isset($distributor_id) ||isset($keyword)) 
-        {
-		$query = DB::table('stores')->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$distributor_id.', teams.distributor_id)');
-		
-		$query->when($distributor_id, function($query) use ($distributor_id) {
-                    $query->where('teams.distributor_id', $distributor_id);
-        });
-		$query->when($keyword, function($query) use ($keyword) {
-                    $query->where('stores.name','like','%' .$keyword. '%')
-                    ->orWhere('stores.contact' ,'=',$keyword);
-        });
+        $brandCode = $brandMap[$brand] ?? null;
 
-        $stores = $query->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->latest('stores.id')->get();
-		}else{
-            $stores=DB::table('stores')
-            ->select('stores.id','stores.name','stores.wallet')->join('teams', 'teams.store_id', '=', 'stores.id')->whereRaw('FIND_IN_SET('.$distributor_id.', teams.distributor_id)')->where('stores.brand',$brandCode)->where('stores.status',1)->where('stores.is_deleted',0)->get();
+        if (!$brandCode) {
+            return response()->json([
+                'error' => true,
+                'resp' => 'Invalid brand value'
+            ]);
         }
-		if ($stores) {
-            return response()->json(['error'=>false, 'resp'=>'stores fetched successfully','data'=>$stores]);
-		}else{
-			  return response()->json(['error' => true, 'message' => 'No data found']);
-		}
-	}
+
+        if (empty($distributor_id)) {
+            return response()->json([
+                'error' => true,
+                'resp' => 'Distributor ID is required'
+            ]);
+        }
+
+        // Base query
+        $query = DB::table('stores')
+            ->select('stores.id', 'stores.name', 'stores.wallet')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->whereRaw('FIND_IN_SET(?, teams.distributor_id)', [$distributor_id])
+            ->where('stores.brand', $brandCode)
+            ->where('stores.status', 1)
+            ->where('stores.is_deleted', 0);
+
+        // Apply keyword filter if provided
+        if (!empty($keyword)) {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('stores.name', 'like', '%' . $keyword . '%')
+                ->orWhere('stores.contact', '=', $keyword);
+            });
+        }
+
+        $stores = $query->latest('stores.id')->get();
+
+        if ($stores->isNotEmpty()) {
+            return response()->json([
+                'error' => false,
+                'resp' => 'Stores fetched successfully',
+                'data' => $stores
+            ]);
+        }
+
+        return response()->json([
+            'error' => true,
+            'resp' => 'No data found'
+        ]);
+    }
+
 
 
     public function rewardorderdistributorDetail(Request $request)
