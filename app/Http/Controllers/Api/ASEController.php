@@ -4971,7 +4971,7 @@ public function aseSalesreport(Request $request)
             $lastEntry = null;
             for($i=0;$i<count($colors);$i++)
             {
-                $cartExists = CartDistributor::where('product_id', $collectedData['product_id'])->where('distributor_id', $collectedData['distributor_id'])->where('color_id', $colors[$i])->where('size_id', $sizes[$i])->where('brand', $brandCode)->first();
+                $cartExists = CartDistributor::where('product_id', $collectedData['product_id'])->where('distributor_id', $collectedData['distributor_id'])->where('user_id', 0)->where('color_id', $colors[$i])->where('size_id', $sizes[$i])->where('brand', $brandCode)->first();
                 
     
                 if ($cartExists) {
@@ -4992,6 +4992,7 @@ public function aseSalesreport(Request $request)
                     $newEntry = new CartDistributor;
                    
                     $newEntry->distributor_id = $collectedData['distributor_id'] ?? null;
+                    $newEntry->user_id = 0;
                     $newEntry->order_type = $orderType;
                     $newEntry->product_id = $collectedData['product_id'];
                     $newEntry->color_id = $colors[$i];
@@ -5121,7 +5122,7 @@ public function aseSalesreport(Request $request)
         $brandCode = $brandMap[$request->brand] ?? null;
 
         // Base query
-        $query = CartDistributor::where('distributor_id', $request->distributorId)->whereHas('product')
+        $query = CartDistributor::where('distributor_id', $request->distributorId)->where('user_id', 0)->whereHas('product')
             ->with(['product', 'distributors', 'color', 'size']);
 
         // Apply brand filter
@@ -5171,7 +5172,7 @@ public function aseSalesreport(Request $request)
                 ]);
             }
             $cart_count = CartDistributor::where('distributor_id', $collectedData['distributor_id'])
-            
+            ->where('user_id',0)
             ->where('brand',$brandValue)->whereHas('product')
             ->with(['product' => function ($query) {
                 $query->where('status', 1)
@@ -5194,7 +5195,7 @@ public function aseSalesreport(Request $request)
                 $newEntry->distributor_id = $collectedData['distributor_id'];
                 $newEntry->brand = $brandValue;
                 $newEntry->order_placed_by = $collectedData['order_placed_by'];
-                //$newEntry->distributor_id = $collectedData['distributor_id'] ?? '';
+                $newEntry->user_id = 0 ?? '';
                 //$aseDetails=DB::select("select * from employees where id='".$collectedData['user_id']."'");
                 //$aseName=$aseDetails[0]->name;
                 $user=$newEntry->distributor_id;
@@ -5239,7 +5240,7 @@ public function aseSalesreport(Request $request)
                     ];
                 }
                 $orderProductsNewEntry = OrderProductDistributor::insert($orderProducts);
-                  CartDistributor::where('distributor_id', $newEntry->distributor_id)->where('user_id',$newEntry->user_id)->where('brand',$brandValue)->delete();
+                  CartDistributor::where('distributor_id', $newEntry->distributor_id)->where('user_id',0)->where('brand',$brandValue)->delete();
     
     			// notification: sender, receiver, type, route, title
                 // notification to ASE
