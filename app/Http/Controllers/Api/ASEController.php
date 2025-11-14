@@ -4276,36 +4276,28 @@ public function aseSalesreport(Request $request)
                 return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
             }
         // Build query dynamically
-        $query = RetailerOrder::select(
-                'retailer_orders.id',
-                'retailer_orders.order_no',
-                'retailer_orders.user_id',
-                'stores.name',
-                'stores.contact as mobile',
-                'retailer_orders.qty',
-                'retailer_orders.final_amount',
-                'retailer_orders.billing_address',
-                'retailer_orders.billing_landmark',
-                'retailer_orders.billing_country',
-                'retailer_orders.billing_state',
-                'retailer_orders.billing_city',
-                'retailer_orders.billing_pin',
-                'retailer_orders.status',
-                'retailer_orders.asm_approval',
-                'retailer_orders.rsm_approval',
-                'retailer_orders.vp_approval',
-                'retailer_orders.distributor_approval',
-                'retailer_orders.distributor_note',
-                'retailer_orders.created_at',
-                'reward_order_products.product_name',
-                'reward_order_products.qty as product_qty',
-                'retailer_orders.brand',
-                'reward_order_products.points as product_points'
-            )
-            ->join('reward_order_products', 'retailer_orders.id', '=', 'reward_order_products.order_id')
+        $query = RetailerOrder::select('retailer_orders.*')->with([
+                'user' => function ($q) {
+                    $q->where('status', 1)->where('is_deleted', 0);
+                },
+                'orderProduct' => function ($q) {
+                    $q->whereHas('product', function ($p) {
+                            $p->where('status', 1)->where('is_deleted', 0);
+                        })
+                        ->with([
+                            'product' => function ($p) {
+                                $p->where('status', 1)->where('is_deleted', 0);
+                            }
+                        ]);
+                }
+            ])
+            
             ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
-            ->whereRaw("FIND_IN_SET(?, teams.rsm_id)", [$rsmId]);
+            ->whereRaw("FIND_IN_SET(?, teams.rsm_id)", [$rsmId])
+            ->where('stores.status', 1)                         // ✅ active stores only
+            ->where('stores.is_deleted', 0)
+            ->where('teams.is_deleted', 0);
 
         // Optional brand filter
         if (!empty($brand)) {
@@ -4324,10 +4316,16 @@ public function aseSalesreport(Request $request)
 
         $data = $query->get();
 
+         $filtered = $data->filter(function ($order) {
+            return $order->user &&
+                $order->user->status == 1 &&
+                $order->user->is_deleted == 0 &&
+                $order->orderProduct->isNotEmpty();
+                })->values();
         return response()->json([
             'error' => false,
             'message' => 'Product orders with quantity and brand filter',
-            'data' => $data,
+            'data' => $filtered,
         ]);
     }
 
@@ -4932,36 +4930,27 @@ public function aseSalesreport(Request $request)
                 return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
             }
         // Build query dynamically
-        $query = RetailerOrder::select(
-                'retailer_orders.id',
-                'retailer_orders.order_no',
-                'retailer_orders.user_id',
-                'stores.name',
-                'stores.contact as mobile',
-                'retailer_orders.qty',
-                'retailer_orders.final_amount',
-                'retailer_orders.billing_address',
-                'retailer_orders.billing_landmark',
-                'retailer_orders.billing_country',
-                'retailer_orders.billing_state',
-                'retailer_orders.billing_city',
-                'retailer_orders.billing_pin',
-                'retailer_orders.status',
-                'retailer_orders.asm_approval',
-                'retailer_orders.rsm_approval',
-                'retailer_orders.vp_approval',
-                'retailer_orders.distributor_approval',
-                'retailer_orders.distributor_note',
-                'retailer_orders.created_at',
-                'reward_order_products.product_name',
-                'reward_order_products.qty as product_qty',
-                'retailer_orders.brand',
-                'reward_order_products.points as product_points'
-            )
-            ->join('reward_order_products', 'retailer_orders.id', '=', 'reward_order_products.order_id')
+        $query = RetailerOrder::select('retailer_orders.*')->with([
+                'user' => function ($q) {
+                    $q->where('status', 1)->where('is_deleted', 0);
+                },
+                'orderProduct' => function ($q) {
+                    $q->whereHas('product', function ($p) {
+                            $p->where('status', 1)->where('is_deleted', 0);
+                        })
+                        ->with([
+                            'product' => function ($p) {
+                                $p->where('status', 1)->where('is_deleted', 0);
+                            }
+                        ]);
+                }
+            ])
             ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
-            ->whereRaw("FIND_IN_SET(?, teams.vp_id)", [$vpId]);
+            ->whereRaw("FIND_IN_SET(?, teams.vp_id)", [$vpId])
+            ->where('stores.status', 1)
+            ->where('stores.is_deleted', 0)
+            ->where('teams.is_deleted', 0);
 
         // Optional brand filter
         if (!empty($brand)) {
@@ -4980,10 +4969,16 @@ public function aseSalesreport(Request $request)
 
         $data = $query->get();
 
+         $filtered = $data->filter(function ($order) {
+            return $order->user &&
+               $order->user->status == 1 &&
+               $order->user->is_deleted == 0 &&
+               $order->orderProduct->isNotEmpty();
+                })->values();
         return response()->json([
             'error' => false,
             'message' => 'Product orders with quantity and brand filter',
-            'data' => $data,
+            'data' => $filtered,
         ]);
     }
 
@@ -5859,36 +5854,27 @@ public function aseSalesreport(Request $request)
                 return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
             }
         // Build query dynamically
-        $query = RetailerOrder::select(
-                'retailer_orders.id',
-                'retailer_orders.order_no',
-                'retailer_orders.user_id',
-                'stores.name',
-                'stores.contact as mobile',
-                'retailer_orders.qty',
-                'retailer_orders.final_amount',
-                'retailer_orders.billing_address',
-                'retailer_orders.billing_landmark',
-                'retailer_orders.billing_country',
-                'retailer_orders.billing_state',
-                'retailer_orders.billing_city',
-                'retailer_orders.billing_pin',
-                'retailer_orders.status',
-                'retailer_orders.asm_approval',
-                'retailer_orders.rsm_approval',
-                'retailer_orders.vp_approval',
-                'retailer_orders.distributor_approval',
-                'retailer_orders.distributor_note',
-                'retailer_orders.created_at',
-                'reward_order_products.product_name',
-                'reward_order_products.qty as product_qty',
-                'retailer_orders.brand',
-                'reward_order_products.points as product_points'
-            )
-            ->join('reward_order_products', 'retailer_orders.id', '=', 'reward_order_products.order_id')
+        $query = RetailerOrder::with([
+                'user' => function ($q) {
+                    $q->where('status', 1)->where('is_deleted', 0);
+                },
+                'orderProduct' => function ($q) {
+                    $q->whereHas('product', function ($p) {
+                            $p->where('status', 1)->where('is_deleted', 0);
+                        })
+                        ->with([
+                            'product' => function ($p) {
+                                $p->where('status', 1)->where('is_deleted', 0);
+                            }
+                        ]);
+                }
+            ])
             ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
-            ->whereRaw("FIND_IN_SET(?, teams.distributor_id)", [$distributorId]);
+            ->whereRaw("FIND_IN_SET(?, teams.distributor_id)", [$distributorId])
+            ->where('stores.status', 1)
+            ->where('stores.is_deleted', 0)
+            ->where('teams.is_deleted', 0);
 
         // Optional brand filter
         if (!empty($brand)) {
@@ -5907,10 +5893,17 @@ public function aseSalesreport(Request $request)
 
         $data = $query->get();
 
+         $filtered = $data->filter(function ($order) {
+            return $order->user &&
+                $order->user->status == 1 &&
+                $order->user->is_deleted == 0 &&
+                $order->orderProduct->isNotEmpty();
+            })->values();
+
         return response()->json([
             'error' => false,
             'message' => 'Product orders with quantity and brand filter',
-            'data' => $data,
+            'data' => $filtered,
         ]);
     }
 
