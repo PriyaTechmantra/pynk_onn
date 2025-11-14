@@ -77,9 +77,9 @@
                                             <p><strong>Booking Place:</strong> <u>{{ $data->distributors->city ? $data->distributors->city : $data->distributors->areas->name }}</u></p>
                                         @endif
 										@if(!empty($data->users))
-                                        <p style="margin-bottom:0;"><strong>ASE:</strong> <u>{{$data->users ? $data->users->name : ''}}</u></p>
+                                        <p style="margin-bottom:0;"><strong>Order By:</strong> <u>{{$data->users ? $data->users->name : ''}}</u></p>
 										@else
-										<p style="margin-bottom:0;"><strong>ASE:</strong> <u>{{$data->users ? $data->users->name : ''}}</u></p>
+										<p style="margin-bottom:0;"><strong>Order By:</strong> <u>{{$data->distributors ? $data->distributors->name : ''}}</u></p>
 										@endif
                                     </div>
                                 </div>

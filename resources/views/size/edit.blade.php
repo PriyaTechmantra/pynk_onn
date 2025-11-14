@@ -13,6 +13,34 @@
                 </ul>
                 @endif
 
+
+                @php
+                            $assignedPermissions = DB::table('user_permission_categories')
+                            ->select('user_permission_categories.*')
+                            ->join('users','users.id','=','user_permission_categories.user_id')
+                            ->where('user_permission_categories.user_id', Auth::user()->id)
+                            ->get();
+
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+                            // Check conditions
+                                if (in_array(3, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } else {
+                                    $brandPermissions = collect($brands)
+                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                        ->implode(', ');
+                                }
+                                @endphp
+
                 <div class="card data-card">
                     <div class="card-header">
                         <h4 class="d-flex">Edit Size
@@ -33,27 +61,48 @@
                                         @error('title') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     
-                                    <div class="form-group mb-3">
-                                        <label class="label-control">
-                                            Brand Permission:
-                                        </label>
-                                            <div class="form-check">
-                                                <input type="checkbox" id="brandOnn" value="1" onchange="updateBrandValue()" 
-                                                    @checked(old('brand', $data->brand ?? '') == 1 )>
-                                                <label class="form-check-label" for="brandOnn">Onn</label>
+                                    @if($brandPermissions=='Both')
+                                        <div class="mb-3">
+                                            <!-- Communication Medium -->
+                                            <h6>Brand Permission:  <span class="text-danger">*</span></h6>
+                                             @error('brand') <p class="small text-danger">{{ $message }}</p> @enderror
+                                             <div class="form-check">
+                                                <input 
+                                                    class="form-check-input medium-checkbox" 
+                                                    type="checkbox" 
+                                                    name="brand" 
+                                                    value="1" 
+                                                    id="mediumOnn"
+                                                    onchange="checkOnlyOne(this)"
+                                                >
+                                                <label class="form-check-label" for="mediumOnn">Onn</label>
                                             </div>
+
                                             <div class="form-check">
-                                                <input type="checkbox" id="brandPynk" value="2" onchange="updateBrandValue()" 
-                                                    @checked(old('brand', $data->brand ?? '') == 2)>
-                                                <label class="form-check-label" for="brandPynk">Pynk</label>
+                                                <input 
+                                                    class="form-check-input medium-checkbox" 
+                                                    type="checkbox" 
+                                                    name="brand" 
+                                                    value="2" 
+                                                    id="mediumPynk"
+                                                    onchange="checkOnlyOne(this)"
+                                                >
+                                                <label class="form-check-label" for="mediumPynk">Pynk</label>
                                             </div>
+
                                             <div class="form-check">
-                                                <input type="checkbox" id="brandBoth" value="3" onchange="updateBrandValue()" 
-                                                    @checked(old('brand', $data->brand ?? '') == 3)>
-                                                <label class="form-check-label" for="brandBoth">Both</label>
+                                                <input 
+                                                    class="form-check-input medium-checkbox" 
+                                                    type="checkbox" 
+                                                    name="brand" 
+                                                    value="3" 
+                                                    id="mediumBoth"
+                                                    onchange="checkOnlyOne(this)"
+                                                >
+                                                <label class="form-check-label" for="mediumBoth">Both</label>
                                             </div>
-                                        <input type="hidden" name="brand" id="brandValue" value="{{$data->brand}}">
-                                    </div>
+                                        </div>
+                                        @endcan
 
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-sm btn-danger">Update Size</button>
@@ -98,4 +147,32 @@
         }
     }
 </script>
+
+<script>
+    function checkOnlyOne(checkbox) {
+        const checkboxes = document.querySelectorAll('.medium-checkbox');
+        checkboxes.forEach(cb => {
+            if (cb !== checkbox) cb.checked = false;
+        });
+
+        // ✅ Prevent form submission if none is selected
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const selected = document.querySelector('.medium-checkbox:checked');
+        if (!selected) {
+            e.preventDefault();
+            Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: 'Please select a brand permission before submitting.',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        }
+    });
+    }
+
+    
+    </script>
 @endsection
