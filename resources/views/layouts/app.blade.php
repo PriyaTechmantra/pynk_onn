@@ -211,9 +211,9 @@
                         <li class="{{ request()->is('reward/qrcode*') ? 'active' : '' }}">
                             <a href="{{ route('reward.retailer.barcode.index') }}"><i class="fi fi-br-box"></i> <span>Qrcode</span></a>
                         </li>
-                        <!-- <li class="{{ request()->is('reward/qrcode/redeem*') ? 'active' : '' }}">
+                        <li class="{{ request()->is('reward/qrcode/redeem*') ? 'active' : '' }}">
                             <a href="{{ route('reward.qrcode.redeem.index') }}"><i class="fi fi-br-box"></i> <span>Qrcode redeem History</span></a>
-                        </li> -->
+                        </li>
 						<li class="{{ ( request()->is('admin/reward/qrcode/redeem/retailer/wise/report*') ) ? 'active' : '' }}">
                             <a href="{{ route('reward.qrcode.redeem.retailer.wise.report') }}"><i class="fi fi-br-database"></i> <span>Retailer wise report</span></a>
                         </li>
