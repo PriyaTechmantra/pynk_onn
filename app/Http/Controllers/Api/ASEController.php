@@ -2963,7 +2963,7 @@ public function aseSalesreport(Request $request)
         }
 
         // 🔹 MAIN QUERY
-        $query = RetailerOrder::with([
+        $query = RetailerOrder::select('retailer_orders.*')->with([
                 'user' => function ($q) {
                     $q->where('status', 1)->where('is_deleted', 0);
                 },
