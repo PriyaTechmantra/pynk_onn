@@ -3005,15 +3005,14 @@ public function aseSalesreport(Request $request)
         // 🔹 Execute
         $orders = $query->orderByDesc('retailer_orders.id')
             ->get();
-        dd($orders);
+        
         // 🔹 Filter orders that have:
         //    - Active store
         //    - At least one active product
         $filtered = $orders->filter(function ($order) {
             return $order->user &&
                 $order->user->status == 1 &&
-                $order->user->is_deleted == 0 &&
-                $order->orderProduct->isNotEmpty();
+                $order->user->is_deleted == 0;
         })->values();
 
         return response()->json([
