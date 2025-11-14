@@ -3004,11 +3004,7 @@ public function aseSalesreport(Request $request)
 
         // 🔹 Execute
         $orders = $query->orderByDesc('retailer_orders.id')
-            ->get([
-                'retailer_orders.*',
-                'stores.name',
-                'stores.contact as mobile'
-            ]);
+            ->get();
 
         // 🔹 Filter orders that have:
         //    - Active store
@@ -3022,7 +3018,7 @@ public function aseSalesreport(Request $request)
 
         return response()->json([
             'error' => false,
-            'message' => 'ASE Order Details Loaded',
+            'message' => 'Product orders with quantity and brand filter',
             'data' => $filtered,
         ]);
     }
