@@ -198,34 +198,51 @@
                 </li>
                 @endif
 
-               
-                 <li class="{{ request()->is('reward*') ? 'active' : '' }}">
+                @if($user->can('view new store registration') || $user->can('view store login count') || $user->can('view reward product')|| $user->can('view reward qrcode')|| $user->can('view qrcode redeem history')|| $user->can('view retailer wise transaction report')|| $user->can('view retailer wise scan report monthly')|| $user->can('view retailer order')|| $user->can('view retailer terms'))
+                <li class="{{ request()->is('reward*') ? 'active' : '' }}">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Reward App</span></a>
                     <ul>
-                	    <li class="{{ ( request()->is('reward/retailer/user*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.index')}}"><i class="fi fi-br-database"></i> <span>New Store Registration Request</span></a></li> 
+                        @can('view new store registration')
+                	    <li class="{{ ( request()->is('reward/retailer/user*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.index')}}"><i class="fi fi-br-database"></i> <span>New Store Registration Request</span></a>
+                        </li> 
+                        @endcan
+                        @can('view store login count')
                 	    <li class="{{ ( request()->is('reward/retailer/user/login*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.loginCount')}}"><i class="fi fi-br-database"></i> <span>Store Login Count</span></a></li> 
-
+                        @endcan
+                        @can('view reward product')
                         <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
                             <a href="{{ route('reward.retailer.product.index') }}"><i class="fi fi-br-box"></i> <span>Product</span></a>
                         </li>
+                        @endcan
+                        @can('view reward qrcode')
                         <li class="{{ request()->is('reward/qrcode*') ? 'active' : '' }}">
                             <a href="{{ route('reward.retailer.barcode.index') }}"><i class="fi fi-br-box"></i> <span>Qrcode</span></a>
                         </li>
+                        @endcan
+                        @can('view qrcode redeem history')
                         <li class="{{ request()->is('reward/qrcode/redeem*') ? 'active' : '' }}">
                             <a href="{{ route('reward.qrcode.redeem.index') }}"><i class="fi fi-br-box"></i> <span>Qrcode redeem History</span></a>
                         </li>
+                        @endcan
+                        @can('view retailer wise transaction report')
 						<li class="{{ ( request()->is('admin/reward/qrcode/redeem/retailer/wise/report*') ) ? 'active' : '' }}">
                             <a href="{{ route('reward.qrcode.redeem.retailer.wise.report') }}"><i class="fi fi-br-database"></i> <span>Retailer wise report</span></a>
                         </li>
+                        @endcan
+                        @can('view retailer wise scan report monthly')
                         <li class="{{ ( request()->is('admin/reward/qrcode/redeem/retailer/scan/report/monthly*') ) ? 'active' : '' }}">
                             <a href="{{ route('reward.qrcode.redeem.retailer.scan.report') }}"><i class="fi fi-br-database"></i> <span>Retailer wise scan report monthly</span></a>
                         </li>
-                        
+                        @endcan
+                        @can('view retailer order')
                         <li class="{{ ( request()->is('reward/order*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.order.index') }}"><i class="fi fi-br-database"></i> <span>Order</span></a></li> 
+                        @endcan
+                        @can('view retailer terms')
                         <li class="{{ ( request()->is('reward/terms*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.terms.index') }}"><i class="fi fi-br-database"></i> <span>Terms & Condition</span></a></li> 
-
+                        @endcan
                     </ul>
                 </li>
+                @endif
             </ul>
         </nav>
          <div class="nav__footer">
