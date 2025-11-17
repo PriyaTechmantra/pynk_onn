@@ -26,6 +26,8 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\RetailerUserController;
+use App\Http\Controllers\BarcodeController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -280,19 +282,20 @@ Route::group(['middleware' => ['auth']], function() {
     Route::prefix('reward')->name('reward.')->group(function () {
         Route::prefix('/user')->name('retailer.user.')->group(function () {
             Route::get('/', [RetailerUserController::class, 'index'])->name('index');
-            Route::get('/create', [RetailerUserController::class, 'create'])->name('create');
-            Route::post('/store', [RetailerUserController::class, 'store'])->name('store');
+            // Route::get('/create', [RetailerUserController::class, 'create'])->name('create');
+            // Route::post('/store', [RetailerUserController::class, 'store'])->name('store');
             Route::get('/{id}/view', [RetailerUserController::class, 'show'])->name('view');
             Route::get('/{id}/edit', [RetailerUserController::class, 'edit'])->name('edit');
             Route::post('/{id}/update', [RetailerUserController::class, 'update'])->name('update');
             Route::get('/{id}/status', [RetailerUserController::class, 'status'])->name('status');
-            Route::get('/{id}/verification', [RetailerUserController::class, 'verification'])->name('verification');
             Route::get('/{id}/delete', [RetailerUserController::class, 'destroy'])->name('delete');
-        	Route::get('/export/csv', [RetailerUserController::class, 'exportCSV'])->name('export.csv');
-			Route::get('/login/count', [RetailerUserController::class, 'loginCount'])->name('login.count');
-			Route::get('/login/count/export/csv', [RetailerUserController::class, 'loginCountexportCSV'])->name('login.count.export.csv');
+        	Route::get('/exportCSV', [RetailerUserController::class, 'exportCSV'])->name('exportCSV');
+
+            // Route::get('/{id}/verification', [RetailerUserController::class, 'verification'])->name('verification');
+			Route::get('/login/Count', [RetailerUserController::class, 'loginCount'])->name('loginCount');
+			Route::get('/login/count/export/csv', [RetailerUserController::class, 'loginCountexportCSV'])->name('loginCountExportCSV');
 			Route::get('/login/store/count/{state}', [RetailerUserController::class, 'loginStoreCount'])->name('login.store.count');
-			Route::get('/login/store/count/export/csv/{state}', [RetailerUserController::class, 'loginStoreCountCsv'])->name('login.store.export.csv');
+			Route::get('/login/store/count/export/csv/{state}', [RetailerUserController::class, 'loginStoreCountCsv'])->name('loginStoreCountCsv');
         });
 		    // product
         Route::prefix('/product')->name('retailer.product.')->group(function () {

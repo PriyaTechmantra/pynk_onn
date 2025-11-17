@@ -199,17 +199,33 @@
                 @endif
 
                
-                 {{--<li class="{{ request()->is('reward*') ? 'active' : '' }}">
+                 <li class="{{ request()->is('reward*') ? 'active' : '' }}">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Reward App</span></a>
                     <ul>
+                	    <li class="{{ ( request()->is('reward/retailer/user*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.index')}}"><i class="fi fi-br-database"></i> <span>New Store Registration Request</span></a></li> 
+                	    <li class="{{ ( request()->is('reward/retailer/user/login*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.loginCount')}}"><i class="fi fi-br-database"></i> <span>Store Login Count</span></a></li> 
+
                         <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
                             <a href="{{ route('reward.retailer.product.index') }}"><i class="fi fi-br-box"></i> <span>Product</span></a>
                         </li>
-                	<li class="{{ ( request()->is('reward/order*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.order.index') }}"><i class="fi fi-br-database"></i> <span>Order</span></a></li> 
-                	<li class="{{ ( request()->is('reward/terms*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.terms.index') }}"><i class="fi fi-br-database"></i> <span>Terms & Condition</span></a></li> 
+                        <li class="{{ request()->is('reward/qrcode*') ? 'active' : '' }}">
+                            <a href="{{ route('reward.retailer.barcode.index') }}"><i class="fi fi-br-box"></i> <span>Qrcode</span></a>
+                        </li>
+                        <li class="{{ request()->is('reward/qrcode/redeem*') ? 'active' : '' }}">
+                            <a href="{{ route('reward.qrcode.redeem.index') }}"><i class="fi fi-br-box"></i> <span>Qrcode redeem History</span></a>
+                        </li>
+						<li class="{{ ( request()->is('admin/reward/qrcode/redeem/retailer/wise/report*') ) ? 'active' : '' }}">
+                            <a href="{{ route('reward.qrcode.redeem.retailer.wise.report') }}"><i class="fi fi-br-database"></i> <span>Retailer wise report</span></a>
+                        </li>
+                        <li class="{{ ( request()->is('admin/reward/qrcode/redeem/retailer/scan/report/monthly*') ) ? 'active' : '' }}">
+                            <a href="{{ route('reward.qrcode.redeem.retailer.scan.report') }}"><i class="fi fi-br-database"></i> <span>Retailer wise scan report monthly</span></a>
+                        </li>
+                        
+                        <li class="{{ ( request()->is('reward/order*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.order.index') }}"><i class="fi fi-br-database"></i> <span>Order</span></a></li> 
+                        <li class="{{ ( request()->is('reward/terms*') ) ? 'active' : '' }}"><a href="{{ route('reward.retailer.terms.index') }}"><i class="fi fi-br-database"></i> <span>Terms & Condition</span></a></li> 
 
                     </ul>
-                </li>--}}
+                </li>
             </ul>
         </nav>
          <div class="nav__footer">
