@@ -227,29 +227,39 @@
 </script>
 
 <script>
-    function checkOnlyOne(checkbox) {
-        const checkboxes = document.querySelectorAll('.medium-checkbox');
-        checkboxes.forEach(cb => {
-            if (cb !== checkbox) cb.checked = false;
-        });
-    }
+function checkOnlyOne(checkbox) {
+    const checkboxes = document.querySelectorAll('.medium-checkbox');
+    checkboxes.forEach(cb => {
+        if (cb !== checkbox) cb.checked = false;
+    });
+}
 
-    // ✅ Prevent form submission if none is selected
-    document.querySelector('form').addEventListener('submit', function (e) {
-        const selected = document.querySelector('.medium-checkbox:checked');
-        if (!selected) {
-            e.preventDefault();
-            Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'warning',
-            title: 'Please select a brand permission before submitting.',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true
-        });
+// ✅ Show toast only if brand section is visible & none selected
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    if (!form) return; // safety check
+
+    form.addEventListener('submit', function (e) {
+        const brandBlock = document.getElementById('brandPermissionBlock');
+
+        // ✅ Only run validation if the block exists
+        if (brandBlock) {
+            const selected = document.querySelector('.medium-checkbox:checked');
+            if (!selected) {
+                e.preventDefault();
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'warning',
+                    title: 'Please select a brand permission before submitting.',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
         }
     });
-    </script>
+});
+</script>
 @endsection
 

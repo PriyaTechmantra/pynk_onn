@@ -223,3 +223,5 @@ Route::get('store/onn/currency/distributor', [ASEController::class, 'onncurrency
 Route::post('store/reward/order/detail/distributor', [ASEController::class, 'rewardorderdistributorDetail']);
 //order approval 
 Route::post('store/reward/order/status/distributor', [ASEController::class, 'rewardorderdistributorStatus']);
+
+Route::get('distributor/store/list', [ASEController::class, 'distributorstoreList']);

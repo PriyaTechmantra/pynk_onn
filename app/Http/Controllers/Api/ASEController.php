@@ -5418,40 +5418,26 @@ public function aseSalesreport(Request $request)
          DB::enableQueryLog();
         if (!$validator->fails()) {
          $store_id = $request->store_id;
-		 $dis_range=DB::table('distributor_ranges')->where('distributor_id',$request->distributor_id)->get();
-		 $coll_array= array();	
-		 $product_arr= array();	
-		foreach($dis_range as $lang)
-        {
-            array_push($coll_array, $lang->collection_id);
-			
-        }
-			$product_collection=Product::select('id')->whereIN('collection_id',$coll_array)->get();
-		foreach($product_collection as $obj)
-       {
-             array_push($product_arr, $obj->id);
-           
-          
-       }
+		
 		if ( !empty($request->date_from)) {
 		 			if (!empty($request->date_from)) {
                         $date = date('Y-m-d', strtotime($request->date_from));
                     } else {
                         $date = date('Y-m-d');
                     }
-        $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->whereDate('created_at', '=', $date)->get();
-				if(!empty($resp)){
-					foreach($resp as $item){
-						$orderProduct = OrderProduct::where('order_id',$item->id)->whereIN('product_id',$product_arr)->with('color','size','product')->get();
-						$item->orderProduct =$orderProduct;
-					}
-			  	}
+                $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->where('distributor_id',$request->distributor_id)->whereDate('created_at', '=', $date)->get();
+                    if(!empty($resp)){
+                        foreach($resp as $item){
+                            $orderProduct = OrderProduct::where('order_id',$item->id)->with('color','size','product')->get();
+                            $item->orderProduct =$orderProduct;
+                        }
+                    }
 
 		}else{
-			 $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->whereDate('created_at', '=', Carbon::now())->get();
+			 $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->where('distributor_id',$request->distributor_id)->whereDate('created_at', '=', Carbon::now())->get();
 			if(!empty($resp)){
 					foreach($resp as $item){
-						$orderProduct = OrderProduct::where('order_id',$item->id)->whereIN('product_id',$product_arr)->with('color','size','product')->get();
+						$orderProduct = OrderProduct::where('order_id',$item->id)->with('color','size','product')->get();
 						$item->orderProduct =$orderProduct;
 					}
 			  	}
@@ -5558,21 +5544,7 @@ public function aseSalesreport(Request $request)
          DB::enableQueryLog();
         if (!$validator->fails()) {
           $store_id = $request->store_id;
-		  $dis_range=DB::table('distributor_ranges')->where('distributor_id',$request->distributor_id)->get();
-		  $coll_array= array();	
-		  $product_arr= array();	
-		foreach($dis_range as $lang)
-        {
-            array_push($coll_array, $lang->collection_id);
-			
-        }
-			$product_collection=Product::select('id')->whereIN('collection_id',$coll_array)->get();
-		foreach($product_collection as $obj)
-       {
-             array_push($product_arr, $obj->id);
-           
-          
-       }
+		  
         if (!empty($request->date_from)) {
             $from = date('Y-m-d', strtotime($request->date_from));
         } else {
@@ -5586,19 +5558,19 @@ public function aseSalesreport(Request $request)
         }
 		if ( !empty($request->date_from) || !empty($request->date_to) ) {
 		 			
-				$data = OrderProduct::select('order_products.qty','orders.order_no','order_products.product_name', 'order_products.product_id', 'products.style_no', 'products.style_no','order_products.size','colors.name AS color','stores.store_name','retailer_list_of_occ.ase','retailer_list_of_occ.asm','retailer_list_of_occ.rsm','retailer_list_of_occ.vp','retailer_list_of_occ.state','retailer_list_of_occ.area','stores.pin','orders.created_at')
-                        ->join('colors', 'colors.id', '=', 'order_products.color')->join('products', 'products.id', '=', 'order_products.product_id')->join('orders', 'orders.id', '=', 'order_products.order_id')->join('stores', 'stores.id', '=', 'orders.store_id')->join('retailer_list_of_occ', 'retailer_list_of_occ.store_id', '=', 'stores.id')
-						 ->where('orders.store_id',$store_id)->whereIN('order_products.product_id',$product_arr)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
+				$data = OrderProduct::select('order_products.qty','orders.order_no','order_products.product_name', 'order_products.product_id', 'products.style_no', 'products.style_no','order_products.size_id','colors.name AS color','stores.name','teams.ase_id','teams.asm_id','teams.rsm_id','teams.vp_id','teams.state_id','teams.area_id','stores.pin','orders.created_at')
+                        ->join('colors', 'colors.id', '=', 'order_products.color_id')->join('products', 'products.id', '=', 'order_products.product_id')->join('orders', 'orders.id', '=', 'order_products.order_id')->join('stores', 'stores.id', '=', 'orders.store_id')->join('teams', 'teams.store_id', '=', 'stores.id')
+						 ->where('orders.store_id',$store_id)->where('orders.distributor_id',$request->distributor_id)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
         } else{
-            $data = OrderProduct::select('order_products.qty','orders.order_no','order_products.product_name', 'order_products.product_id', 'products.style_no', 'products.style_no','order_products.size','colors.name','stores.store_name','retailer_list_of_occ.ase','retailer_list_of_occ.asm','retailer_list_of_occ.rsm','retailer_list_of_occ.vp','retailer_list_of_occ.state','retailer_list_of_occ.area','stores.pin','orders.created_at')
-                        ->join('colors', 'colors.id', '=', 'order_products.color')->join('products', 'products.id', '=', 'order_products.product_id')->join('orders', 'orders.id', '=', 'order_products.order_id')->join('stores', 'stores.id', '=', 'orders.store_id')->join('retailer_list_of_occ', 'retailer_list_of_occ.store_id', '=', 'stores.id')
-						 ->where('orders.store_id',$store_id)->whereIN('order_products.product_id',$product_arr)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
+            $data = OrderProduct::select('order_products.qty','orders.order_no','order_products.product_name', 'order_products.product_id', 'products.style_no', 'products.style_no','order_products.size_id','colors.name','stores.name','teams.ase_id','teams.asm_id','teams.rsm_id','teams.vp_id','teams.state_id','teams.area_id','stores.pin','orders.created_at')
+                        ->join('colors', 'colors.id', '=', 'order_products.color_id')->join('products', 'products.id', '=', 'order_products.product_id')->join('orders', 'orders.id', '=', 'order_products.order_id')->join('stores', 'stores.id', '=', 'orders.store_id')->join('teams', 'teams.store_id', '=', 'stores.id')
+						 ->where('orders.store_id',$store_id)->where('orders.distributor_id',$request->distributor_id)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
         }    
 			
         
         if (count($data) > 0) {
             $delimiter = ",";
-            $filename = "onn-secondary-order-".date('Y-m-d').".csv";
+            $filename = "secondary-order-".date('Y-m-d').".csv";
 
             // Create a file pointer
             $f = fopen('php://memory', 'w');
@@ -5612,9 +5584,45 @@ public function aseSalesreport(Request $request)
             foreach($data as $row) {
                 $datetime = date('j F, Y h:i A', strtotime($row['created_at']));
 
-                $store = Store::select('store_name')->where('id', $row['store_id'])->first();
-                $ase = User::select('name', 'mobile', 'state', 'city', 'pin')->where('id', $row['user_id'])->first();
+                $store = Store::select('name')->where('id', $row['store_id'])->with('state','area')->first();
+                $size = Size::where('id', $row['size_id'])->first();
 
+                $displayASEName = '';
+                foreach(explode(',',$store->user_id) as $aseKey => $aseVal) 
+                {
+                    //dd($distVal);
+                    $catDetails = DB::table('employees')->where('id', $aseVal)->first();
+                    if(!empty($catDetails)){
+                    $displayASEName .= $catDetails->name.',';
+                    }
+                }
+                $displayASMName = '';
+                foreach(explode(',',$row->asm_id) as $asmKey => $asmVal) 
+                {
+                    //dd($distVal);
+                    $catDetails = DB::table('employees')->where('id', $asmVal)->first();
+                    if(!empty($catDetails)){
+                    $displayASMName .= $catDetails->name.',';
+                    }
+                }
+                $displayRSMName = '';
+                foreach(explode(',',$row->rsm_id) as $rsmKey => $rsmVal) 
+                {
+                    //dd($distVal);
+                    $catDetails = DB::table('employees')->where('id', $rsmVal)->first();
+                    if(!empty($catDetails)){
+                    $displayRSMName .= $catDetails->name.',';
+                    }
+                }
+                $displayVPName = '';
+                foreach(explode(',',$row->vp_id) as $vpKey => $vpVal) 
+                {
+                    //dd($distVal);
+                    $catDetails = DB::table('employees')->where('id', $vpVal)->first();
+                    if(!empty($catDetails)){
+                    $displayVPName .= $catDetails->name.',';
+                    }
+                }
                 // dd($store->store_name, $ase->name, $ase->mobile);
 
                 $lineData = array(
@@ -5623,16 +5631,16 @@ public function aseSalesreport(Request $request)
                     $row->product_name,
                     $row->style_no,
                     $row->color,
-                    $row->size,
+                    $size->name,
                     $row->qty,
-                    $row->store_name ?? '',
-                    $row->ase ?? '',
-                    $row->asm ?? '',
-                    $row->rsm ?? '',
-                    $row->vp ?? '',
-                    $row->state ?? '',
-                    $row->area ?? '',
-                    $row->pin ?? '',
+                    $store->name ?? '',
+                    substr($displayASEName, 0, -1) ? substr($displayASEName,0, -1) : 'NA',
+                    substr($displayASMName, 0, -1) ? substr($displayASMName,0, -1) : 'NA',
+                    substr($displayRSMName, 0, -1) ? substr($displayRSMName,0, -1) : 'NA',
+                    substr($displayVPName, 0, -1) ? substr($displayVPName,0, -1) : 'NA',
+                    $store->state->name ?? '',
+                    $store->area->name ?? '',
+                    $store->pin ?? '',
                     
                     $datetime
                 );
@@ -5938,6 +5946,49 @@ public function aseSalesreport(Request $request)
             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
     }
+
+
+
+    public function distributorstoreList(Request $request)
+    {
+		$distributor = $_GET['distributor_id'];
+        
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
+
+		
+		$stores = Store::join('teams', 'stores.id', '=', 'teams.store_id')->where('teams.distributor_id',$distributor)->where('stores.status',1)->where('stores.is_deleted',0)->with('state','area','user')->get();
+		
+	
+        if ($stores->isNotEmpty()) {
+            // Transform brand values
+            $stores = $stores->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                return $store;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Store data fetched successfully',
+                'data'    => $stores,
+            ], 200);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No store data found',
+            ], 404);
+        }
+    }
+
+
+
+
+
+
+
 
 
 
