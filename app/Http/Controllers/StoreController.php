@@ -31,6 +31,7 @@ class StoreController extends Controller
      */
     public function index(Request $request)
     {
+        
         $user = auth()->user();
         $userBrands = DB::table('user_permission_categories')
                 ->where('user_id', Auth::id())

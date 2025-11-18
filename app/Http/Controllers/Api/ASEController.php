@@ -5413,10 +5413,18 @@ public function aseSalesreport(Request $request)
             'store_id' => ['required'],
             'date_from' => ['nullable'],
 			'distributor_id' => ['required'],
+            'brand' => ['required'],
            
         ]);
          DB::enableQueryLog();
         if (!$validator->fails()) {
+            $brandMap = [
+                'ONN' => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+         $brandCode = $brandMap[$request->brand] ?? null;
          $store_id = $request->store_id;
 		
 		if ( !empty($request->date_from)) {
@@ -5425,7 +5433,7 @@ public function aseSalesreport(Request $request)
                     } else {
                         $date = date('Y-m-d');
                     }
-                $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->where('distributor_id',$request->distributor_id)->whereDate('created_at', '=', $date)->get();
+                $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->where('distributor_id',$request->distributor_id)->where('brand',$brandCode)->whereDate('created_at', '=', $date)->get();
                     if(!empty($resp)){
                         foreach($resp as $item){
                             $orderProduct = OrderProduct::where('order_id',$item->id)->with('color','size','product')->get();
@@ -5434,7 +5442,7 @@ public function aseSalesreport(Request $request)
                     }
 
 		}else{
-			 $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->where('distributor_id',$request->distributor_id)->whereDate('created_at', '=', Carbon::now())->get();
+			 $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->where('distributor_id',$request->distributor_id)->where('brand',$brandCode)->whereDate('created_at', '=', Carbon::now())->get();
 			if(!empty($resp)){
 					foreach($resp as $item){
 						$orderProduct = OrderProduct::where('order_id',$item->id)->with('color','size','product')->get();

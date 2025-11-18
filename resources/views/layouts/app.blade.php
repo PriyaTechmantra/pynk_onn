@@ -298,12 +298,7 @@
                 $('.select2').select2();
             });
 
-            function checkOnlyOne(checkbox) {
-            const checkboxes = document.querySelectorAll('input[name="brand"]');
-                checkboxes.forEach((item) => {
-                    if (item !== checkbox) item.checked = false;
-                });
-            }
+          
     </script>
     <script>
 		// tooltip
