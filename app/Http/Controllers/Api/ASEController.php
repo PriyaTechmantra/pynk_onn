@@ -5016,6 +5016,8 @@ public function aseSalesreport(Request $request)
 
 
     //distributor
+
+
     
     public function distributorAddTocart(Request $request)
     {
@@ -5547,12 +5549,19 @@ public function aseSalesreport(Request $request)
             'date_from' => ['required'],
 			'date_to' => ['required'],
 			'distributor_id' => ['required'],
+            'brand' => ['required'],
            
         ]);
          DB::enableQueryLog();
         if (!$validator->fails()) {
           $store_id = $request->store_id;
-		  
+		  $brandMap = [
+                'ONN' => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
+
+         $brandCode = $brandMap[$request->brand] ?? null;
         if (!empty($request->date_from)) {
             $from = date('Y-m-d', strtotime($request->date_from));
         } else {
@@ -5566,13 +5575,13 @@ public function aseSalesreport(Request $request)
         }
 		if ( !empty($request->date_from) || !empty($request->date_to) ) {
 		 			
-				$data = OrderProduct::select('order_products.qty','orders.order_no','order_products.product_name', 'order_products.product_id', 'products.style_no', 'products.style_no','order_products.size_id','colors.name AS color','stores.name','teams.ase_id','teams.asm_id','teams.rsm_id','teams.vp_id','teams.state_id','teams.area_id','stores.pin','orders.created_at')
+				$data = OrderProduct::select('order_products.qty','orders.order_no','products.name AS product_name', 'order_products.product_id', 'products.style_no','order_products.size_id','colors.name AS color_name','sizes.name AS size_name','stores.name AS store_name','teams.ase_id','teams.asm_id','teams.rsm_id','teams.vp_id','teams.state_id','teams.area_id','stores.pin','orders.created_at')
                         ->join('colors', 'colors.id', '=', 'order_products.color_id')->join('products', 'products.id', '=', 'order_products.product_id')->join('orders', 'orders.id', '=', 'order_products.order_id')->join('stores', 'stores.id', '=', 'orders.store_id')->join('teams', 'teams.store_id', '=', 'stores.id')
-						 ->where('orders.store_id',$store_id)->where('orders.distributor_id',$request->distributor_id)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
+						 ->where('orders.store_id',$store_id)->where('orders.distributor_id',$request->distributor_id)->where('orders.brand',$brandCode)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
         } else{
-            $data = OrderProduct::select('order_products.qty','orders.order_no','order_products.product_name', 'order_products.product_id', 'products.style_no', 'products.style_no','order_products.size_id','colors.name','stores.name','teams.ase_id','teams.asm_id','teams.rsm_id','teams.vp_id','teams.state_id','teams.area_id','stores.pin','orders.created_at')
+            $data = OrderProduct::select('order_products.qty','orders.order_no','products.name AS product_name', 'order_products.product_id',  'products.style_no','order_products.size_id','colors.name AS color_name','sizes.name AS size_name','stores.name AS store_name','teams.ase_id','teams.asm_id','teams.rsm_id','teams.vp_id','teams.state_id','teams.area_id','stores.pin','orders.created_at')
                         ->join('colors', 'colors.id', '=', 'order_products.color_id')->join('products', 'products.id', '=', 'order_products.product_id')->join('orders', 'orders.id', '=', 'order_products.order_id')->join('stores', 'stores.id', '=', 'orders.store_id')->join('teams', 'teams.store_id', '=', 'stores.id')
-						 ->where('orders.store_id',$store_id)->where('orders.distributor_id',$request->distributor_id)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
+						 ->where('orders.store_id',$store_id)->where('orders.distributor_id',$request->distributor_id)->where('orders.brand',$brandCode)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
         }    
 			
         
@@ -5638,10 +5647,10 @@ public function aseSalesreport(Request $request)
                     $row->order_no,
                     $row->product_name,
                     $row->style_no,
-                    $row->color,
-                    $size->name,
+                    $row->color_name,
+                    $row->size_name,
                     $row->qty,
-                    $store->name ?? '',
+                    $row->store_name ?? '',
                     substr($displayASEName, 0, -1) ? substr($displayASEName,0, -1) : 'NA',
                     substr($displayASMName, 0, -1) ? substr($displayASMName,0, -1) : 'NA',
                     substr($displayRSMName, 0, -1) ? substr($displayRSMName,0, -1) : 'NA',
