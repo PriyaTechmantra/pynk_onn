@@ -5406,7 +5406,7 @@ public function aseSalesreport(Request $request)
 
 
 
-    public function storeOrder(Request $request): JsonResponse
+    public function storeOrder(Request $request)
     {
       // $params = $request->except('_token');
 		$validator = Validator::make($request->all(), [
