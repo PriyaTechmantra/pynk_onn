@@ -3754,7 +3754,7 @@ public function aseSalesreport(Request $request)
     public function rsmdistributorList(Request $request)
     {
         $rsm = $_GET['user_id'];
-        $area = $_GET['area_id'];
+        
         $data= Team::select('distributor_id','area_id')->where('rsm_id',$rsm)->where('store_id',NULL)->with('distributor')->distinct('distributor_id')->get();
         if ($data->isNotEmpty()) 
         {
