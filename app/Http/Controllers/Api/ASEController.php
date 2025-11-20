@@ -3751,6 +3751,20 @@ public function aseSalesreport(Request $request)
     }
 
 
+    public function rsmdistributorList(Request $request)
+    {
+        $rsm = $_GET['user_id'];
+        $area = $_GET['area_id'];
+        $data= Team::select('distributor_id','area_id')->where('rsm_id',$rsm)->where('store_id',NULL)->with('distributor')->distinct('distributor_id')->get();
+        if ($data->isNotEmpty()) 
+        {
+            return response()->json(['error' => false, 'resp' => 'Distributor data fetched successfully','data' => $data]);
+        } else {
+            return response()->json(['error' => true, 'resp' => 'Something happened']);
+        }
+    }
+
+
 
     public function inactiveAseListRSM(Request $request)
     {
@@ -5479,36 +5493,19 @@ public function aseSalesreport(Request $request)
           DB::enableQueryLog();
          if (!$validator->fails()) {
         
-                  $dis_range=DB::table('distributor_ranges')->where('distributor_id',$request->distributor_id)->get();
-                  $coll_array= array();	
-                  $product_arr= array();	
-                 foreach($dis_range as $lang)
-                 {
-                     array_push($coll_array, $lang->collection_id);
- 
-                 }
-                     $product_collection=Product::select('id')->whereIN('collection_id',$coll_array)->get();
-                 foreach($product_collection as $obj)
-                {
-                      array_push($product_arr, $obj->id);
- 
- 
-                }
-             $store_arr_result = DB::select("SELECT s.store_name,s.id from retailer_list_of_occ rlo  INNER JOIN stores s ON s.id = rlo.store_id where find_in_set('".$request->distributor_name."',rlo.distributor_name) and retailer is not null");
-			//dd($store_arr_result);
-      foreach($store_arr_result as $store){
-		  if (!empty($request->date_from)) {
+             
+		            if (!empty($request->date_from)) {
                          $from = date('Y-m-d', strtotime($request->date_from));
                      } else {
                          $from = date('Y-m-d');
                      }
 					 // date to
-				if (!empty($request->date_to)) {
-					$to = date('Y-m-d', strtotime($request->date_to.'+1 day'));
-					//dd($to);
-				} else {
-					$to = date('Y-m-d', strtotime('+1 day'));
-				}
+                    if (!empty($request->date_to)) {
+                        $to = date('Y-m-d', strtotime($request->date_to.'+1 day'));
+                        //dd($to);
+                    } else {
+                        $to = date('Y-m-d', strtotime('+1 day'));
+                    }
             $resp = OrderProduct::select(
                 DB::raw("SUM(order_products.qty) as product_count"),
                 'orders.order_no',
@@ -5538,10 +5535,10 @@ public function aseSalesreport(Request $request)
 
         
              return response()->json(['error'=>false, 'resp'=>'Order data fetched successfully','data'=>$resp]);
-      }
-     } else {
+      
+        } else {
              return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
-         }
+        }
      }
 	
 	public function csvExport(Request $request)

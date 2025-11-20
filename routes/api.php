@@ -172,7 +172,8 @@ Route::get('rsm/area/list/{id}', [ASEController::class, 'rsmareaList']);
 Route::post('team-wise-report-rsm', [ASEController::class, 'storeReportRSM']);
 
 Route::post('product-wise-report-rsm', [ASEController::class, 'productReportRSM']);
-
+//distributor list
+Route::get('rsm/distributor/list', [ASEController::class, 'rsmdistributorList']);
 Route::get('store/onn/currency/rsm', [ASEController::class, 'onncurrencyRSM']);
 Route::post('store/reward/order/detail/rsm', [ASEController::class, 'rewardorderrsmDetail']);
 //order approval 
