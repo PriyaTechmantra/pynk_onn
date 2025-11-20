@@ -24,3 +24,5 @@
 Stack trace:
 #0 {main}
   thrown in /home4/vangu1yt/public_html/dev/fnm_lms/public/test.php on line 76
+[20-Nov-2025 14:51:19 UTC] PHP Fatal error:  Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.3.0". You are running 8.2.25. in /home4/vangu1yt/public_html/dev/pynk/vendor/composer/platform_check.php on line 26
+[20-Nov-2025 14:55:06 UTC] PHP Fatal error:  Composer detected issues in your platform: Your Composer dependencies require a PHP version ">= 8.3.0". You are running 8.2.25. in /home4/vangu1yt/public_html/dev/pynk/vendor/composer/platform_check.php on line 26
