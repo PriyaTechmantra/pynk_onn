@@ -225,3 +225,104 @@ Route::post('store/reward/order/detail/distributor', [ASEController::class, 'rew
 Route::post('store/reward/order/status/distributor', [ASEController::class, 'rewardorderdistributorStatus']);
 
 Route::get('distributor/store/list', [ASEController::class, 'distributorstoreList']);
+
+
+
+//retailer
+Route::post('login', [ASEController::class, 'retailerLogin']);
+Route::post('login-with-pin', [ASEController::class, 'retailerLoginPin']);
+// remove profile
+Route::get('retailer/remove/profile/{id}', [ASEController::class, 'retailerremoveProfile']);
+
+Route::post('retailer/register', [ASEController::class, 'retailerRegister']);
+
+Route::post('retailer/pin/generate', [ASEController::class, 'retailerpinGenerate']);
+// aadhar document add
+Route::post('retailer/aadhar/upload', [ASEController::class, 'retailerCreateAadhar']);
+
+Route::post('retailer/pan/upload', [ASEController::class, 'retailerCreatePan']);
+
+Route::post('retailer/gst/upload', [ASEController::class, 'retailerCreateGst']);
+
+Route::post('retailer/image/upload', [ASEController::class, 'retailerCreateImage']);
+
+Route::get('retailer/profile/{id}', [ASEController::class, 'retailermyprofile']);
+//edit profile
+Route::post('retailer/update/profile/{id}', [ASEController::class, 'retailerupdateProfile']);
+//change password
+Route::post('retailer/change/password', [ASEController::class, 'retailerchangePassword']);
+//fetch top 5  product
+Route::get('retailer/product/{id}', [ASEController::class, 'retailerproductView']);
+//fetch all product
+Route::get('retailer/product/list', [ASEController::class, 'retailerproductList']);
+//fetch product by slug
+
+//total wallet balance count
+Route::get('retailer/wallet/balance/{id}', [ASEController::class, 'retailerwalletBalance']);
+//brochure
+Route::get('retailer/brochure', [ASEController::class, 'retailerbrochureindex']);
+
+//barcode scan
+Route::post('retailer/barcode', [ASEController::class, 'retailerBarcode']);
+//5 order history user wise 
+Route::get('retailer/order/{userid}', [ASEController::class, 'retailerOrder']);
+
+Route::get('retailer/order/details/{id}', [ASEController::class, 'retailerOrderDetails']);
+//reward history
+Route::post('retailer/reward/history', [ASEController::class, 'retailerrewardHistory']);
+//transaction history
+Route::post('retailer/transaction/history', [ASEController::class, 'retailerTransaction']);
+//reward cart list
+
+Route::get('reward/cart/user/{id}', [ASEController::class, 'retailerRewardCart']);
+Route::get('reward/cart/clear/{id}', [ASEController::class, 'retailerRewardCartclear']);
+Route::get('reward/cart/qty/{cartId}/{q}', [ASEController::class, 'retailerRewardCartqtyUpdate']);
+Route::post('reward/AddTocart', [ASEController::class, 'retailerrewardbulkAddTocart']);
+//order-place
+
+Route::post('reward/place/order', [ASEController::class, 'retailerrewardplaceOrder']);
+
+//invoice image store
+Route::post('retailer/invoice/image', [ASEController::class, 'retailerinvoiceIndex']);
+
+//invoice store
+Route::post('retailer/invoice/store', [ASEController::class, 'retailerinvoiceStore']);
+
+
+//b2b product order
+
+//cart list
+
+Route::get('retailer/b2b/cart/user/{id}', [ASEController::class, 'retailerb2bshowByUser']);
+Route::get('retailer/b2b/cart/clear/{id}', [ASEController::class, 'retailerb2bclearCart']);
+Route::get('retailer/b2b/cart/qty/{cartId}/{q}', [ASEController::class, 'retailerb2bqtyUpdateLatest']);
+//cart -delete
+Route::get('retailer/b2b/cart/delete/{id}', [ASEController::class, 'retailerb2bcartdelete']);
+// cart preview
+Route::get('retailer/b2b/cart/pdf/url/{id}', [ASEController::class, 'retailerb2bcartPlacePDF_URL']);
+Route::get('retailer/b2b/cart/pdf/view/{id}', [ASEController::class, 'retailerb2bcartPreviewPDF_view'])->name('retailer.cart.place.pdf');
+//multicolor bulk add
+Route::post('retailer/b2b/bulkAddTocart', [ASEController::class, 'retailerb2bbulkAddTocart']);
+//order
+Route::post('retailer/b2b/product-place-order', [ASEController::class, 'retailerb2bplaceOrder']);
+
+Route::get('retailer/b2b/order/list', [ASEController::class, 'retailerb2bOrderlist']);
+Route::get('retailer/b2b/order/show/{id}', [ASEController::class, 'retailerb2bOrdershow']);
+Route::get('retailer/b2b/order/details/{id}', [ASEController::class, 'retailerb2bOrderDetails']);
+Route::get('retailer/b2b/order/place/pdf/url/{id}', [ASEController::class, 'retailerb2bOrderPlacePDF_URL']);
+Route::get('retailer/b2b/order/place/pdf/view/{id}', [ASEController::class, 'retailerb2bOrderPlacePDF_view'])->name('retailer.order.place.pdf');
+
+//terms & condition
+Route::get('retailer/terms', [ASEController::class, 'retailerterms']);
+
+Route::get('retailer/duplicate/records', [ASEController::class, 'retailerduplicateCheck']);
+
+
+//monthly scan limit
+Route::get('retailer/monthly/scan/limit/{id}', [ASEController::class, 'retailermonthlyScan']);
+
+
+
+
+
+

@@ -6005,6 +6005,270 @@ public function aseSalesreport(Request $request)
 
 
 
+    //retailer
+     public function retailerLogin(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'contact' => ['required', 'integer','digits:10'],
+			'password' => ['required'],
+        ]);
+        if (!$validator->fails()) {
+            $mobile = $request->contact;
+			$password = $request->password;
+			$device_id = $request->device_id;
+            $userCheck = Store::where('contact', $mobile)->where('is_deleted',0)->first();
+			//dd($userCheck);
+            if ($userCheck) {
+                 if (Hash::check($password, $userCheck->password)) {
+					 $status = $userCheck->status;
+					 if ($status == 0) {
+						return response()->json(['error' => true, 'resp' =>  'Your account is temporary blocked. Contact Admin']);
+					}else{
+						 $store=Store::findOrfail($userCheck->id);
+						 $store->device_id =$device_id;
+						 $store->save();
+                     return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck]);
+					 }
+                    // return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck]);
+                 } else {
+                     return response()->json(['error' => true, 'resp' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $userCheck->password]);
+                 }
+                //return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck->mobile]);
+            } else {
+                return response()->json(['error' => true, 'resp' => 'You have entered wrong login credential. Please try with the correct one.']);
+            }
+        }
+     else {
+        return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+    }
+
+
+    public function retailerLoginPin(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'contact' => ['required'],
+			'secret_pin' => ['required'],
+        ]);
+        if (!$validator->fails()) {
+            $uniqueCode = $request->contact;
+			$password = $request->secret_pin;
+            $userCheck = Store::where('contact', $uniqueCode)->where('is_deleted',0)->first();
+			//dd($userCheck);
+            if ($userCheck) {
+                 if($password==$userCheck->secret_pin) {
+					 $status = $userCheck->status;
+					 if ($status == 0) {
+						return response()->json(['error' => true, 'resp' =>  'Your account is temporary blocked. Contact Admin']);
+					}else{
+                     return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck]);
+					 }
+                    // return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck]);
+                 } else {
+                     return response()->json(['error' => true, 'resp' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $userCheck->secret_pin]);
+                 }
+                //return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck->mobile]);
+            } else {
+                return response()->json(['error' => true, 'resp' => 'You have entered wrong login credential. Please try with the correct one.']);
+            }
+        }
+     else {
+        return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+    }
+
+    public function retailermyprofile($id)
+    {
+        $user = Store::where('id', $id)->first();
+        return response()->json(['error'=>false, 'resp'=>'Retailer data fetched successfully','data'=>$user]);
+
+    }
+
+    public function retailerupdateProfile(Request $request,$id)
+    {
+        $updatedEntry = Store::findOrFail($id);
+        if ($request['owner_name']) {
+        $updatedEntry->owner_name = $request->owner_name;
+        }
+		if ($request['owner_lname']) {
+        $updatedEntry->owner_lname = $request->owner_lname;
+        }
+        if ($request['store_name']) {
+        $updatedEntry->store_name = $request->store_name;
+        }
+        if ($request['address']) {
+        $updatedEntry->address = $request->address;
+        }
+        if ($request['contact']) {
+        $updatedEntry->contact = $request->contact;
+        }
+        if ($request['email']) {
+        $updatedEntry->email = $request->email;
+        }
+        if ($request['whatsapp_no']) {
+        $updatedEntry->whatsapp_no = $request->whatsapp_no;
+        }
+        if ($request['pin']) {
+        $updatedEntry->pin = $request->pin;
+        }
+        if ($request['area']) {
+        $updatedEntry->area = $request->area;
+        }
+        if ($request['address']) {
+        $updatedEntry->state = $request->state;
+        }
+        if ($request['city']) {
+        $updatedEntry->city = $request->city;
+        }
+        if ($request['state']) {
+        $updatedEntry->state = $request->state;
+        }
+        if ($request['image']) {
+            $updatedEntry->image = $request->image;
+        }
+        if ($request['aadhar']) {
+            $updatedEntry->aadhar = $request->aadhar;
+        }
+        if ($request['pan']) {
+            $updatedEntry->pan = $request->pan;
+        }
+        if ($request['gst']) {
+            $updatedEntry->gst = $request->gst;
+        }
+        $updatedEntry->save();
+        if($updatedEntry){
+            return response()->json(['error' => false, 'message' => 'Update Successful','data'=>$updatedEntry]);
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+    }
+	
+	//for change password
+   
+		 
+	 public function retailerchangePassword(Request $request)
+    {
+        //dd($request->all());
+        $validator = Validator::make($request->all(), [
+             'mobile'  => 'required',
+            'new_password' => 'required'
+        ]);
+        if (!$validator->fails()) {
+        $check_old_pass = Store::where('contact',$request->mobile)->first();
+
+        if (!$check_old_pass) {
+            return response()->json(['error' => true, 'message' =>'Old Password is not correct']);
+        }
+
+        $new_pass = Hash::make($request->new_password);
+
+        $updatedEntry = Store::where('mobile', $request->mobile)->update(['password' => $new_pass]);
+
+            return response()->json(['error' => false, 'message' => 'Update Successful','data'=>$updatedEntry]);
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+    }
+	
+	/**
+     * This method is to get user wallet balance
+    *
+    */
+  
+		 
+	 public function retailerwalletBalance(Request $request,$id)
+    {
+        $data = Store::where('id',$id)->first();
+        if($data){
+            return response()->json(['error'=>false, 'resp'=>'wallet balance data fetched successfully','data'=>$data->wallet]);
+        } else {
+            return response()->json(['error' => true, 'message' => 'No user found']);
+        }
+  
+    }
+	
+	/**
+     * This method is to get remove profile
+    *
+    */
+    
+		 
+		 
+	public function retailerremoveProfile(Request $request,$id)
+    {
+        $data = Store::where('id',$id)->delete();
+        if($data){
+            return response()->json(['error'=>false, 'resp'=>'Profile deleted successfully','data'=>$data]);
+        } else {
+            return response()->json(['error' => true, 'message' => 'Something happend']);
+        }
+  
+    }
+
+
+    public function retailerpinGenerate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'secret_pin' => ['required', 'integer', 'min:1'],
+			'id'   => ['required', 'integer', 'min:1'],
+      //  ], [
+        //    'aadhar.*' => 'Please enter minimum one document'
+        ]);
+
+        if (!$validator->fails()) {
+			
+				$user= Store::findOrFail($request->id);
+				$user->secret_pin = $request->secret_pin;
+				$user->save();
+				 return response()->json(['error' => false, 'message' => 'Pin Generated Successfully','data'=>$user]);
+			
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+    }
+	
+	
+	public function retailerterms(Request $request)
+    {
+        $data=DB::table('reward_terms')->latest('id')->first();
+         return response()->json(['error' => false, 'message' => 'Terms & condition fetched Successfully','data'=>$data]);
+    }
+    
+    
+    //monthly scan limit
+    public function retailermonthlyScan(Request $request,$id)
+    {
+        $scanLimit=20;
+        
+        $data=RetailerWalletTxn::where('user_id',$id)->where('type',1)->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
+        return response()->json(['error' => false, 'message' => 'Monthly Scan Limit History','Monthly Scan Limit'=>$scanLimit,'Scan history by retailer'=>$data,'Monthly_Scan_Limit'=>$scanLimit,'Scan_history_by_retailer'=>$data]);
+    }
+
+    // retailer create aadhar document API
+	public function retailerCreateAadhar(Request $request) {
+		$validator = Validator::make($request->all(), [
+            'aadhar' => 'required'
+        ]);
+        if (!$validator->fails()) {
+				$imageName = mt_rand().'.'.$request->aadhar->extension();
+				$uploadPath = 'public/uploads/retailer/document';
+				$request->aadhar->move($uploadPath, $imageName);
+				$total_path = $uploadPath.'/'.$imageName;
+			     $resp = [
+                       'data' => $total_path,
+                       ];
+			return response()->json(['error' => false, 'message' => 'Document added', 'data' => $resp]);
+		} else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+		
+	}
+
+    
+
+
+
+
+
+
 
 
 
