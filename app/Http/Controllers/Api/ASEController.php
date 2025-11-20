@@ -17,6 +17,7 @@ use App\Models\SecondaryOrder;
 use App\Models\NoOrderReason;
 use App\Models\Category;
 use App\Models\Color;
+use App\Models\Size;
 use App\Models\Collection;
 use App\Models\ProductImage;
 use App\Models\Product;
