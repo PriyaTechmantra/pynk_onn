@@ -5521,7 +5521,7 @@ public function aseSalesreport(Request $request)
             ->join('products', 'products.id', '=', 'order_products.product_id')
             ->join('orders', 'orders.id', '=', 'order_products.order_id')
             ->join('colors', 'colors.id', '=', 'order_products.color_id')
-            ->join('colors', 'colors.id', '=', 'order_products.size_id')
+            ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
             ->join('stores', 'stores.id', '=', 'orders.store_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
             
@@ -5617,7 +5617,7 @@ public function aseSalesreport(Request $request)
         ]);
          DB::enableQueryLog();
             if (!$validator->fails()) {
-                if (!empty($request->date_from)) {
+               if (!empty($request->date_from)) {
                          $from = date('Y-m-d', strtotime($request->date_from));
                      } else {
                          $from = date('Y-m-d');
@@ -5629,34 +5629,34 @@ public function aseSalesreport(Request $request)
                     } else {
                         $to = date('Y-m-d', strtotime('+1 day'));
                     }
-                    $resp = OrderProduct::select(
-                        DB::raw("SUM(order_products.qty) as product_count"),
-                        'orders.order_no',
-                        'products.name AS product_name',
-                        'order_products.product_id',
-                        'products.style_no',
-                        'order_products.size_id',
-                        'colors.name AS color_name',
-                        'sizes.name AS size_name',
-                        'stores.name AS store_name',
-                        'orders.created_at'
-                    )
-                    ->join('products', 'products.id', '=', 'order_products.product_id')
-                    ->join('orders', 'orders.id', '=', 'order_products.order_id')
-                    ->join('colors', 'colors.id', '=', 'order_products.color_id')
-                    ->join('colors', 'colors.id', '=', 'order_products.size_id')
-                    ->join('stores', 'stores.id', '=', 'orders.store_id')
-                    ->join('teams', 'teams.store_id', '=', 'stores.id')
-                    
-                    ->where('orders.distributor_id', $request->distributor_id)
-                    ->whereBetween('orders.created_at', [$from, $to])
-                    ->groupBy('order_products.id')
-                    ->orderBy('order_products.id', 'desc')
-                    ->get()
-                    ->map(function ($item) {
-                        $item->created_at = Carbon::parse($item->created_at)->format('Y-m-d H:i:s');
-                        return $item;
-                    });
+            $resp = OrderProduct::select(
+                DB::raw("SUM(order_products.qty) as product_count"),
+                'orders.order_no',
+                'products.name AS product_name',
+                'order_products.product_id',
+                'products.style_no',
+                'order_products.size_id',
+                'colors.name AS color_name',
+                'sizes.name AS size_name',
+                'stores.name AS store_name',
+                'orders.created_at'
+            )
+            ->join('products', 'products.id', '=', 'order_products.product_id')
+            ->join('orders', 'orders.id', '=', 'order_products.order_id')
+            ->join('colors', 'colors.id', '=', 'order_products.color_id')
+            ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
+            ->join('stores', 'stores.id', '=', 'orders.store_id')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            
+            ->where('orders.distributor_id', $request->distributor_id)
+            ->whereBetween('orders.created_at', [$from, $to])
+            ->groupBy('order_products.id')
+            ->orderBy('order_products.id', 'desc')
+            ->get()
+            ->map(function ($item) {
+                $item->created_at = Carbon::parse($item->created_at)->format('Y-m-d H:i:s');
+                return $item;
+            });
             
                 // Initialize the file pointer to avoid undefined variable error
                 $f = fopen('php://memory', 'w');
