@@ -5509,21 +5509,23 @@ public function aseSalesreport(Request $request)
             $resp = OrderProduct::select(
                 DB::raw("SUM(order_products.qty) as product_count"),
                 'orders.order_no',
-                'order_products.product_name',
+                'products.name AS product_name',
                 'order_products.product_id',
                 'products.style_no',
-                'order_products.size',
-                'colors.name',
-                'stores.store_name',
+                'order_products.size_id',
+                'colors.name AS color_name',
+                'sizes.name AS size_name',
+                'stores.name AS store_name',
                 'orders.created_at'
             )
             ->join('products', 'products.id', '=', 'order_products.product_id')
             ->join('orders', 'orders.id', '=', 'order_products.order_id')
-            ->join('colors', 'colors.id', '=', 'order_products.color')
+            ->join('colors', 'colors.id', '=', 'order_products.color_id')
+            ->join('colors', 'colors.id', '=', 'order_products.size_id')
             ->join('stores', 'stores.id', '=', 'orders.store_id')
-            ->join('retailer_list_of_occ', 'retailer_list_of_occ.store_id', '=', 'stores.id')
-            ->where('orders.store_id', $store->id)
-            ->whereIn('order_products.product_id', $product_arr)
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            
+            ->where('orders.distributor_id', $request->distributor_id)
             ->whereBetween('orders.created_at', [$from, $to])
             ->groupBy('order_products.id')
             ->orderBy('order_products.id', 'desc')
@@ -5696,24 +5698,46 @@ public function aseSalesreport(Request $request)
         ]);
          DB::enableQueryLog();
             if (!$validator->fails()) {
-                $dis_range = DB::table('distributor_ranges')->where('distributor_id', $request->distributor_id)->get();
-                $coll_array = [];
-                $product_arr = [];
-                $store_arr = [];
-            
-                foreach ($dis_range as $lang) {
-                    array_push($coll_array, $lang->collection_id);
-                }
-            
-                $product_collection = Product::select('id')->whereIn('collection_id', $coll_array)->get();
-                foreach ($product_collection as $obj) {
-                    array_push($product_arr, $obj->id);
-                }
-            
-                $store_arr_result = DB::select("SELECT s.store_name, s.id FROM retailer_list_of_occ rlo 
-                                                INNER JOIN stores s ON s.id = rlo.store_id 
-                                                WHERE FIND_IN_SET('".$request->distributor_name."', rlo.distributor_name) 
-                                                AND retailer IS NOT NULL");
+                if (!empty($request->date_from)) {
+                         $from = date('Y-m-d', strtotime($request->date_from));
+                     } else {
+                         $from = date('Y-m-d');
+                     }
+					 // date to
+                    if (!empty($request->date_to)) {
+                        $to = date('Y-m-d', strtotime($request->date_to.'+1 day'));
+                        //dd($to);
+                    } else {
+                        $to = date('Y-m-d', strtotime('+1 day'));
+                    }
+                    $resp = OrderProduct::select(
+                        DB::raw("SUM(order_products.qty) as product_count"),
+                        'orders.order_no',
+                        'products.name AS product_name',
+                        'order_products.product_id',
+                        'products.style_no',
+                        'order_products.size_id',
+                        'colors.name AS color_name',
+                        'sizes.name AS size_name',
+                        'stores.name AS store_name',
+                        'orders.created_at'
+                    )
+                    ->join('products', 'products.id', '=', 'order_products.product_id')
+                    ->join('orders', 'orders.id', '=', 'order_products.order_id')
+                    ->join('colors', 'colors.id', '=', 'order_products.color_id')
+                    ->join('colors', 'colors.id', '=', 'order_products.size_id')
+                    ->join('stores', 'stores.id', '=', 'orders.store_id')
+                    ->join('teams', 'teams.store_id', '=', 'stores.id')
+                    
+                    ->where('orders.distributor_id', $request->distributor_id)
+                    ->whereBetween('orders.created_at', [$from, $to])
+                    ->groupBy('order_products.id')
+                    ->orderBy('order_products.id', 'desc')
+                    ->get()
+                    ->map(function ($item) {
+                        $item->created_at = Carbon::parse($item->created_at)->format('Y-m-d H:i:s');
+                        return $item;
+                    });
             
                 // Initialize the file pointer to avoid undefined variable error
                 $f = fopen('php://memory', 'w');
@@ -5726,24 +5750,11 @@ public function aseSalesreport(Request $request)
             
                 $count = 1;
                 
-                foreach ($store_arr_result as $store) {
+                foreach ($resp as $row) {
                     $from = !empty($request->date_from) ? date('Y-m-d', strtotime($request->date_from)) : date('Y-m-d');
                     $to = !empty($request->date_to) ? date('Y-m-d', strtotime($request->date_to . '+1 day')) : date('Y-m-d', strtotime('+1 day'));
             
-                    $data = OrderProduct::select(DB::raw("(SUM(order_products.qty)) as product_count"), 'order_products.product_name', 'order_products.product_id', 'products.style_no', 'order_products.size', 'colors.name', 'orders.order_no', 'stores.store_name', 'orders.created_at')
-                        ->join('colors', 'colors.id', '=', 'order_products.color')
-                        ->join('products', 'products.id', '=', 'order_products.product_id')
-                        ->join('orders', 'orders.id', '=', 'order_products.order_id')
-                        ->join('stores', 'stores.id', '=', 'orders.store_id')
-                        ->join('retailer_list_of_occ', 'retailer_list_of_occ.store_id', '=', 'stores.id')
-                        ->where('orders.store_id', $store->id)
-                        ->whereIn('order_products.product_id', $product_arr)
-                        ->whereBetween('orders.created_at', [$from, $to])
-                        ->groupBy('order_products.id')
-                        ->orderBy('order_products.id', 'desc')
-                        ->get();
-            
-                    foreach ($data as $row) {
+                    
                         $datetime = date('j F, Y h:i A', strtotime($row->created_at));
             
                         $lineData = [
@@ -5751,8 +5762,8 @@ public function aseSalesreport(Request $request)
                             $row->order_no,
                             $row->product_name,
                             $row->style_no,
-                            $row->name, // Assuming 'colors.name' is color
-                            $row->size,
+                            $row->color_name, // Assuming 'colors.name' is color
+                            $row->size_name,
                             $row->product_count,
                             $row->store_name ?? '',
                             $datetime
@@ -5761,7 +5772,7 @@ public function aseSalesreport(Request $request)
                         fputcsv($f, $lineData, $delimiter);
                         $count++;
                     }
-                }
+                
             
                 // Move back to the beginning of the file
                 fseek($f, 0);
@@ -5977,7 +5988,7 @@ public function aseSalesreport(Request $request)
         ];
 
 		
-		$stores = Store::join('teams', 'stores.id', '=', 'teams.store_id')->where('teams.distributor_id',$distributor)->where('stores.status',1)->where('stores.is_deleted',0)->with('state','area','user')->get();
+		$stores = Store::join('teams', 'stores.id', '=', 'teams.store_id')->whereRaw("FIND_IN_SET(?, teams.distributor_id)", [$distributor])->where('stores.status',1)->where('stores.is_deleted',0)->with('state','area','user')->get();
 		
 	
         if ($stores->isNotEmpty()) {
