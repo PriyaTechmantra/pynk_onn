@@ -39,6 +39,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserPermissionCategory;
 use DB;
+use Auth;
+use Hash;
 use Illuminate\Support\Facades\Log;
 class ASEController extends Controller
 {
@@ -6262,7 +6264,7 @@ public function aseSalesreport(Request $request)
 		
 	}
 
-    
+
 
 
 
