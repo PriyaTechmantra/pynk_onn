@@ -5604,7 +5604,7 @@ public function aseSalesreport(Request $request)
             foreach($data as $row) {
                 $datetime = date('j F, Y h:i A', strtotime($row['created_at']));
 
-                $store = Store::select('name')->where('id', $row['store_id'])->with('state','area')->first();
+                $store = Store::where('id', $row['store_id'])->with('state','area')->first();
                 $size = Size::where('id', $row['size_id'])->first();
 
                 $displayASEName = '';
