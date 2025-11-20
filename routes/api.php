@@ -229,8 +229,8 @@ Route::get('distributor/store/list', [ASEController::class, 'distributorstoreLis
 
 
 //retailer
-Route::post('login', [ASEController::class, 'retailerLogin']);
-Route::post('login-with-pin', [ASEController::class, 'retailerLoginPin']);
+Route::post('retailer/login', [ASEController::class, 'retailerLogin']);
+Route::post('retailer/login-with-pin', [ASEController::class, 'retailerLoginPin']);
 // remove profile
 Route::get('retailer/remove/profile/{id}', [ASEController::class, 'retailerremoveProfile']);
 
