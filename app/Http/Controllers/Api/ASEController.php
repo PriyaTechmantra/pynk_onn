@@ -5545,142 +5545,61 @@ public function aseSalesreport(Request $request)
 	
 	public function csvExport(Request $request)
     {
-        // return Excel::download(new OrderExport, 'Secondary-sales-'.date('Y-m-d').'.csv');
-		$validator = Validator::make($request->all(), [
-            'store_id' => ['required'],
-            'date_from' => ['required'],
-			'date_to' => ['required'],
-			'distributor_id' => ['required'],
-            'brand' => ['required'],
-           
+        $validator = Validator::make($request->all(), [
+            'store_id' => 'required',
+            'date_from' => 'required',
+            'date_to' => 'required',
+            'distributor_id' => 'required',
+            'brand' => 'required',
         ]);
-         DB::enableQueryLog();
-        if (!$validator->fails()) {
-          $store_id = $request->store_id;
-		  $brandMap = [
-                'ONN' => 1,
-                'PYNK' => 2,
-                'Both' => 3,
-            ];
 
-         $brandCode = $brandMap[$request->brand] ?? null;
-        if (!empty($request->date_from)) {
-            $from = date('Y-m-d', strtotime($request->date_from));
-        } else {
-            $from = date('Y-m-d');
-        }
-        // date to
-        if (!empty($request->date_to)) {
-            $to = date('Y-m-d', strtotime($request->date_to));
-        } else {
-            $to = date('Y-m-d', strtotime('+1 day'));
-        }
-		if ( !empty($request->date_from) || !empty($request->date_to) ) {
-		 			
-				$data = OrderProduct::select('order_products.qty','orders.order_no','products.name AS product_name', 'order_products.product_id', 'products.style_no','order_products.size_id','colors.name AS color_name','sizes.name AS size_name','stores.id AS store_id','stores.name AS store_name','teams.ase_id','teams.asm_id','teams.rsm_id','teams.vp_id','teams.state_id','teams.area_id','stores.pin','orders.created_at')
-                        ->join('colors', 'colors.id', '=', 'order_products.color_id')->join('sizes', 'sizes.id', '=', 'order_products.size_id')->join('products', 'products.id', '=', 'order_products.product_id')->join('orders', 'orders.id', '=', 'order_products.order_id')->join('stores', 'stores.id', '=', 'orders.store_id')->join('teams', 'teams.store_id', '=', 'stores.id')
-						 ->where('orders.store_id',$store_id)->where('orders.distributor_id',$request->distributor_id)->where('orders.brand',$brandCode)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
-        } else{
-            $data = OrderProduct::select('order_products.qty','orders.order_no','products.name AS product_name', 'order_products.product_id',  'products.style_no','order_products.size_id','colors.name AS color_name','sizes.name AS size_name','stores.id AS store_id','stores.name AS store_name','teams.ase_id','teams.asm_id','teams.rsm_id','teams.vp_id','teams.state_id','teams.area_id','stores.pin','orders.created_at')
-                        ->join('colors', 'colors.id', '=', 'order_products.color_id')->join('sizes', 'sizes.id', '=', 'order_products.size_id')->join('products', 'products.id', '=', 'order_products.product_id')->join('orders', 'orders.id', '=', 'order_products.order_id')->join('stores', 'stores.id', '=', 'orders.store_id')->join('teams', 'teams.store_id', '=', 'stores.id')
-						 ->where('orders.store_id',$store_id)->where('orders.distributor_id',$request->distributor_id)->where('orders.brand',$brandCode)->whereBetween('orders.created_at', [$from, $to])->groupby('order_products.id')->orderby('orders.id','desc')->get();
-        }    
-			
-        
-        if (count($data) > 0) {
-            $delimiter = ",";
-            $filename = "secondary-order-".date('Y-m-d').".csv";
-
-            // Create a file pointer
-            $f = fopen('php://memory', 'w');
-
-            // Set column headers
-            $fields = array('SR', 'ORDER NO','PRODUCT', 'STYLE NO','COLOR', 'SIZE', 'QTY','STORE', 'ASE', 'ASM','RSM','VP', 'STATE', 'AREA', 'PINCODE','DATETIME');
-            fputcsv($f, $fields, $delimiter);
-
-            $count = 1;
-
-            foreach($data as $row) {
-                $datetime = date('j F, Y h:i A', strtotime($row['created_at']));
-
-                $store = Store::where('id', $row['store_id'])->with('state','area')->first();
-                $size = Size::where('id', $row['size_id'])->first();
-
-                $displayASEName = '';
-                foreach(explode(',',$store->user_id) as $aseKey => $aseVal) 
-                {
-                    //dd($distVal);
-                    $catDetails = DB::table('employees')->where('id', $aseVal)->first();
-                    if(!empty($catDetails)){
-                    $displayASEName .= $catDetails->name.',';
-                    }
-                }
-                $displayASMName = '';
-                foreach(explode(',',$row->asm_id) as $asmKey => $asmVal) 
-                {
-                    //dd($distVal);
-                    $catDetails = DB::table('employees')->where('id', $asmVal)->first();
-                    if(!empty($catDetails)){
-                    $displayASMName .= $catDetails->name.',';
-                    }
-                }
-                $displayRSMName = '';
-                foreach(explode(',',$row->rsm_id) as $rsmKey => $rsmVal) 
-                {
-                    //dd($distVal);
-                    $catDetails = DB::table('employees')->where('id', $rsmVal)->first();
-                    if(!empty($catDetails)){
-                    $displayRSMName .= $catDetails->name.',';
-                    }
-                }
-                $displayVPName = '';
-                foreach(explode(',',$row->vp_id) as $vpKey => $vpVal) 
-                {
-                    //dd($distVal);
-                    $catDetails = DB::table('employees')->where('id', $vpVal)->first();
-                    if(!empty($catDetails)){
-                    $displayVPName .= $catDetails->name.',';
-                    }
-                }
-                // dd($store->store_name, $ase->name, $ase->mobile);
-
-                $lineData = array(
-                    $count,
-                    $row->order_no,
-                    $row->product_name,
-                    $row->style_no,
-                    $row->color_name,
-                    $row->size_name,
-                    $row->qty,
-                    $row->store_name ?? '',
-                    substr($displayASEName, 0, -1) ? substr($displayASEName,0, -1) : 'NA',
-                    substr($displayASMName, 0, -1) ? substr($displayASMName,0, -1) : 'NA',
-                    substr($displayRSMName, 0, -1) ? substr($displayRSMName,0, -1) : 'NA',
-                    substr($displayVPName, 0, -1) ? substr($displayVPName,0, -1) : 'NA',
-                    $store->state->name ?? '',
-                    $store->area->name ?? '',
-                    $store->pin ?? '',
-                    
-                    $datetime
-                );
-
-                fputcsv($f, $lineData, $delimiter);
-
-                $count++;
-            }
-		}
-            // Move back to beginning of file
-            fseek($f, 0);
-
-            // Set headers to download file rather than displayed
-            header('Content-Type: text/csv');
-            header('Content-Disposition: attachment; filename="' . $filename . '";');
-
-            //output all remaining data on a file pointer
-            fpassthru($f);
-        } else {
+        if ($validator->fails()) {
             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
         }
+
+        $brandMap = ['ONN' => 1, 'PYNK' => 2, 'Both' => 3];
+        $brandCode = $brandMap[$request->brand] ?? null;
+
+        $from = date('Y-m-d', strtotime($request->date_from));
+        $to   = date('Y-m-d', strtotime($request->date_to));
+
+        // Get employee IDs in bulk
+        $employeeIds = \App\Models\OrderProduct::query()
+            ->join('orders', 'orders.id', '=', 'order_products.order_id')
+            ->join('stores', 'stores.id', '=', 'orders.store_id')
+            ->join('teams', 'teams.store_id', '=', 'stores.id')
+            ->where('orders.store_id', $request->store_id)
+            ->where('orders.distributor_id', $request->distributor_id)
+            ->where('orders.brand', $brandCode)
+            ->whereBetween('orders.created_at', [$from, $to])
+            ->get(['stores.user_id', 'teams.asm_id', 'teams.rsm_id', 'teams.vp_id'])
+            ->flatMap(function ($row) {
+                return array_merge(
+                    explode(',', $row->user_id),
+                    explode(',', $row->asm_id),
+                    explode(',', $row->rsm_id),
+                    explode(',', $row->vp_id)
+                );
+            })
+            ->unique()
+            ->filter();
+
+        // Fetch all employees in one query
+        $employees = DB::table('employees')
+            ->whereIn('id', $employeeIds)
+            ->pluck('name', 'id')
+            ->toArray();
+
+        $filename = "secondary-order-" . date('Y-m-d') . ".xlsx";
+
+        return (new \App\Exports\SecondarySalesExport(
+            $request->store_id,
+            $request->distributor_id,
+            $brandCode,
+            $from,
+            $to,
+            $employees
+        ))->download($filename);
     }
 	
 	

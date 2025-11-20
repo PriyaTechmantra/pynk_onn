@@ -12,6 +12,7 @@
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.5",
         "laravelcollective/html": "^6.4",
+        "maatwebsite/excel": "3.1.56",
         "spatie/laravel-permission": "^6.9"
     },
     "require-dev": {
