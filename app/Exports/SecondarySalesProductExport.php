@@ -5,11 +5,12 @@ namespace App\Exports;
 use App\Models\OrderProduct;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Carbon\Carbon;
 
-class SecondarySalesProductExport implements FromCollection
+class SecondarySalesProductExport implements FromCollection, WithHeadings, WithMapping
 {
     protected $distributorId;
     protected $from;
