@@ -5692,13 +5692,19 @@ public function aseSalesreport(Request $request)
         $brandMap = ['ONN' => 1, 'PYNK' => 2, 'Both' => 3];
         $brandCode = $brandMap[$request->brand] ?? null;
         $filename = "secondary-order-product-" . date('Y-m-d') . ".csv";
-
+         return (new \App\Exports\SecondarySalesProductExport(
+           
+            $request->distributor_id,
+            $from,
+            $to,
+            $brandCode
+        ))->download($filename);
         // Stream CSV with chunking
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\SecondarySalesProductExport($request->distributor_id, $from, $to,$brandCode),
-            $filename,
-            \Maatwebsite\Excel\Excel::CSV
-        );
+        //return \Maatwebsite\Excel\Facades\Excel::download(
+         //   new \App\Exports\SecondarySalesProductExport($request->distributor_id, $from, $to,$brandCode),
+         //   $filename,
+         //   \Maatwebsite\Excel\Excel::CSV
+            //);
     }
 
 
