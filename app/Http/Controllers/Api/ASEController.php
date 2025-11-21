@@ -5723,7 +5723,7 @@ public function aseSalesreport(Request $request)
         ];
 
         $brandCode = $brandMap[$brand] ?? null;
-
+        $perPage = $request->per_page ?? 10;
         if (!$brandCode) {
             return response()->json([
                 'error' => true,
@@ -5755,8 +5755,8 @@ public function aseSalesreport(Request $request)
             });
         }
 
-        $stores = $query->latest('stores.id')->get();
-
+        $stores = $query->latest('stores.id')->paginate($perPage);
+        
         if ($stores->isNotEmpty()) {
             return response()->json([
                 'error' => false,
@@ -5793,6 +5793,7 @@ public function aseSalesreport(Request $request)
         $brand = $request->brand;
         $dateFrom = $request->date_from;
         $dateTo = $request->date_to;
+        $perPage = $request->per_page ?? 10;
         // 🔹 Brand mapping
             $brandMap = [
                 'ONN'  => 1,
@@ -5844,8 +5845,8 @@ public function aseSalesreport(Request $request)
 
         $query->orderByDesc('retailer_orders.id');
 
-        $data = $query->get();
-
+        $data = $query->paginate($perPage);
+        
          $filtered = $data->filter(function ($order) {
             return $order->user &&
                 $order->user->status == 1 &&
@@ -5855,7 +5856,7 @@ public function aseSalesreport(Request $request)
 
         return response()->json([
             'error' => false,
-            'message' => 'Product orders with quantity and brand filter',
+            'message' => 'Retailer orders with quantity and brand filter',
             'data' => $filtered,
         ]);
     }
@@ -5897,7 +5898,7 @@ public function aseSalesreport(Request $request)
     public function distributorstoreList(Request $request)
     {
 		$distributor = $_GET['distributor_id'];
-        
+        $perPage = $request->per_page ?? 10;
         $brandMap = [
             1 => 'ONN',
             2 => 'PYNK',
@@ -5905,7 +5906,7 @@ public function aseSalesreport(Request $request)
         ];
 
 		
-		$stores = Store::join('teams', 'stores.id', '=', 'teams.store_id')->whereRaw("FIND_IN_SET(?, teams.distributor_id)", [$distributor])->where('stores.status',1)->where('stores.is_deleted',0)->with('state','area','user')->get();
+		$stores = Store::join('teams', 'stores.id', '=', 'teams.store_id')->whereRaw("FIND_IN_SET(?, teams.distributor_id)", [$distributor])->where('stores.status',1)->where('stores.is_deleted',0)->with('state','area','user')->paginate($perPage);
 		
 	
         if ($stores->isNotEmpty()) {
