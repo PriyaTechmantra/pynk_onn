@@ -5695,7 +5695,7 @@ public function aseSalesreport(Request $request)
 
         // Stream CSV with chunking
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\ProductOrderExport($request->distributor_id, $from, $to,$brandCode),
+            new \App\Exports\SecondarySalesProductExport($request->distributor_id, $from, $to,$brandCode),
             $filename,
             \Maatwebsite\Excel\Excel::CSV
         );
