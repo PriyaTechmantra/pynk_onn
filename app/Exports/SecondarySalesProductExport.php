@@ -3,14 +3,16 @@
 namespace App\Exports;
 
 use App\Models\OrderProduct;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class SecondarySalesProductExport implements FromQuery, WithHeadings, WithMapping, WithChunkReading
+class SecondarySalesProductExport implements FromQuery, WithHeadings, WithMapping, WithChunkReading, ShouldQueue
 {
+    use Exportable;
     protected $distributorId;
     protected $from;
     protected $to;
