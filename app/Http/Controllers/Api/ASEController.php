@@ -5436,55 +5436,45 @@ public function aseSalesreport(Request $request)
 
     public function storeOrder(Request $request)
     {
-      // $params = $request->except('_token');
-		$validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'store_id' => ['required'],
-            'date_from' => ['nullable'],
-			'distributor_id' => ['required'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date'],
+            'distributor_id' => ['required'],
             'brand' => ['required'],
-           
+            'per_page' => ['nullable', 'integer', 'min:1'], // optional
         ]);
-         DB::enableQueryLog();
-        if (!$validator->fails()) {
-            $brandMap = [
-                'ONN' => 1,
-                'PYNK' => 2,
-                'Both' => 3,
-            ];
 
-         $brandCode = $brandMap[$request->brand] ?? null;
-         $store_id = $request->store_id;
-		
-		if ( !empty($request->date_from)) {
-		 			if (!empty($request->date_from)) {
-                        $date = date('Y-m-d', strtotime($request->date_from));
-                    } else {
-                        $date = date('Y-m-d');
-                    }
-                $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->where('distributor_id',$request->distributor_id)->where('brand',$brandCode)->whereDate('created_at', '=', $date)->get();
-                    if(!empty($resp)){
-                        foreach($resp as $item){
-                            $orderProduct = OrderProduct::where('order_id',$item->id)->with('color','size','product')->get();
-                            $item->orderProduct =$orderProduct;
-                        }
-                    }
-
-		}else{
-			 $resp = Order::orderBy('id', 'desc')->where('store_id',$store_id)->where('distributor_id',$request->distributor_id)->where('brand',$brandCode)->whereDate('created_at', '=', Carbon::now())->get();
-			if(!empty($resp)){
-					foreach($resp as $item){
-						$orderProduct = OrderProduct::where('order_id',$item->id)->with('color','size','product')->get();
-						$item->orderProduct =$orderProduct;
-					}
-			  	}
-
-		}
-       
-        	return response()->json(['error'=>false, 'resp'=>'Order data fetched successfully','data'=>$resp]);
-	} else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => true,
+                'message' => $validator->errors()->first()
+            ]);
         }
+
+        $brandMap = ['ONN' => 1, 'PYNK' => 2, 'Both' => 3];
+        $brandCode = $brandMap[$request->brand] ?? null;
+        $perPage = $request->per_page ?? 10;
+
+        $from = $request->date_from ? date('Y-m-d', strtotime($request->date_from)) : date('Y-m-d');
+        $to   = $request->date_to   ? date('Y-m-d', strtotime($request->date_to))   : $from;
+
+        $query = Order::with(['orderProducts.color', 'orderProducts.size', 'orderProducts.product'])
+            ->where('store_id', $request->store_id)
+            ->where('distributor_id', $request->distributor_id)
+            ->where('brand', $brandCode)
+            ->whereBetween(DB::raw('DATE(created_at)'), [$from, $to])
+            ->orderBy('id', 'desc');
+
+        $resp = $query->paginate($perPage);
+
+        return response()->json([
+            'error' => false,
+            'resp'  => 'Order data fetched successfully',
+            'data'  => $resp
+        ]);
     }
+
 	
 	
 	
@@ -5559,6 +5549,7 @@ public function aseSalesreport(Request $request)
             'date_from' => ['nullable'],
             'distributor_id' => ['required'],
             'distributor_name' => ['required'],
+             'brand' => ['required'],
             'per_page' => ['nullable', 'integer', 'min:1'], // optional, for pagination
             'page' => ['nullable', 'integer', 'min:1'],     // optional
         ]);
@@ -5569,7 +5560,13 @@ public function aseSalesreport(Request $request)
 
         $from = $request->date_from ? date('Y-m-d', strtotime($request->date_from)) : date('Y-m-d');
         $to = $request->date_to ? date('Y-m-d', strtotime($request->date_to.' +1 day')) : date('Y-m-d', strtotime('+1 day'));
+         $brandMap = [
+                'ONN' => 1,
+                'PYNK' => 2,
+                'Both' => 3,
+            ];
 
+         $brandCode = $brandMap[$request->brand] ?? null;
         $perPage = $request->per_page ?? 10; // default 10 items per page
         
         $query = OrderProduct::select(
@@ -5591,6 +5588,7 @@ public function aseSalesreport(Request $request)
             ->join('stores', 'stores.id', '=', 'orders.store_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
             ->where('orders.distributor_id', $request->distributor_id)
+            ->where('orders.brand',$brandCode)
             ->whereBetween('orders.created_at', [$from, $to])
             ->groupBy('order_products.product_id', 'order_products.size_id', 'order_products.color_id', 'orders.order_no') // better grouping
             ->orderBy('order_products.id', 'desc');
@@ -5672,108 +5670,32 @@ public function aseSalesreport(Request $request)
 	
 	//product wise order csv download for distributor
 	
-		public function csvProductExport(Request $request)
+	public function csvProductExport(Request $request)
     {
-        // return Excel::download(new OrderExport, 'Secondary-sales-'.date('Y-m-d').'.csv');
-		$validator = Validator::make($request->all(), [
+        $validator = Validator::make($request->all(), [
             'distributor_name' => ['required'],
-			'distributor_id' => ['required'],
-            'date_from' => ['required'],
-			'date_to' => ['required'],
-           
+            'distributor_id' => ['required'],
+            'date_from' => ['required', 'date'],
+            'date_to' => ['required', 'date'],
+             'brand' => 'required',
         ]);
-         DB::enableQueryLog();
-            if (!$validator->fails()) {
-               if (!empty($request->date_from)) {
-                         $from = date('Y-m-d', strtotime($request->date_from));
-                     } else {
-                         $from = date('Y-m-d');
-                     }
-					 // date to
-                    if (!empty($request->date_to)) {
-                        $to = date('Y-m-d', strtotime($request->date_to.'+1 day'));
-                        //dd($to);
-                    } else {
-                        $to = date('Y-m-d', strtotime('+1 day'));
-                    }
-            $resp = OrderProduct::select(
-                DB::raw("SUM(order_products.qty) as product_count"),
-                'orders.order_no',
-                'products.name AS product_name',
-                'order_products.product_id',
-                'products.style_no',
-                'order_products.size_id',
-                'colors.name AS color_name',
-                'sizes.name AS size_name',
-                'stores.name AS store_name',
-                'orders.created_at'
-            )
-            ->join('products', 'products.id', '=', 'order_products.product_id')
-            ->join('orders', 'orders.id', '=', 'order_products.order_id')
-            ->join('colors', 'colors.id', '=', 'order_products.color_id')
-            ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
-            ->join('stores', 'stores.id', '=', 'orders.store_id')
-            ->join('teams', 'teams.store_id', '=', 'stores.id')
-            
-            ->where('orders.distributor_id', $request->distributor_id)
-            ->whereBetween('orders.created_at', [$from, $to])
-            ->groupBy('order_products.id')
-            ->orderBy('order_products.id', 'desc')
-            ->get()
-            ->map(function ($item) {
-                $item->created_at = Carbon::parse($item->created_at)->format('Y-m-d H:i:s');
-                return $item;
-            });
-            
-                // Initialize the file pointer to avoid undefined variable error
-                $f = fopen('php://memory', 'w');
-                $filename = "onn-secondary-order-" . date('Y-m-d') . ".csv";
-                $delimiter = ",";
-                
-                // Set column headers
-                $fields = ['SR', 'ORDER NO', 'PRODUCT', 'STYLE NO', 'COLOR', 'SIZE', 'QTY', 'STORE', 'DATETIME'];
-                fputcsv($f, $fields, $delimiter);
-            
-                $count = 1;
-                
-                foreach ($resp as $row) {
-                    $from = !empty($request->date_from) ? date('Y-m-d', strtotime($request->date_from)) : date('Y-m-d');
-                    $to = !empty($request->date_to) ? date('Y-m-d', strtotime($request->date_to . '+1 day')) : date('Y-m-d', strtotime('+1 day'));
-            
-                    
-                        $datetime = date('j F, Y h:i A', strtotime($row->created_at));
-            
-                        $lineData = [
-                            $count,
-                            $row->order_no,
-                            $row->product_name,
-                            $row->style_no,
-                            $row->color_name, // Assuming 'colors.name' is color
-                            $row->size_name,
-                            $row->product_count,
-                            $row->store_name ?? '',
-                            $datetime
-                        ];
-            
-                        fputcsv($f, $lineData, $delimiter);
-                        $count++;
-                    }
-                
-            
-                // Move back to the beginning of the file
-                fseek($f, 0);
-            
-                // Set headers for CSV download
-                header('Content-Type: text/csv');
-                header('Content-Disposition: attachment; filename="' . $filename . '";');
-            
-                // Output the CSV file
-                fpassthru($f);
-                exit();
-            } else {
-                return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
-            }
 
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+
+        $from = date('Y-m-d', strtotime($request->date_from));
+        $to   = date('Y-m-d', strtotime($request->date_to . '+1 day'));
+        $brandMap = ['ONN' => 1, 'PYNK' => 2, 'Both' => 3];
+        $brandCode = $brandMap[$request->brand] ?? null;
+        $filename = "secondary-order-product-" . date('Y-m-d') . ".csv";
+
+        // Stream CSV with chunking
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\ProductOrderExport($request->distributor_id, $from, $to,$brandCode),
+            $filename,
+            \Maatwebsite\Excel\Excel::CSV
+        );
     }
 
 
