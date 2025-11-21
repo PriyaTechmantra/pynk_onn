@@ -5490,32 +5490,89 @@ public function aseSalesreport(Request $request)
 	
     //product wise order details for distributor dashboard
 	
-	 public function productOrder(Request $request): JsonResponse
-     {
-       // $params = $request->except('_token');
-         $validator = Validator::make($request->all(), [
-             'date_to' => ['nullable'],
-             'date_from' => ['nullable'],
-             'distributor_id' => ['required'],
-            'distributor_name' => ['required'],
-         ]);
-          DB::enableQueryLog();
-         if (!$validator->fails()) {
+	//  public function productOrder(Request $request)
+    //  {
+    //    // $params = $request->except('_token');
+    //      $validator = Validator::make($request->all(), [
+    //          'date_to' => ['nullable'],
+    //          'date_from' => ['nullable'],
+    //          'distributor_id' => ['required'],
+    //         'distributor_name' => ['required'],
+    //      ]);
+    //       DB::enableQueryLog();
+    //      if (!$validator->fails()) {
         
              
-		            if (!empty($request->date_from)) {
-                         $from = date('Y-m-d', strtotime($request->date_from));
-                     } else {
-                         $from = date('Y-m-d');
-                     }
-					 // date to
-                    if (!empty($request->date_to)) {
-                        $to = date('Y-m-d', strtotime($request->date_to.'+1 day'));
-                        //dd($to);
-                    } else {
-                        $to = date('Y-m-d', strtotime('+1 day'));
-                    }
-            $resp = OrderProduct::select(
+	// 	            if (!empty($request->date_from)) {
+    //                      $from = date('Y-m-d', strtotime($request->date_from));
+    //                  } else {
+    //                      $from = date('Y-m-d');
+    //                  }
+	// 				 // date to
+    //                 if (!empty($request->date_to)) {
+    //                     $to = date('Y-m-d', strtotime($request->date_to.'+1 day'));
+    //                     //dd($to);
+    //                 } else {
+    //                     $to = date('Y-m-d', strtotime('+1 day'));
+    //                 }
+    //         $resp = OrderProduct::select(
+    //             DB::raw("SUM(order_products.qty) as product_count"),
+    //             'orders.order_no',
+    //             'products.name AS product_name',
+    //             'order_products.product_id',
+    //             'products.style_no',
+    //             'order_products.size_id',
+    //             'colors.name AS color_name',
+    //             'sizes.name AS size_name',
+    //             'stores.name AS store_name',
+    //             'orders.created_at'
+    //         )
+    //         ->join('products', 'products.id', '=', 'order_products.product_id')
+    //         ->join('orders', 'orders.id', '=', 'order_products.order_id')
+    //         ->join('colors', 'colors.id', '=', 'order_products.color_id')
+    //         ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
+    //         ->join('stores', 'stores.id', '=', 'orders.store_id')
+    //         ->join('teams', 'teams.store_id', '=', 'stores.id')
+            
+    //         ->where('orders.distributor_id', $request->distributor_id)
+    //         ->whereBetween('orders.created_at', [$from, $to])
+    //         ->groupBy('order_products.id')
+    //         ->orderBy('order_products.id', 'desc')
+    //         ->get()
+    //         ->map(function ($item) {
+    //             $item->created_at = Carbon::parse($item->created_at)->format('Y-m-d H:i:s');
+    //             return $item;
+    //         });
+
+        
+    //          return response()->json(['error'=>false, 'resp'=>'Order data fetched successfully','data'=>$resp]);
+      
+    //     } else {
+    //          return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+    //     }
+    //  }
+
+    public function productOrder(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'date_to' => ['nullable'],
+            'date_from' => ['nullable'],
+            'distributor_id' => ['required'],
+            'distributor_name' => ['required'],
+            'per_page' => ['nullable', 'integer', 'min:1'], // optional, for pagination
+            'page' => ['nullable', 'integer', 'min:1'],     // optional
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+
+        $from = $request->date_from ? date('Y-m-d', strtotime($request->date_from)) : date('Y-m-d');
+        $to = $request->date_to ? date('Y-m-d', strtotime($request->date_to.' +1 day')) : date('Y-m-d', strtotime('+1 day'));
+
+        $perPage = $request->per_page ?? 10; // default 10 items per page
+        
+        $query = OrderProduct::select(
                 DB::raw("SUM(order_products.qty) as product_count"),
                 'orders.order_no',
                 'products.name AS product_name',
@@ -5533,24 +5590,25 @@ public function aseSalesreport(Request $request)
             ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
             ->join('stores', 'stores.id', '=', 'orders.store_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
-            
             ->where('orders.distributor_id', $request->distributor_id)
             ->whereBetween('orders.created_at', [$from, $to])
-            ->groupBy('order_products.id')
-            ->orderBy('order_products.id', 'desc')
-            ->get()
-            ->map(function ($item) {
-                $item->created_at = Carbon::parse($item->created_at)->format('Y-m-d H:i:s');
-                return $item;
-            });
+            ->groupBy('order_products.product_id', 'order_products.size_id', 'order_products.color_id', 'orders.order_no') // better grouping
+            ->orderBy('order_products.id', 'desc');
 
-        
-             return response()->json(['error'=>false, 'resp'=>'Order data fetched successfully','data'=>$resp]);
-      
-        } else {
-             return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
-        }
-     }
+        $resp = $query->paginate($perPage);
+
+        // Format the created_at field for all items
+        $resp->getCollection()->transform(function ($item) {
+            $item->created_at = Carbon::parse($item->created_at)->format('Y-m-d H:i:s');
+            return $item;
+        });
+
+        return response()->json([
+            'error' => false,
+            'resp' => 'Order data fetched successfully',
+            'data' => $resp
+        ]);
+    }
 	
 	public function csvExport(Request $request)
     {
