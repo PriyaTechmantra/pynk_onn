@@ -3,19 +3,20 @@
 namespace App\Exports;
 
 use App\Models\OrderProduct;
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Carbon\Carbon;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class SecondarySalesProductExport implements FromCollection, WithHeadings, WithMapping
+class SecondarySalesProductExport implements FromQuery, WithHeadings, WithMapping, WithChunkReading
 {
     protected $distributorId;
     protected $from;
     protected $to;
     protected $brand;
-    public function __construct($distributorId, $from, $to,$brand)
+
+    public function __construct($distributorId, $from, $to, $brand)
     {
         $this->distributorId = $distributorId;
         $this->from = $from;
@@ -23,7 +24,6 @@ class SecondarySalesProductExport implements FromCollection, WithHeadings, WithM
         $this->brand = $brand;
     }
 
-    // Query to fetch data
     public function query()
     {
         return OrderProduct::query()
@@ -43,12 +43,11 @@ class SecondarySalesProductExport implements FromCollection, WithHeadings, WithM
             ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
             ->join('stores', 'stores.id', '=', 'orders.store_id')
             ->where('orders.distributor_id', $this->distributorId)
-            ->where('orders.brand',$this->brand)
+            ->where('orders.brand', $this->brand)
             ->whereBetween('orders.created_at', [$this->from, $this->to])
             ->orderBy('orders.created_at', 'desc');
     }
 
-    // Map each row to CSV columns
     public function map($row): array
     {
         return [
@@ -63,15 +62,22 @@ class SecondarySalesProductExport implements FromCollection, WithHeadings, WithM
         ];
     }
 
-    // Column headers
     public function headings(): array
     {
-        return ['ORDER NO', 'PRODUCT', 'STYLE NO', 'COLOR', 'SIZE', 'QTY', 'STORE', 'DATETIME'];
+        return [
+            'ORDER NO',
+            'PRODUCT',
+            'STYLE NO',
+            'COLOR',
+            'SIZE',
+            'QTY',
+            'STORE',
+            'DATETIME'
+        ];
     }
 
-    // Chunk size to reduce memory usage
     public function chunkSize(): int
     {
-        return 5000; // adjust based on your server memory
+        return 2000; // best performance
     }
 }
