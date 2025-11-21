@@ -5548,7 +5548,7 @@ public function aseSalesreport(Request $request)
             'date_to' => ['nullable'],
             'date_from' => ['nullable'],
             'distributor_id' => ['required'],
-            'distributor_name' => ['required'],
+            'distributor_name' => ['nullable'],
              'brand' => ['required'],
             'per_page' => ['nullable', 'integer', 'min:1'], // optional, for pagination
             'page' => ['nullable', 'integer', 'min:1'],     // optional
@@ -5673,7 +5673,7 @@ public function aseSalesreport(Request $request)
 	public function csvProductExport(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'distributor_name' => ['required'],
+            'distributor_name' => ['nullable'],
             'distributor_id' => ['required'],
             'date_from' => ['required', 'date'],
             'date_to' => ['required', 'date'],
