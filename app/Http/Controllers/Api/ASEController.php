@@ -3154,16 +3154,19 @@ public function aseSalesreport(Request $request)
         ->toArray();
 
     // ✅ Get ASEs who are NOT in the active list
-    $inactiveASE = Team::select('employees.*')
-        ->join('employees', 'teams.ase_id', '=', 'employees.id')
-        ->where('teams.asm_id', $userId)
-        ->where('teams.brand', $brandCode)
-        ->whereNotIn('employees.id', $activeASEreport)
-        ->where('teams.status', 1)
-        ->where('teams.is_deleted', 0)
-        ->groupBy('teams.ase_id')
-        ->orderBy('employees.name')
-        ->get();
+    $inactiveASE = Employee::select('employees.*')
+            ->join('teams', 'teams.ase_id', '=', 'employees.id')
+            ->where('teams.asm_id', $userId)
+            ->where('teams.brand', $brandCode)
+            ->whereNotIn('employees.id', $activeASEreport)
+            ->where('teams.status', 1)
+            ->where('teams.is_deleted', 0)
+
+            ->where('employees.is_deleted', 0)
+            ->groupBy('employees.id')
+            ->orderBy('employees.name')
+            ->with(['stateDetail', 'area']) // works correctly now
+            ->get();
 
     return response()->json([
         'error' => false,
@@ -3807,15 +3810,18 @@ public function aseSalesreport(Request $request)
             ->toArray();
 
         // ✅ Get ASEs who are NOT in the active list
-        $inactiveASE = Team::select('employees.*')
-            ->join('employees', 'teams.ase_id', '=', 'employees.id')
+        $inactiveASE = Employee::select('employees.*')
+            ->join('teams', 'teams.ase_id', '=', 'employees.id')
             ->where('teams.rsm_id', $userId)
             ->where('teams.brand', $brandCode)
             ->whereNotIn('employees.id', $activeASEreport)
             ->where('teams.status', 1)
             ->where('teams.is_deleted', 0)
-            ->groupBy('teams.ase_id')
+
+            ->where('employees.is_deleted', 0)
+            ->groupBy('employees.id')
             ->orderBy('employees.name')
+            ->with(['stateDetail', 'area']) // works correctly now
             ->get();
 
         return response()->json([
@@ -4446,15 +4452,18 @@ public function aseSalesreport(Request $request)
             ->toArray();
 
         // ✅ Get ASEs who are NOT in the active list
-        $inactiveASE = Team::select('employees.*')
-            ->join('employees', 'teams.ase_id', '=', 'employees.id')
+        $inactiveASE = Employee::select('employees.*')
+            ->join('teams', 'teams.ase_id', '=', 'employees.id')
             ->where('teams.vp_id', $userId)
             ->where('teams.brand', $brandCode)
             ->whereNotIn('employees.id', $activeASEreport)
             ->where('teams.status', 1)
             ->where('teams.is_deleted', 0)
-            ->groupBy('teams.ase_id')
+
+            ->where('employees.is_deleted', 0)
+            ->groupBy('employees.id')
             ->orderBy('employees.name')
+            ->with(['stateDetail', 'area']) // works correctly now
             ->get();
 
         return response()->json([
