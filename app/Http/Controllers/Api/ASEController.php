@@ -3641,6 +3641,7 @@ public function aseSalesreport(Request $request)
 
         $asmId = $request->asm_id;
         $brand = $request->brand;
+        $perPage = $request->per_page ?? 10;
         $dateFrom = $request->date_from;
         $dateTo = $request->date_to;
         // 🔹 Brand mapping
@@ -3695,7 +3696,7 @@ public function aseSalesreport(Request $request)
 
         $query->orderByDesc('retailer_orders.id');
 
-        $data = $query->get();
+        $data = $query->paginate($perPage);
         $filtered = $data->filter(function ($order) {
         return $order->user &&
                $order->user->status == 1 &&
