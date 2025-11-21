@@ -43,6 +43,9 @@ use DB;
 use Auth;
 use Hash;
 use Illuminate\Support\Facades\Log;
+use App\Exports\SecondarySalesExport;
+use App\Exports\SecondarySalesProductExport;
+use Maatwebsite\Excel\Facades\Excel;
 class ASEController extends Controller
 {
 
