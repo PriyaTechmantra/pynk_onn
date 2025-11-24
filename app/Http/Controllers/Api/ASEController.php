@@ -6102,8 +6102,8 @@ public function aseSalesreport(Request $request)
         if ($request['email']) {
         $updatedEntry->email = $request->email;
         }
-        if ($request['whatsapp_no']) {
-        $updatedEntry->whatsapp_no = $request->whatsapp_no;
+        if ($request['whatsapp']) {
+        $updatedEntry->whatsapp = $request->whatsapp;
         }
         if ($request['pin']) {
         $updatedEntry->pin = $request->pin;
