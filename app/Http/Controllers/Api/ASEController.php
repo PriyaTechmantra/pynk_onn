@@ -6090,8 +6090,8 @@ public function aseSalesreport(Request $request)
 		if ($request['owner_lname']) {
         $updatedEntry->owner_lname = $request->owner_lname;
         }
-        if ($request['store_name']) {
-        $updatedEntry->store_name = $request->store_name;
+        if ($request['name']) {
+        $updatedEntry->name = $request->name;
         }
         if ($request['address']) {
         $updatedEntry->address = $request->address;
@@ -6108,18 +6108,16 @@ public function aseSalesreport(Request $request)
         if ($request['pin']) {
         $updatedEntry->pin = $request->pin;
         }
-        if ($request['area']) {
-        $updatedEntry->area = $request->area;
+        if ($request['area_id']) {
+        $updatedEntry->area_id = $request->area_id;
         }
-        if ($request['address']) {
-        $updatedEntry->state = $request->state;
+        if ($request['state_id']) {
+        $updatedEntry->state_id = $request->state_id;
         }
         if ($request['city']) {
         $updatedEntry->city = $request->city;
         }
-        if ($request['state']) {
-        $updatedEntry->state = $request->state;
-        }
+        
         if ($request['image']) {
             $updatedEntry->image = $request->image;
         }
@@ -6134,9 +6132,14 @@ public function aseSalesreport(Request $request)
         }
         $updatedEntry->save();
         if($updatedEntry){
-            return response()->json(['error' => false, 'message' => 'Update Successful','data'=>$updatedEntry]);
+            return response()->json([
+                'status'  => true,
+                'message' => 'Store/Retailer data Updated successfully',
+                'data'    => $updatedEntry,
+            ], 200);
+            
         } else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
 	
@@ -6232,34 +6235,10 @@ public function aseSalesreport(Request $request)
 				
 				  return response()->json(['error' => true, 'message' => 'Store/Retailer already exist']);
 				}else{
-				/*$user= new RetailerUser;
-				$user->retailer_id = $retailer_id;
-				$user->owner_name = $request->owner_name;
-				$user->shop_name = $request->shop_name;
-				$user->shop_address = $request->shop_address;
-				$user->email = $request->email ?? '';
-				$user->mobile = $request->mobile ?? '';
-				$user->whatsapp_no = $request->whatsapp_no ?? '';
-				$user->pin = $request->pin ?? '';
-				$user->state = $request->state ?? '';
-				$user->city = $request->city ?? '';
-				$user->district = $request->district ?? '';
-				$user->password = bcrypt($request['password']);
-				$user->created_at = date('Y-m-d g:i:s');
-				$user->updated_at = date('Y-m-d g:i:s');
-				if (isset($request['aadhar'])) {
-					$user->aadhar = $request->aadhar;
-				}
-				if (isset($request['pan'])) {
-					$user->pan = $request->pan;
-				}
-				if (isset($request['gst'])) {
-					$user->gst = $request->gst;
-				}
-				$user->save();*/
-			//$result1 = DB::select("select * from retailer_list_of_occ where distributor_name='$request->distributor_name' AND area='".$request['area']."'");
+				
+			
 			$store = new Store;
-			//$store->user_id = $request['user_id'];
+			
 			$store->store_name = $request['store_name'];
 			$store->bussiness_name	 = $request['bussiness_name'] ?? null;
 			$store->owner_name	 = $request['owner_name'] ?? null;
@@ -6345,14 +6324,14 @@ public function aseSalesreport(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'secret_pin' => ['required', 'integer', 'min:1'],
-			'id'   => ['required', 'integer', 'min:1'],
+			'store_id'   => ['required', 'integer', 'min:1'],
       //  ], [
         //    'aadhar.*' => 'Please enter minimum one document'
         ]);
 
         if (!$validator->fails()) {
 			
-				$user= Store::findOrFail($request->id);
+				$user= Store::findOrFail($request->store_id);
 				$user->secret_pin = $request->secret_pin;
 				$user->save();
 				 return response()->json(['error' => false, 'message' => 'Pin Generated Successfully','data'=>$user]);
