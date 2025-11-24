@@ -6162,7 +6162,7 @@ public function aseSalesreport(Request $request)
 
         $new_pass = Hash::make($request->new_password);
 
-        $updatedEntry = Store::where('mobile', $request->mobile)->update(['password' => $new_pass]);
+        $updatedEntry = Store::where('contact', $request->mobile)->update(['password' => $new_pass]);
 
             return response()->json(['status' => true, 'message' => 'Update Successful','data'=>$updatedEntry]);
         } else {
