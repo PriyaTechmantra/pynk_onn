@@ -6220,10 +6220,9 @@ public function aseSalesreport(Request $request)
             'area_id' => ['required', 'max:255'],
             'city' => ['required', 'string','max:255'],
             'aadhar' => ['nullable'],
-      //  ], [
-        //    'aadhar.*' => 'Please enter minimum one document'
+      
         ]);
-
+        dd('hi');
         if (!$validator->fails()) {
 			
             $upload_path = "uploads/retailer/document";
