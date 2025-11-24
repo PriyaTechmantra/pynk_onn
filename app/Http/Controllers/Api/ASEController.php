@@ -35,6 +35,7 @@ use App\Models\News;
 use App\Models\ProductCatalogue;
 use App\Models\SecondaryAseOrder;
 use App\Models\RetailerOrder;
+use App\Models\RetailerUserTxnHistory;
 use Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -6389,7 +6390,7 @@ public function aseSalesreport(Request $request)
     {
         $scanLimit=20;
         
-        $data=RetailerWalletTxn::where('user_id',$id)->where('type',1)->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
+        $data=RetailerUserTxnHistory::where('user_id',$id)->where('type','qrcode scan')->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
         return response()->json(['error' => false, 'message' => 'Monthly Scan Limit History','Monthly Scan Limit'=>$scanLimit,'Scan history by retailer'=>$data,'Monthly_Scan_Limit'=>$scanLimit,'Scan_history_by_retailer'=>$data]);
     }
 
@@ -6454,7 +6455,7 @@ public function aseSalesreport(Request $request)
 	}
 
 
-    
+
 
 
     
