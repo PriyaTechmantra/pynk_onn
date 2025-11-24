@@ -6062,7 +6062,7 @@ public function aseSalesreport(Request $request)
         ];
         $user = Store::where('id', $id)->first();
 
-        if ($user->isNotEmpty()) {
+        if ($user) {
             // Transform brand values
             $user = $user->map(function ($store) use ($brandMap) {
                 $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
