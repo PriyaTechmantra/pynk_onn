@@ -268,7 +268,7 @@ Route::get('retailer/wallet/balance/{id}', [ASEController::class, 'retailerwalle
 Route::get('retailer/brochure', [ASEController::class, 'retailerbrochureindex']);
 
 //barcode scan
-Route::post('retailer/barcode', [ASEController::class, 'retailerBarcode']);
+Route::post('retailer/qrcode/scan', [ASEController::class, 'retailerBarcode']);
 //5 order history user wise 
 Route::get('retailer/order/{userid}', [ASEController::class, 'retailerOrder']);
 
