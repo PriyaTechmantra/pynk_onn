@@ -4863,7 +4863,18 @@ public function aseSalesreport(Request $request)
         ]);
     }
 
-
+    public function vpdistributorList(Request $request)
+    {
+        $vp = $_GET['user_id'];
+        
+        $data= Team::select('distributor_id','area_id')->where('vp_id',$rsm)->where('store_id',NULL)->with('distributor')->distinct('distributor_id')->get();
+        if ($data->isNotEmpty()) 
+        {
+            return response()->json(['error' => false, 'resp' => 'Distributor data fetched successfully','data' => $data]);
+        } else {
+            return response()->json(['error' => true, 'resp' => 'Something happened']);
+        }
+    }
    public function onncurrencyVP(Request $request)
     {
         $keyword = $request->get('keyword', '');
@@ -5848,7 +5859,7 @@ public function aseSalesreport(Request $request)
         $query->orderByDesc('retailer_orders.id');
 
         $data = $query->paginate($perPage);
-        dd($data);
+       
          $filtered = $data->filter(function ($order) {
             return $order->user &&
                 $order->user->status == 1 &&

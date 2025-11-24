@@ -190,6 +190,7 @@ Route::post('team-wise-report-vp', [ASEController::class, 'storeReportVP']);
 Route::post('product-wise-report-vp', [ASEController::class, 'productReportVP']);
 
 Route::get('store/onn/currency/vp', [ASEController::class, 'onncurrencyVP']);
+Route::get('vp/distributor/list', [ASEController::class, 'vpdistributorList']);
 Route::post('store/reward/order/detail/vp', [ASEController::class, 'rewardordervpDetail']);
 //order approval 
 Route::post('store/reward/order/status/vp', [ASEController::class, 'rewardordervpStatus']);
