@@ -6228,93 +6228,79 @@ public function aseSalesreport(Request $request)
 			
             $upload_path = "uploads/retailer/document";
 			$retailer_id = "ONN".mt_rand();
-			$storeExist=Store::where('store_name',$request['store_name'])->where('area',$request['area'])->where('contact',$request['contact'])->where('state',$request['state'])->where('status',1)->first();
+			$storeExist=Store::where('name',$request['name'])->where('area_id',$request['area_id'])->where('contact',$request['contact'])->where('state_id',$request['state_id'])->where('status',1)->where('is_deleted',0)->first();
 			//dd($storeExist);
 			if(($storeExist)){
 				
-				  return response()->json(['error' => true, 'message' => 'Store/Retailer already exist']);
-				}else{
-				
+				  return response()->json(['status' => false, 'message' => 'Store/Retailer already exist']);
+			}else{
+				$brandMap = [
+                    'ONN'  => 1,
+                    'PYNK' => 2,
+                    'Both' => 3,
+                ];
+
+                $brandValue = $brandMap[$request->brand] ?? null;
+
+                if (!$brandValue) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Invalid brand value.',
+                    ]);
+                }
 			
 			$store = new Store;
 			
-			$store->store_name = $request['store_name'];
-			$store->bussiness_name	 = $request['bussiness_name'] ?? null;
-			$store->owner_name	 = $request['owner_name'] ?? null;
-		    $store->owner_lname	 = $request['owner_lname'] ?? null;
-			$store->store_OCC_number = $request['store_OCC_number'] ?? null;
-			$store->gst_no = $request['gst_no'] ?? null;
-		    $store->pan_no = $request['pan_no'] ?? null;
-			$store->contact = $request['contact'];
-			$store->whatsapp = $request['whatsapp']?? null;
-			$store->email	 = $request['email']?? null;
-			$store->address	 = $request['address']?? null;
-			$store->state	 = $request['state']?? null;
-			$store->city	 = $request['city']?? null;
-			$store->pin	 = $request['pin']?? null;
-			$store->area	 = $request['area']?? null;
-		    $store->device_id	 = $request['device_id']?? null;
-			$store->date_of_birth	 = $request['date_of_birth']?? null;
-			$store->date_of_anniversary	 = $request['date_of_anniversary']?? null;
-			$store->contact_person	 = $request['contact_person']?? null;
-	    	$store->contact_person_lname = $request['contact_person_lname'] ?? null;
-			$store->contact_person_phone	= $request['contact_person_phone']?? null;
-			$store->contact_person_whatsapp	 = $request['contact_person_whatsapp']?? null;
-			$store->contact_person_date_of_birth	 = $request['contact_person_date_of_birth']?? null;
-			$store->contact_person_date_of_anniversary	 = $request['contact_person_date_of_anniversary']?? null;
-			$store->password = bcrypt($request['password']) ?? null;
-				if (isset($request['aadhar'])) {
-					$store->aadhar = $request->aadhar;
-				}
-				if (isset($request['pan'])) {
-					$store->pan = $request->pan;
-				}
-				if (isset($request['gst'])) {
-					$store->gst = $request->gst;
-				}
-			$store->status = '0';
-			//$store->gst_no = '';
-			if (!empty($request['image'])) {
-				
-				$store->image= $request['image'];
-			}
-			// if (!empty($collection['slug'])) {
-				$slug = Str::slug($request['store_name'], '-');
-				$slugExistCount = Store::where('slug', $slug)->count();
-				if ($slugExistCount > 0) $slug = $slug.'-'.($slugExistCount+1);
-				$store->slug = $slug;
-			// }
-			$store->created_at = date('Y-m-d H:i:s');
-			$store->updated_at = date('Y-m-d H:i:s');
-			$store->save();
+			$store->name = $request['name'];
+            $slug = Str::slug($request->name, '-');
+            $slugExistCount = Store::where('name', $request->name)->count();
+            if ($slugExistCount > 0) $slug = $slug.'-'.($slugExistCount);
+            $store->slug = $slug;
+            $store->brand = $brandValue;
+			$store->bussiness_name = $request->bussiness_name ?? null;
+            $store->store_OCC_number = $request->store_OCC_number ?? null;
+            $store->contact = $request->contact ?? null;
+            $store->email = $request->email ?? null;
+            $store->whatsapp = $request->whatsapp ?? null;
+            $store->address = $request->address ?? null;
+            $store->area_id = $request->area_id ?? null;
+            $store->state_id = $request->state_id ?? null;
+            $store->city = $request->city;
+            $store->pin = $request->pin ?? null;
+            $store->owner_name	 = $request->owner_name ?? null;
+            $store->owner_lname	 = $request->owner_lname ?? null;
+            
+            $store->gst_no = $request->gst_no ?? null;
+            $store->pan_no = $request->pan_no ?? null;
+            $store->date_of_birth	 = $request->date_of_birth?? null;
+            $store->date_of_anniversary	 = $request->date_of_anniversary?? null;
+            $store->contact_person	 = $request->contact_person ?? null;
+            $store->contact_person_lname = $request->contact_person_lname ?? null;
+            $store->contact_person_phone	= $request->contact_person_phone ?? null;
+            $store->contact_person_whatsapp	 = $request->contact_person_whatsapp ?? null;
+            $store->contact_person_date_of_birth	 = $request->contact_person_date_of_birth ?? null;
+            $store->contact_person_date_of_anniversary	 = $request->contact_person_date_of_anniversary ?? null;
+            if (!empty($request['image'])) {
+                            $store->image= $request->image;
+            }
+            if (!empty($request['pan'])) {
+                            $store->pan= $request->pan;
+            }
+            $store->status = 0;
+            
+            $store->save();
 			
-			$retailerListOfOcc = new RetailerListOfOcc;
-			$retailerListOfOcc->vp = $request->vp ?? '';
-			$retailerListOfOcc->state = $request['state'];
-			$retailerListOfOcc->store_id = $store->id;
-			$retailerListOfOcc->distributor_name = $request['distributor_name'];
-			$retailerListOfOcc->area = $request['area'];
-			$retailerListOfOcc->retailer = $request['store_name'];
-			$retailerListOfOcc->rsm = $request->rsm ?? '';
-			$retailerListOfOcc->asm = $request->asm ?? '';
-			$retailerListOfOcc->ase = $request->ase ?? '';
-			$retailerListOfOcc->is_active = '1';
-			$retailerListOfOcc->is_deleted = '0';
-			$retailerListOfOcc->asm_rsm = $request->rsm ?? '';
-			$retailerListOfOcc->code = '';
-			$retailerListOfOcc->created_at = date('Y-m-d H:i:s');
-			$retailerListOfOcc->updated_at = date('Y-m-d H:i:s');
-			$retailerListOfOcc->save();
+			
 			
 
 			
 		   
 			
 			
-				 return response()->json(['error' => false, 'message' => 'Registration Successful','data'=>$store]);
+				 return response()->json(['status' => true, 'message' => 'Registration Successful','data'=>$store]);
 			}
         } else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
 
