@@ -6055,8 +6055,32 @@ public function aseSalesreport(Request $request)
 
     public function retailermyprofile($id)
     {
+        $brandMap = [
+            1 => 'ONN',
+            2 => 'PYNK',
+            3 => 'Both',
+        ];
         $user = Store::where('id', $id)->first();
-        return response()->json(['error'=>false, 'resp'=>'Retailer data fetched successfully','data'=>$user]);
+
+        if ($user->isNotEmpty()) {
+            // Transform brand values
+            $user = $user->map(function ($store) use ($brandMap) {
+                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                return $store;
+            });
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Store/Retailer data fetched successfully',
+                'data'    => $user,
+            ], 200);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'No Store/Retailer data found',
+            ], 404);
+        }
+        //return response()->json(['error'=>false, 'resp'=>'Retailer data fetched successfully','data'=>$user]);
 
     }
 
