@@ -6208,7 +6208,7 @@ public function aseSalesreport(Request $request)
 
     public function retailerRegister(Request $request)
     {
-         dd($request->all());
+         
         $validator = Validator::make($request->all(), [
             'owner_name' => ['required', 'string', 'min:1'],
 			'owner_lname' => ['nullable', 'string', 'min:1'],
