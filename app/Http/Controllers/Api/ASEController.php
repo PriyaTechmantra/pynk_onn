@@ -4867,7 +4867,7 @@ public function aseSalesreport(Request $request)
     {
         $vp = $_GET['user_id'];
         
-        $data= Team::select('distributor_id','area_id')->where('vp_id',$rsm)->where('store_id',NULL)->with('distributor')->distinct('distributor_id')->get();
+        $data= Team::select('distributor_id','area_id')->where('vp_id',$vp)->where('store_id',NULL)->with('distributor')->distinct('distributor_id')->get();
         if ($data->isNotEmpty()) 
         {
             return response()->json(['error' => false, 'resp' => 'Distributor data fetched successfully','data' => $data]);
