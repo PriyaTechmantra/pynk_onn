@@ -6414,6 +6414,55 @@ public function aseSalesreport(Request $request)
 	}
 
 
+    public function retailerCreatePan(Request $request) {
+		$validator = Validator::make($request->all(), [
+            'pan' => 'required'
+        ]);
+        if (!$validator->fails()) {
+				$imageName = mt_rand().'.'.$request->pan->extension();
+				$uploadPath = 'public/uploads/retailer/document';
+				$request->pan->move($uploadPath, $imageName);
+				$total_path = $uploadPath.'/'.$imageName;
+			     $resp = [
+                       'data' => $total_path,
+                       ];
+			return response()->json(['error' => false, 'message' => 'Document added', 'data' => $resp]);
+		} else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+		
+	}
+
+
+    public function retailerCreateGst(Request $request) {
+		$validator = Validator::make($request->all(), [
+            'gst' => 'required'
+        ]);
+        if (!$validator->fails()) {
+				$imageName = mt_rand().'.'.$request->gst->extension();
+				$uploadPath = 'public/uploads/retailer/document';
+				$request->gst->move($uploadPath, $imageName);
+				$total_path = $uploadPath.'/'.$imageName;
+			     $resp = [
+                       'data' => $total_path,
+                       ];
+			return response()->json(['error' => false, 'message' => 'Document added', 'data' => $resp]);
+		} else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+		
+	}
+
+
+    
+
+
+    
+
+
+
+
+
 
 
 
