@@ -5948,6 +5948,56 @@ public function aseSalesreport(Request $request)
 
 
     //retailer
+
+
+    public function allstateList(Request $request)
+    {
+         $data = State::where('status',1)->where('is_deleted', 0)
+                ->orderby('name')
+                ->get();
+
+
+            
+
+            if ($data->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'State list not found'
+                ], 404);
+            }
+
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'List of states',
+                'data' => $data
+            ], 200);
+
+    }
+    public function allareaList(Request $request,$id)
+    {
+        $data = Area::where('state_id',$id)->where('status',1)
+                ->where('is_deleted', 0)
+                ->with('state')
+                ->get();
+
+            
+
+            if ($data->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Area list not found'
+                ], 404);
+            }
+
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'List of areas',
+                'data' => $data
+            ], 200);
+
+    }
      public function retailerLogin(Request $request) {
         $validator = Validator::make($request->all(), [
             'contact' => ['required', 'integer','digits:10'],
