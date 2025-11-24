@@ -6381,7 +6381,7 @@ public function aseSalesreport(Request $request)
 	public function retailerterms(Request $request)
     {
         $data=DB::table('reward_terms')->latest('id')->first();
-         return response()->json(['error' => false, 'message' => 'Terms & condition fetched Successfully','data'=>$data]);
+         return response()->json(['status' => true, 'message' => 'Terms & condition fetched Successfully','data'=>$data]);
     }
     
     
@@ -6391,7 +6391,7 @@ public function aseSalesreport(Request $request)
         $scanLimit=20;
         
         $data=RetailerUserTxnHistory::where('user_id',$id)->where('type','qrcode scan')->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
-        return response()->json(['error' => false, 'message' => 'Monthly Scan Limit History','Monthly Scan Limit'=>$scanLimit,'Scan history by retailer'=>$data,'Monthly_Scan_Limit'=>$scanLimit,'Scan_history_by_retailer'=>$data]);
+        return response()->json(['status' => true, 'message' => 'Monthly Scan Limit History','Monthly Scan Limit'=>$scanLimit,'Scan history by retailer'=>$data,'Monthly_Scan_Limit'=>$scanLimit,'Scan_history_by_retailer'=>$data]);
     }
 
     // retailer create aadhar document API
