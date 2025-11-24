@@ -5986,19 +5986,19 @@ public function aseSalesreport(Request $request)
 						 $store=Store::findOrfail($userCheck->id);
 						 $store->device_id =$device_id;
 						 $store->save();
-                     return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck,'brand' => $brandPermissions]);
+                     return response()->json(['status' => true, 'message' => 'Login successful', 'data' => $userCheck,'brand' => $brandPermissions]);
 					 }
                     // return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck]);
                  } else {
-                     return response()->json(['error' => true, 'resp' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $userCheck->password]);
+                     return response()->json(['status' => false, 'message' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $userCheck->password]);
                  }
                 //return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck->mobile]);
             } else {
-                return response()->json(['error' => true, 'resp' => 'You have entered wrong login credential. Please try with the correct one.']);
+                return response()->json(['status' => false, 'message' => 'You have entered wrong login credential. Please try with the correct one.']);
             }
         }
      else {
-        return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
 
@@ -6037,19 +6037,19 @@ public function aseSalesreport(Request $request)
                                                 ->map(fn($brand) => $brandMap[$brand] ?? $brand)
                                                 ->implode(', ');
                                         }
-                     return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck,'brand' => $brandPermissions]);
+                     return response()->json(['status' => true, 'message' => 'Login successful', 'data' => $userCheck,'brand' => $brandPermissions]);
 					 }
                     // return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck]);
                  } else {
-                     return response()->json(['error' => true, 'resp' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $userCheck->secret_pin]);
+                     return response()->json(['status' => false, 'message' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $userCheck->secret_pin]);
                  }
                 //return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck->mobile]);
             } else {
-                return response()->json(['error' => true, 'resp' => 'You have entered wrong login credential. Please try with the correct one.']);
+                return response()->json(['status' => false, 'message' => 'You have entered wrong login credential. Please try with the correct one.']);
             }
         }
      else {
-        return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
 
@@ -6157,16 +6157,16 @@ public function aseSalesreport(Request $request)
         $check_old_pass = Store::where('contact',$request->mobile)->first();
 
         if (!$check_old_pass) {
-            return response()->json(['error' => true, 'message' =>'Old Password is not correct']);
+            return response()->json(['status' => false, 'message' =>'Old Password is not correct']);
         }
 
         $new_pass = Hash::make($request->new_password);
 
         $updatedEntry = Store::where('mobile', $request->mobile)->update(['password' => $new_pass]);
 
-            return response()->json(['error' => false, 'message' => 'Update Successful','data'=>$updatedEntry]);
+            return response()->json(['status' => true, 'message' => 'Update Successful','data'=>$updatedEntry]);
         } else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
 	
@@ -6180,9 +6180,9 @@ public function aseSalesreport(Request $request)
     {
         $data = Store::where('id',$id)->first();
         if($data){
-            return response()->json(['error'=>false, 'resp'=>'wallet balance data fetched successfully','data'=>$data->wallet]);
+            return response()->json(['status'=>true, 'message'=>'wallet balance data fetched successfully','data'=>$data->wallet]);
         } else {
-            return response()->json(['error' => true, 'message' => 'No user found']);
+            return response()->json(['status' => false, 'message' => 'No user found']);
         }
   
     }
@@ -6198,9 +6198,9 @@ public function aseSalesreport(Request $request)
     {
         $data = Store::where('id',$id)->delete();
         if($data){
-            return response()->json(['error'=>false, 'resp'=>'Profile deleted successfully','data'=>$data]);
+            return response()->json(['status'=>true, 'message'=>'Profile deleted successfully','data'=>$data]);
         } else {
-            return response()->json(['error' => true, 'message' => 'Something happend']);
+            return response()->json(['status' => false, 'message' => 'Something happend']);
         }
   
     }
@@ -6211,7 +6211,6 @@ public function aseSalesreport(Request $request)
         $validator = Validator::make($request->all(), [
             'owner_name' => ['required', 'string', 'min:1'],
 			'owner_lname' => ['nullable', 'string', 'min:1'],
-			'distributor_id' => ['required'],
             'name' => ['required', 'string', 'max:255'],
             'address' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'min:1'],
@@ -6334,10 +6333,10 @@ public function aseSalesreport(Request $request)
 				$user= Store::findOrFail($request->store_id);
 				$user->secret_pin = $request->secret_pin;
 				$user->save();
-				 return response()->json(['error' => false, 'message' => 'Pin Generated Successfully','data'=>$user]);
+				 return response()->json(['status' => true, 'message' => 'Pin Generated Successfully','data'=>$user]);
 			
         } else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
 	
