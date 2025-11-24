@@ -5965,10 +5965,28 @@ public function aseSalesreport(Request $request)
 					 if ($status == 0) {
 						return response()->json(['error' => true, 'resp' =>  'Your account is temporary blocked. Contact Admin']);
 					}else{
+                        $brandMap = [
+                            1 => 'ONN',
+                            2 => 'PYNK',
+                            3 => 'Both',
+                        ];
+
+                        $brands = [$userCheck->brand];
+
+                                    // Check conditions
+                                        if (in_array(3, $brands)) {
+                                            $brandPermissions = 'Both';
+                                        } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                            $brandPermissions = 'Both';
+                                        } else {
+                                            $brandPermissions = collect($brands)
+                                                ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                                ->implode(', ');
+                                        }
 						 $store=Store::findOrfail($userCheck->id);
 						 $store->device_id =$device_id;
 						 $store->save();
-                     return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck]);
+                     return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck,'brand' => $brandPermissions]);
 					 }
                     // return response()->json(['error' => false, 'resp' => 'Login successful', 'data' => $userCheck]);
                  } else {
