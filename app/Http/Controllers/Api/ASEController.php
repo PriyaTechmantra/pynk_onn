@@ -6380,7 +6380,21 @@ public function aseSalesreport(Request $request)
 	
 	public function retailerterms(Request $request)
     {
-        $data=DB::table('reward_terms')->latest('id')->first();
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandValue = $brandMap[$request->brand] ?? null;
+
+        if (!$brandValue) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid brand value.',
+            ]);
+        }
+        $data=DB::table('reward_terms')->where('brand',$brandValue)->latest('id')->first();
          return response()->json(['status' => true, 'message' => 'Terms & condition fetched Successfully','data'=>$data]);
     }
     
@@ -6453,6 +6467,106 @@ public function aseSalesreport(Request $request)
         }
 		
 	}
+
+
+    public function demoindex(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'code' => ['required'],
+            'user_id' =>['required'],
+        ]);
+
+        if (!$validator->fails()) {
+            $codeExp=explode(',', $request->code);
+			$code=$codeExp[0];
+            $userId =$request->user_id;
+            $barcode=RetailerBarcode::where('code',$code)->first();
+            //barcode exist check
+            if(!$barcode){
+                return response()->json(['error'=>false, 'resp'=>'Sorry! Coupon is invalid']);
+            }else{
+				if ($barcode->start_date > \Carbon\Carbon::now()) {
+                    return response()->json(['error'=>true, 'resp'=>'Coupon is not valid now']);
+                }else{
+                // coupon code validity check
+					if ($barcode->end_date < \Carbon\Carbon::now() || $barcode->status == 0) {
+						return response()->json(['error'=>true, 'resp'=>'Sorry! Coupon is expired']);
+					}else{
+					        $maxtimeusage = RetailerWalletTxn::where('user_id',$userId)->where('type',1)->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
+                        					         
+                            $limit=20;
+                            					    
+					    if ($maxtimeusage >= $limit) {
+                                 return response()->json(['error'=>true, 'resp'=>'Sorry! You have reached your monthly limit']);
+                        }else{
+						//no of usage check
+    						if ($barcode->no_of_usage == $barcode->max_time_of_use || $barcode->no_of_usage >= $barcode->max_time_of_use){
+    							return response()->json(['error'=>true, 'resp'=>'Sorry! Coupon Already scanned']);
+    						}else{
+    						     $walletusage = RetailerWalletTxn::where('barcode',$barcode->code)->count();
+                                 if ($walletusage >= $barcode->max_time_of_use || $walletusage >= $barcode->max_time_one_can_use) {
+                                     return response()->json(['error'=>true, 'resp'=>'Sorry! Coupon Already scanned']);
+                                }else{
+    							    $usage = RetailerWalletTxn::where('barcode_id',$barcode->id)->where('user_id',$userId)->count();
+                                     if ($usage >= $barcode->max_time_of_use || $usage >= $barcode->max_time_one_can_use) {
+                                         return response()->json(['error'=>true, 'resp'=>'Sorry! Coupon Already scanned']);
+                                    }else{
+                                        
+                                         
+        							    $userExist=Store::where('id',$userId)->first();
+        								if(!$userExist){
+        									return response()->json(['error'=>false, 'resp'=>'User is invalid']);
+        								}else{
+        									
+        									$userAmount=RetailerWalletTxn::where('user_id',$userId)->orderby('id','desc')->first();
+        									$walletTxn=new RetailerWalletTxn();
+        									$walletTxn->user_id = $userId;
+        									$walletTxn->barcode_id = $barcode->id;
+        									$walletTxn->barcode = $barcode->code;
+        									$walletTxn->amount = $barcode->amount;
+        									$walletTxn->type = 1 ?? '';
+        									if(!$userAmount){
+        										$walletTxn->final_amount += $barcode->amount ?? '';
+        									}else{
+        									$walletTxn->final_amount = $userAmount->final_amount+ $barcode->amount ?? '';
+        									}
+        									$walletTxn->created_at = date('Y-m-d H:i:s');
+        									$walletTxn->updated_at = date('Y-m-d H:i:s');
+        									$walletTxn->save();
+        									$user=Store::findOrFail($userId);
+        									$user->wallet += $barcode->amount;
+        									$user->save();
+        									$userwalletTxn=new RetailerUserTxnHistory();
+        									$userwalletTxn->user_id = $userId;
+        									$userwalletTxn->barcode_id = $barcode->id;
+        									$userwalletTxn->barcode = $barcode->code;
+        									$userwalletTxn->amount = $barcode->amount;
+        									$userwalletTxn->type = 'Qrcode scan' ?? '';
+        									$userwalletTxn->title = $barcode->amount.' points earn';
+        									$userwalletTxn->description = 'Using '.$barcode->code.' code';
+        									$userwalletTxn->status = 'increment';
+        									$userwalletTxn->created_at = date('Y-m-d H:i:s');
+        									$userwalletTxn->updated_at = date('Y-m-d H:i:s');
+        									$userwalletTxn->save();
+        									$barcodeDetails=RetailerBarcode::findOrFail($barcode->id);
+        									$barcodeDetails->no_of_usage = $barcode->no_of_usage+1;
+        									$barcodeDetails->save();
+        									
+        								}
+        						    }
+    					        }
+    					    }
+    				    }
+                    }
+                }
+               return response()->json(['error'=>false, 'resp'=>'Coupon scanned successfully ; ' .$barcode->amount.' ONN currency has been added to your wallet','data'=>$barcode]);
+            }
+        
+		} else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+   
+    }
 
 
 
