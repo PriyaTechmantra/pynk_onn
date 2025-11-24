@@ -6064,10 +6064,7 @@ public function aseSalesreport(Request $request)
 
         if ($user) {
             // Transform brand values
-            $user = $user->map(function ($store) use ($brandMap) {
-                $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
-                return $store;
-            });
+            $user->brand_name = $brandMap[$user->brand] ?? null;
 
             return response()->json([
                 'status'  => true,
