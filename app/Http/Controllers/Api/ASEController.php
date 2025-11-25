@@ -6573,17 +6573,31 @@ public function aseSalesreport(Request $request)
     				    }
                     }
                 }
-               return response()->json(['error'=>false, 'resp'=>'Coupon scanned successfully ; ' .$barcode->amount.' ONN currency has been added to your wallet','data'=>$barcode]);
+               return response()->json(['status'=>true, 'message'=>'Coupon scanned successfully ; ' .$barcode->amount.' ONN currency has been added to your wallet','data'=>$barcode]);
             }
         
 		} else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
 
     }
-    public function retailerOrder(Request $request,$userId)
+    public function retailerOrder(Request $request)
     {
-        $order = RetailerOrder::where('user_id',$userId)->orderby('id','desc')->take(5)->get();
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandValue = $brandMap[$request->brand] ?? null;
+
+        if (!$brandValue) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid brand value.',
+            ]);
+        }
+        $order = RetailerOrder::where('user_id',$request->userId)->where('brand',$brandValue)->orderby('id','desc')->take(5)->get();
         
         return response()->json(['status'=>true, 'message'=>'Order history fetched successfully','data'=>$order]);
     }

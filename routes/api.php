@@ -270,7 +270,7 @@ Route::get('retailer/brochure', [ASEController::class, 'retailerbrochureindex'])
 //barcode scan
 Route::post('retailer/qrcode/scan', [ASEController::class, 'retailerBarcode']);
 //5 order history user wise 
-Route::get('retailer/order/{userid}', [ASEController::class, 'retailerOrder']);
+Route::get('retailer/order', [ASEController::class, 'retailerOrder']);
 
 Route::get('retailer/order/details/{id}', [ASEController::class, 'retailerOrderDetails']);
 //reward history
