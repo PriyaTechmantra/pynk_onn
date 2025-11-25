@@ -1104,14 +1104,14 @@ class ProductController extends Controller
                          // Step 3: Extract the data from each row
                         $rowData = [
                             
-                            'style_no' => isset($filedata[3]) ? $filedata[3] : null,
-                            'color_name' => isset($filedata[4]) ? $filedata[4] : null,
-                            'size_name' => isset($filedata[4]) ? $filedata[4] : null,
-                            'price' => isset($filedata[5]) ? $filedata[5] : null,
-                            'offer_price' => isset($filedata[6]) ? $filedata[6] : null,
+                            'style_no' => isset($filedata[0]) ? $filedata[0] : null,
+                            'color_name' => isset($filedata[1]) ? $filedata[1] : null,
+                            'size_name' => isset($filedata[2]) ? $filedata[2] : null,
+                            'price' => isset($filedata[3]) ? $filedata[3] : null,
+                            'offer_price' => isset($filedata[4]) ? $filedata[4] : null,
                             
-                            'sku' => isset($filedata[7]) ? $filedata[7] : null,
-                            'position' => isset($filedata[8]) ? $filedata[8] : null,
+                            'sku' => isset($filedata[5]) ? $filedata[5] : null,
+                            'position' => isset($filedata[6]) ? $filedata[6] : null,
                            
                             
                             
