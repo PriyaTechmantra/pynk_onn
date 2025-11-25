@@ -6008,7 +6008,7 @@ public function aseSalesreport(Request $request)
             $mobile = $request->contact;
 			$password = $request->password;
 			$device_id = $request->device_id;
-            $userCheck = Store::where('contact', $mobile)->where('is_deleted',0)->first();
+            $userCheck = Store::where('contact', $mobile)->where('is_deleted',0)->with('state','area')->first();
 			//dd($userCheck);
             if ($userCheck) {
                  if (Hash::check($password, $userCheck->password)) {
@@ -6062,7 +6062,7 @@ public function aseSalesreport(Request $request)
         if (!$validator->fails()) {
             $uniqueCode = $request->contact;
 			$password = $request->secret_pin;
-            $userCheck = Store::where('contact', $uniqueCode)->where('is_deleted',0)->first();
+            $userCheck = Store::where('contact', $uniqueCode)->where('is_deleted',0)->with('state','area')->first();
 			//dd($userCheck);
             if ($userCheck) {
                  if($password==$userCheck->secret_pin) {
@@ -6111,7 +6111,7 @@ public function aseSalesreport(Request $request)
             2 => 'PYNK',
             3 => 'Both',
         ];
-        $user = Store::where('id', $id)->first();
+        $user = Store::where('id', $id)->with('state','area')->first();
 
         if ($user) {
             // Transform brand values
