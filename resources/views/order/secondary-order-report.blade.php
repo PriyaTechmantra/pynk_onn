@@ -395,6 +395,7 @@
                     <tr>
                         <td></td>
                         <td></td>
+                        <td></td>
                         <td>
                             <p class="small text-dark mb-1 fw-bold">TOTAL</p>
                         </td>
