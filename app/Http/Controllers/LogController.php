@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use DB;
 use Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 class LogController extends Controller
 {
 
