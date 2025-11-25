@@ -20,7 +20,7 @@
 </head>
 <body class="bg-dark">
 
-    @if ($orderProducts)
+    @if ($data->orderProducts)
         <nav class="navbar bg-dark-new">
             <div class="container">
                 <div class="w-100">
@@ -61,10 +61,7 @@
                                     </div>
                                 </div>
 
-                                @php
-                                    $order_id = $orderProducts[0]->order_id;
-                                    $data = \App\Models\Order::findOrFail($order_id);
-                                @endphp
+                                
 
                                 <div class="col-6">
                                     <div style="padding: 0 15px 14px; border-left:2px solid #000;">
@@ -91,7 +88,7 @@
                         <div class="table-responsive">
                             <table class="table table-sm" style="border-left:2px solid #000; border-bottom:2px solid #000;">
                                 <thead>
-                                    @if(count(orderProductsUpdatedMatrix($orderData)) > 0)
+                                    @if(count(orderProductsUpdatedMatrix($data->orderProducts)) > 0)
                                     <tr>
                                         <th style="font-size: 13px; min-width:200px; border-top:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
                                         <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">0XS</th>
@@ -112,7 +109,7 @@
                                     @php
                                         $totalCOunt = 0;
                                     @endphp
-                                    @foreach(orderProductsUpdatedMatrix($orderData) as $productKey => $productValue)
+                                    @foreach(orderProductsUpdatedMatrix($data->orderProducts) as $productKey => $productValue)
 									
                                     @php
 									    $color=\App\Models\Color::where('id',$productValue['color_id'])->first();
@@ -140,7 +137,7 @@
                                     </tr>
                                     @endforeach
                                     @endif
-                                    @if(count(orderProductsUpdatedMatrixChild($orderData)) > 0)
+                                    @if(count(orderProductsUpdatedMatrixChild($data->orderProducts)) > 0)
                                     <thead>
                                         <tr>
                                             <th style="color: #6c757d; font-size: 13px; min-width:200px; border-bottom:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
@@ -160,7 +157,7 @@
                                         @php
                                             $totalProductCount = 0;
                                         @endphp
-                                        @foreach(orderProductsUpdatedMatrixChild($orderData) as $productKey => $productOrderValue)
+                                        @foreach(orderProductsUpdatedMatrixChild($data->orderProducts) as $productKey => $productOrderValue)
                                         @php
 										 $color=\App\Models\Color::where('id',$productValue['color_id'])->first();
                                             $totalCOunt += $productOrderValue['total'];
