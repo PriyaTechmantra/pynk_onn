@@ -701,7 +701,7 @@ class DistributorController extends Controller
                             'contact' => isset($filedata[6]) ? $filedata[6] : null,
                             
                             'whatsapp' => isset($filedata[7]) ? $filedata[7] : null,
-                            'statea_id' => isset($filedata[8]) ? $filedata[8] : null,
+                            'state_id' => isset($filedata[8]) ? $filedata[8] : null,
                             'area_id' => isset($filedata[9]) ? $filedata[9] : null,
                             'date_of_joining' => isset($filedata[10]) ? $filedata[10] : null,
                             'password' => isset($filedata[11]) ? $filedata[11] : null,
@@ -1105,6 +1105,155 @@ class DistributorController extends Controller
         $data->is_deleted=1;
         $data->save();
         return redirect()->back()->with('success', 'Team data Deleted for this Distributor');
+    }
+
+
+
+
+    public function teamCSVUpload(Request $request): RedirectResponse
+    {
+        $validator = Validator::make($request->all(), [
+        'file' => 'required|file|mimes:csv,txt|mimetypes:text/csv,text/plain,application/csv,application/vnd.ms-excel|max:50000',
+            ], [
+                'file.mimes' => 'Please upload a valid CSV file.',
+                'file.mimetypes' => 'Please upload a valid CSV file with the correct format.',
+            ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()->withErrors($validator)->withInput();
+        }
+        if (!empty($request->file)) {
+            $file = $request->file('file');
+            $filename = $file->getClientOriginalName();
+            $extension = $file->getClientOriginalExtension();
+            $fileSize = $file->getSize();
+
+            // Validate CSV extension and file size
+            $valid_extension = ["csv"];
+            $maxFileSize = 50097152; // Max 50MB
+
+            if (in_array(strtolower($extension), $valid_extension)) {
+                if ($fileSize <= $maxFileSize) {
+                    // Upload the file to the storage location
+                    $location = 'public/uploads/csv';
+                    $file->move($location, $filename);
+                    $filepath = $location . "/" . $filename;
+
+                    // Open the CSV file and read it
+                    $file = fopen($filepath, "r");
+                    $importData_arr = [];
+                    $i = 0;
+                    $successCount=0;
+                    // Read the CSV file row by row
+                    while (($filedata = fgetcsv($file, 10000, ",")) !== false) {
+                        // Skip the header row
+                        if ($i == 0) {
+                            $i++;
+                            continue;
+                        }
+
+                         // Step 3: Extract the data from each row
+                        $rowData = [
+                            'brand' => isset($filedata[0]) ? $filedata[0] : null,
+                            'code' => isset($filedata[1]) ? $filedata[1] : null,
+                            'distributor_id' => isset($filedata[2]) ? $filedata[2] : null,
+                            'ase_id' => isset($filedata[3]) ? $filedata[3] : null,
+                            'asm_id' => isset($filedata[4]) ? $filedata[4] : null,
+                           
+                            'rsm_id' => isset($filedata[5]) ? $filedata[5] : null,
+                             'vp_id' => isset($filedata[6]) ? $filedata[6] : null,
+                            'state_id' => isset($filedata[7]) ? $filedata[7] : null,
+                            'area_id' => isset($filedata[8]) ? $filedata[8] : null,
+                            
+                            
+                            
+                            
+                        ];
+                            
+                        // Step 4: Validate each row's data
+                        $validator = Validator::make($rowData, [
+                            'distributor_id' => 'required|string|max:255',
+                            'state_id' => 'required',
+                            'brand' => 'required',
+                        
+                        ]);
+
+                    if ($validator->fails()) {
+                        // Accumulate errors with row number context
+                        $errors[$i] = $validator->errors()->all();
+                    } else {
+                        $stateName=State::where('name',$rowData['state_id'])->first();
+                        $areaName=Area::where('name',$rowData['area_id'])->first();
+                        $distributorName=Distributor::where('name',$rowData['distributor_id'])->first();
+                        $aseName=Employee::where('name',$rowData['ase_id'])->first();
+                        $asmName=Employee::where('name',$rowData['asm_id'])->first();
+                        $rsmName=Employee::where('name',$rowData['rsm_id'])->first();
+                        $vpName=Employee::where('name',$rowData['vp_id'])->first();
+                            // Map brand text to numeric value
+                                $brandValue = null;
+                                if (!empty($rowData['brand'])) {
+                                    $brandText = strtolower(trim($rowData['brand']));
+                                    if ($brandText === 'ONN') {
+                                        $brandValue = 1;
+                                    } elseif ($brandText === 'PYNK') {
+                                        $brandValue = 2;
+                                    } elseif (in_array($brandText, ['Both', 'ONN,PYNK', 'PYNK,ONN'])) {
+                                        $brandValue = 3;
+                                    }
+                                }
+                        // Step 5: Save data if validation passes
+                        $insertData = [
+                            "ase_id" => $aseName->id,
+                            "asm_id" => $asmName->id,
+                            "rsm_id" => $rsmName->id,
+                            "vp_id" => $vpName->id,
+                            "distributor_id" => $distributorName->id,
+                            "state_id" => $stateName->id,
+                            "area_id" => $areaName->id,
+                           
+                             "brand" => $brandValue,
+                           
+                            
+                            "status" => 1,
+                            "is_deleted" => 0,
+                            "created_at" => date('Y-m-d H:i:s'),
+                            "updated_at" => date('Y-m-d H:i:s'),
+                        ];
+                        
+                        Team::create($insertData);
+                        
+                       
+                        
+                        $successCount++;
+
+                        
+                    }
+
+                    $i++;
+                }
+
+                fclose($file);
+                
+                if (!empty($errors)) {
+                    // Redirect back to upload page if there are row-level validation errors
+                    return redirect()->back()->with([
+                        'csv_errors' => $errors, // pass errors to display
+                    ]);
+                }else{
+
+                    return redirect()->back()->with('success', 'CSV Import Complete. Total number of entries: ' . $successCount);
+                }
+                } else {
+                    return redirect()->back()->with('failure', 'File too large. File must be less than 50MB.');
+                }
+            } else {
+                return redirect()->back()->with('failure', 'Invalid File Extension. Supported extensions are ' . implode(', ', $valid_extension));
+            }
+        } else {
+            return redirect()->back()->with('failure', 'No file found.');
+        }
+
+        // return redirect()->back();
     }
 
 
