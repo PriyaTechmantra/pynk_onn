@@ -56,7 +56,7 @@
                                         <td>
                                            
                                             @if (!empty($user->getRoleNames()))
-                                                @foreach ($user->getRoleNames() as $rolename)
+                                               
                                                     @if($rolename!='super-admin')
                                                         @can('update user')
                                                         <a href="{{ url('users/'.$user->id.'/edit') }}" class="btn btn-cta">
@@ -70,7 +70,7 @@
                                                         </a>
                                                         @endcan
                                                     @endif
-                                                @endforeach
+                                                
                                             @endif
                                         </td>
                                     </tr>
