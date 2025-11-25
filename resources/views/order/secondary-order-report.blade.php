@@ -303,6 +303,7 @@
 
                                             
                                             $validOrder=DB::table('order_products')->where('order_id',$item->id)->get();
+                                            dd($validOrder);
                                             $user=DB::table('teams')->where('store_id',$item->store_id)->first();
                                             if(!empty($user)){
                                             $userName=DB::table('users')->where('id',$user->distributor_id)->first();
