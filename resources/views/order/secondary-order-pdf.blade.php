@@ -65,129 +65,104 @@
                     <div class="row">
                         <div class="col-12">
                             <table class="table table-sm table-bordered" >
-                                <thead>
-                                    @if(count(orderProductsUpdatedMatrix($data->orderProducts)) > 0)
-                                    <tr>
-                                        <th style="color: #6c757d; font-size: 13px; min-width:200px; border-bottom:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">75</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">80</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">85</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">90</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">95</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">100</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">105</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">110</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">115</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">120</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach(orderProductsUpdatedMatrix($data->orderProducts) as $productKey => $productValue)
-                                    
-                                    <tr>
-                                        <td style="; border-bottom:2px solid #000;">
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['product_name']}}</p>
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['product_style_no']}}</p>
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['color']}}</p>
-                                        </td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['75'] ? $productValue['75'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['80'] ? $productValue['80'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['85'] ? $productValue['85'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['90'] ? $productValue['90'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['95'] ? $productValue['95'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['100'] ? $productValue['100'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['105'] ? $productValue['105'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['110'] ? $productValue['110'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['115'] ? $productValue['115'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['120'] ? $productValue['120'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{$productValue['total']}}</p></td>
-                                    </tr>
-                                    @endforeach
-                                    @endif
-                                </tbody>
-                                @if(count(orderProductsUpdatedMatrixChild($data->orderProducts)) > 0)
-                                <thead>
-                                    <tr>
-                                        <th style="color: #6c757d; font-size: 13px; min-width:200px; border-bottom:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">35</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">40</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">45</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">50</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">55</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">60</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">65</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">70</th>
-										<th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">73</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;"></th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach(orderProductsUpdatedMatrixChild($data->orderProducts) as $productKey => $productValue)
-                                    <tr>
-                                        <td style="; border-bottom:2px solid #000;">
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['product_name']}}</p>
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['product_style_no']}}</p>
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['color']}}</p>
-                                        </td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['35'] ? $productValue['35'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['40'] ? $productValue['40'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['45'] ? $productValue['45'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['50'] ? $productValue['50'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['55'] ? $productValue['55'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['60'] ? $productValue['60'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['65'] ? $productValue['65'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['70'] ? $productValue['70'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['73'] ? $productValue['73'] : '' }}</p></td>
-										<td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0"></p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{$productValue['total']}}</p></td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                @endif
                                 
-                                @if(count(orderProductsUpdatedMatrixNew($data->orderProducts)) > 0)
                                 <thead>
-                                    <tr>
-                                        <th style="color: #6c757d; font-size: 13px; min-width:200px; border-bottom:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">S</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">M</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">L</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">XL</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">XXL</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">3XL</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">4XL</th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;"></th>
-										<th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;"></th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;"></th>
-                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach(orderProductsUpdatedMatrixNew($data->orderProducts) as $productKey => $productValue)
-                                    
-                                    <tr>
-                                        <td style="; border-bottom:2px solid #000;">
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['product_name']}}</p>
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['product_style_no']}}</p>
-                                            <p class="small text-dark fw-bold mb-0">{{$productValue['color']}}</p>
-                                        </td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['S'] ? $productValue['S'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['M'] ? $productValue['M'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['L'] ? $productValue['L'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['XL'] ? $productValue['XL'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['XXL'] ? $productValue['XXL'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['3XL'] ? $productValue['3XL'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['4XL'] ? $productValue['4XL'] : '' }}</p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0"></p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0"></p></td>
-										<td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0"></p></td>
-                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{$productValue['total']}}</p></td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                @endif
+                                                @if(count(orderProductsUpdatedMatrix($data->orderProducts)) > 0)
+                                                <tr>
+                                                    <th style="font-size: 13px; min-width:200px; border-top:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">0XS</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">00S</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">00M</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">00L</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">0XL</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">2XL</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">3XL</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">4XL</th>
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;">FREE SIZE</th>
+                                                    
+                                                    <th style="font-size: 13px; border-left:2px solid #000; border-top:2px solid #000;border-right:2px solid #000;">Total</th>
+                                                
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php
+                                                    $totalCOunt = 0;
+                                                @endphp
+                                                @foreach(orderProductsUpdatedMatrix($data->orderProducts) as $productKey => $productValue)
+                                                
+                                                @php
+                                                    $color=\App\Models\Color::where('id',$productValue['color_id'])->first();
+                                                    $totalCOunt += $productValue['total'];
+                                                @endphp
+
+                                                <tr>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;">
+                                                        <p class="small text-dark fw-bold mb-0">{{$productValue['product_name']}}</p>
+                                                        <p class="small text-dark fw-bold mb-0">{{$productValue['product_style_no']}}</p>
+                                                        <p class="small text-dark fw-bold mb-0">{{$color->name}}</p>
+                                                    </td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['0XS'] ? $productValue['0XS'] : '' }}</p></td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['00S'] ? $productValue['00S'] : '' }}</p></td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['00M'] ? $productValue['00M'] : '' }}</p></td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['00L'] ? $productValue['00L'] : '' }}</p></td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['0XL'] ? $productValue['0XL'] : '' }}</p></td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['2XL'] ? $productValue['2XL'] : '' }}</p></td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['3XL'] ? $productValue['3XL'] : '' }}</p></td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['4XL'] ? $productValue['4XL'] : '' }}</p></td>
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productValue['FREE SIZE'] ? $productValue['FREE SIZE'] : '' }}</p></td>
+                                                    
+                                                    <td style="border-left:2px solid #000; border-bottom:2px solid #000;border-right:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{$productValue['total']}}</p></td>
+                                                
+                                                </tr>
+                                                @endforeach
+                                                @endif
+                                                @if(count(orderProductsUpdatedMatrixChild($data->orderProducts)) > 0)
+                                                <thead>
+                                                    <tr>
+                                                        <th style="color: #6c757d; font-size: 13px; min-width:200px; border-bottom:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">1-2</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">2-3</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">3-4</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">5-6</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">7-8</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">9-10</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">11-12</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;">13-14</th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;"></th>
+                                                        <th style="color: #6c757d; font-size: 13px; border-left:2px solid #000; border-bottom:2px solid #000;border-right:2px solid #000;">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @php
+                                                        $totalProductCount = 0;
+                                                    @endphp
+                                                    @foreach(orderProductsUpdatedMatrixChild($data->orderProducts) as $productKey => $productOrderValue)
+                                                    @php
+                                                    $color=\App\Models\Color::where('id',$productValue['color_id'])->first();
+                                                        $totalCOunt += $productOrderValue['total'];
+                                                        $totalProductCount += $productOrderValue['total'];
+                                                        $tcount=$totalProductCount+$totalCOunt;
+                                                    @endphp
+                                                    <tr>
+                                                        <td style="; border-bottom:2px solid #000;">
+                                                            <p class="small text-dark fw-bold mb-0">{{$productOrderValue['product_name']}}</p>
+                                                            <p class="small text-dark fw-bold mb-0">{{$productOrderValue['product_style_no']}}</p>
+                                                            <p class="small text-dark fw-bold mb-0">{{$color->name}}</p>
+                                                        </td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productOrderValue['1-2'] ? $productOrderValue['1-2'] : '' }}</p></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productOrderValue['2-3'] ? $productOrderValue['2-3'] : '' }}</p></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productOrderValue['3-4'] ? $productOrderValue['3-4'] : '' }}</p></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productOrderValue['5-6'] ? $productOrderValue['5-6'] : '' }}</p></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productOrderValue['7-8'] ? $productOrderValue['7-8'] : '' }}</p></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productOrderValue['9-10'] ? $productOrderValue['9-10'] : '' }}</p></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productOrderValue['11-12'] ? $productOrderValue['11-12'] : '' }}</p></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{ $productOrderValue['13-14'] ? $productOrderValue['13-14'] : '' }}</p></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;"></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;border-right:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{$productOrderValue['total']}}</p></td>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+                                                @endif
                                 <tbody>
                                     <tr>
                                         <td style="">
