@@ -185,7 +185,7 @@
 							 
                                     @endphp
                                     <tr>
-                                        <td class="index-col">{{ $index + 1 }}</td>
+                                        <td>{{ $index + 1 }}</td>
                                         <td>
                                             @php
                                                

@@ -77,7 +77,7 @@
                             <tbody>
                                 @foreach ($data as $index=> $item)
                                 <tr>
-                                    <td class="index-col">{{ $index+1 }}</td>
+                                    <td>{{ $index+1 }}</td>
                                     <td>{{ $item->name }}</td>
                                     <td>{{ $item->state->name }}</td>
                                     <td> @can('area status change')<a href="{{ url('areas/'.$item->id.'/status/change') }}" ><span class="badge badge-status bg-{{($item->status == 1) ? 'success' : 'danger'}}">{{($item->status == 1) ? 'Active' : 'Inactive'}}</span></a>@endcan</td>
@@ -99,6 +99,7 @@
                             </tbody>
                         </table>
                         </div>
+                         {{ $data->appends($_GET)->render() }}
                     </div>
                 </div>
             </div>
