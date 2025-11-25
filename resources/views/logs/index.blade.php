@@ -106,9 +106,9 @@
                                     <td class="index-col">{{ $index+1 }}</td>
                                      
                                     
-                                    <td>{{ ucwords(str_replace('_', ' ',$item->table_name)) ??'' }} History</td> 
+                                    <td>{{ ucwords(str_replace('_', ' ',$item->table_name)) ??'' }}</td> 
                                     <td>@if($item->record_details)
-                                           {{ $item->record_details->order_no ?? $item->record_details->order_no ?? 'Details available' }}
+                                           {{ $item->record_details->name ?? $item->record_details->name ?? 'Details available' }}
                                         @else
                                             Record not found
                                         @endif

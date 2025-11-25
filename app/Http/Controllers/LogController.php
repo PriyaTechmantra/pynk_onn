@@ -115,7 +115,7 @@ class LogController extends Controller
                     $lineData = array(
                         $count,
                         ucwords(str_replace('_', ' ',$row->table_name)) ??'',
-                        $row->record_details->order_no ?? $row->record_details->order_no ?? 'Details available',
+                        $row->record_details->name ?? $row->record_details->name ?? 'Details available',
                         $row->field  ?? 'NA',
                         $row->old_value ?? 'NA',
                         
