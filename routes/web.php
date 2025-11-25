@@ -10,13 +10,10 @@ use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\DistributorNoteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Facility\TrainBookingController;
-use App\Http\Controllers\Facility\FlightBookingController;
-use App\Http\Controllers\Facility\HotelBookingController;
-use App\Http\Controllers\Facility\PropertyController;
+use App\Http\Controllers\LogController;
+
 use App\Http\Controllers\StoreController;
-use App\Http\Controllers\Cave\CaveLocationController;
-use App\Http\Controllers\Cave\CaveCategoryController;
+
 use App\Http\Controllers\RetailerProductController;
 use App\Http\Controllers\TermsController;
 use App\Http\Controllers\RetailerOrderController;
@@ -277,6 +274,10 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('attendance/report', [EmployeeController::class, 'attendanceReport'])->name('attendance.report');
     Route::get('attendance/report/csv/export', [EmployeeController::class, 'attendanceReportExport'])->name('attendance.report.export');
 
+    //log
+
+    Route::get('admin/activity/log/report', [LogController::class, 'index'])->name('log.report');
+    Route::get('admin/activity/log/report/csv/export', [LogController::class, 'logReportExport'])->name('log.report.export');
 
 
     Route::prefix('reward')->name('reward.')->group(function () {

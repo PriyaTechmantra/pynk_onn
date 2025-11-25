@@ -6402,9 +6402,23 @@ public function aseSalesreport(Request $request)
     //monthly scan limit
     public function retailermonthlyScan(Request $request,$id)
     {
+        $brandMap = [
+            'ONN'  => 1,
+            'PYNK' => 2,
+            'Both' => 3,
+        ];
+
+        $brandValue = $brandMap[$request->brand] ?? null;
+
+        if (!$brandValue) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid brand value.',
+            ]);
+        }
         $scanLimit=20;
         
-        $data=RetailerUserTxnHistory::where('user_id',$id)->where('type','qrcode scan')->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
+        $data=RetailerUserTxnHistory::where('user_id',$id)->where('brand',$brandValue)->where('type','qrcode scan')->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
         return response()->json(['status' => true, 'message' => 'Monthly Scan Limit History','Monthly Scan Limit'=>$scanLimit,'Scan history by retailer'=>$data,'Monthly_Scan_Limit'=>$scanLimit,'Scan_history_by_retailer'=>$data]);
     }
 
