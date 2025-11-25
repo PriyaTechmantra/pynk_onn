@@ -1186,10 +1186,10 @@ class DistributorController extends Controller
                         $stateName=State::where('name',$rowData['state_id'])->first();
                         $areaName=Area::where('name',$rowData['area_id'])->first();
                         $distributorName=Distributor::where('name',$rowData['distributor_id'])->first();
-                        $aseName=Employee::where('name',$rowData['ase_id'])->first();
-                        $asmName=Employee::where('name',$rowData['asm_id'])->first();
-                        $rsmName=Employee::where('name',$rowData['rsm_id'])->first();
-                        $vpName=Employee::where('name',$rowData['vp_id'])->first();
+                        $aseName=Employee::where('name',$rowData['ase_id'])->where('type',4)->first();
+                        $asmName=Employee::where('name',$rowData['asm_id'])->where('type',3)->first();
+                        $rsmName=Employee::where('name',$rowData['rsm_id'])->where('type',2)->first();
+                        $vpName=Employee::where('name',$rowData['vp_id'])->where('type',1)->first();
                             // Map brand text to numeric value
                                 $brandValue = null;
                                 if (!empty($rowData['brand'])) {
