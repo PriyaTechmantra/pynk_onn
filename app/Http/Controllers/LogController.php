@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Http\RedirectResponse;
 use DB;
 use Auth;
+use Carbon\Carbon;
 class LogController extends Controller
 {
 
