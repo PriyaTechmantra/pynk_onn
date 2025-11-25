@@ -13,6 +13,7 @@ use App\Models\Collection;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Validator;
 use Auth;
 use DB;
 use Hash;
