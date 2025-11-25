@@ -6475,15 +6475,15 @@ public function aseSalesreport(Request $request)
 			     $resp = [
                        'data' => $total_path,
                        ];
-			return response()->json(['error' => false, 'message' => 'Document added', 'data' => $resp]);
+			return response()->json(['status' => true, 'message' => 'Document added', 'data' => $resp]);
 		} else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
 		
 	}
 
 
-    public function demoindex(Request $request)
+    public function retailerBarcode(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'code' => ['required'],
@@ -6585,7 +6585,7 @@ public function aseSalesreport(Request $request)
     {
         $order = RetailerOrder::where('user_id',$userId)->orderby('id','desc')->take(5)->get();
         
-        return response()->json(['error'=>false, 'resp'=>'Order history fetched successfully','data'=>$order]);
+        return response()->json(['status'=>true, 'resp'=>'Order history fetched successfully','data'=>$order]);
     }
    
     
