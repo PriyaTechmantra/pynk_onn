@@ -198,6 +198,10 @@
                 </li>
                 @endif
 
+                @can('view edit log')
+                    <li class="{{ ( request()->is('admin/activity/log/report*') ) ? 'active' : '' }}"><a href="{{ url('admin/activity/log/report') }}"><i class="fi fi-br-database"></i> <span>Admin Activity Logs</span></a></li>
+                @endcan
+
                 @if($user->can('view new store registration') || $user->can('view store login count') || $user->can('view reward product')|| $user->can('view reward qrcode')|| $user->can('view qrcode redeem history')|| $user->can('view retailer wise transaction report')|| $user->can('view retailer wise scan report monthly')|| $user->can('view retailer order')|| $user->can('view retailer terms'))
                 <li class="{{ request()->is('reward*') ? 'active' : '' }}">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Reward App</span></a>
