@@ -160,6 +160,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('distributors/csv/export', [DistributorController::class, 'employeeExport']);
     Route::post('distributors/bulk/upload', [DistributorController::class, 'bulkUpload']);
     Route::get('distributors/list', [DistributorController::class, 'distributorList'])->name('distributors.list');
+
+    Route::post('distributors/team/csv/upload', [DistributorController::class, 'teamCSVUpload'])->name('distributors.team.csv.upload');
     //collections
      Route::resource('collections', CollectionController::class);
      Route::get('collections/{userId}/edit', [CollectionController::class, 'edit'])->name('collections.edit');

@@ -179,6 +179,9 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
         <a href="#newRangeModal" data-bs-toggle="modal" class="btn btn-sm btn-success">
             Add New Record
         </a>
+        
+        <a href="#csvUploadModal" data-bs-toggle="modal" class="btn btn-danger mt-2">Bulk upload</a>
+                
     </div>
 
     <div class="card-body">
@@ -491,6 +494,29 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+
+
+{{-- bulk upload variation modal --}}
+<div class="modal action-modal fade" id="csvUploadModal" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                Bulk Upload Existing Distributor Team with ASE ASM RSM VP
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                    <form method="post" action="{{ route('distributors.team.csv.upload') }}" enctype="multipart/form-data">@csrf
+                        <input type="file" name="file" class="form-control" accept=".csv">
+                        <div class="cta-row">
+                        <a href="{{ asset('backend/csv/distributor-team-sample.csv') }}" class="btn-cta">Download Sample CSV</a>
+                        <button type="submit" class="btn btn-cta" id="csvImportBtn">Import <i class="fas fa-upload"></i></button>
+                        </div>
+                    </form>
+                </div>
+            
         </div>
     </div>
 </div>
