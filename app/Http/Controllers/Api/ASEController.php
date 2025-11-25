@@ -6585,7 +6585,7 @@ public function aseSalesreport(Request $request)
     {
         $order = RetailerOrder::where('user_id',$userId)->orderby('id','desc')->take(5)->get();
         
-        return response()->json(['status'=>true, 'resp'=>'Order history fetched successfully','data'=>$order]);
+        return response()->json(['status'=>true, 'message'=>'Order history fetched successfully','data'=>$order]);
     }
    
     
