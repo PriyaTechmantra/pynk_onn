@@ -886,4 +886,97 @@ public function secondaryOrderReportExport(Request $request)
 }
 
 
+
+
+    public function pdfExport(Request $request, $id)
+    {
+        $data = Order::findOrfail($id);
+        return view('order.secondary-order-pdf', compact('data'));
+    }
+
+    //csv download for individual order
+    public function individualcsvExport(Request $request, $id)
+    {
+        $orderDetails = Order::findOrfail($id);
+        $data = orderProductsUpdatedMatrix($orderDetails->orderProducts);
+        $childData = orderProductsUpdatedMatrixChild($orderDetails->orderProducts);
+
+        if (count($data) > 0 || count($childData) > 0) {
+            $delimiter = ",";
+            $filename = "secondary-order-detail-".$orderDetails->order_no."-".date('Y-m-d').".csv";
+
+            // Create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            // Set column headers
+            $fields = array('Name of Quality Shape & Unit', '75', '80', '85', '90', '95', '100', '105', '110', '115','120', 'Total');
+            $childFields = array('Name of Quality Shape & Unit', '35', '40', '45', '50', '55', '60', '65', '70', '73','75','','Total');
+
+            $count = 1;
+
+            if (count($data) > 0) {
+                fputcsv($f, $fields, $delimiter);
+                foreach($data as $row) {
+					 
+                     $row1 = $row['product_name']."\n".$row['product_style_no']."\n".$row['color'];
+
+                    $lineData = array(
+                        $row1,
+                        $row['75'] ? $row['75'] : '',
+                        $row['80'] ? $row['80'] : '',
+                        $row['85'] ? $row['85'] : '',
+                        $row['90'] ? $row['90'] : '',
+                        $row['95'] ? $row['95'] : '',
+                        $row['100'] ? $row['100'] : '',
+                        $row['105'] ? $row['105'] : '',
+                        $row['110'] ? $row['110'] : '',
+                        $row['115'] ? $row['115'] : '',
+                        $row['120'] ? $row['120'] : '',
+                        $row['total']
+                    );
+                    fputcsv($f, $lineData, $delimiter);
+                    $count++;
+                }
+            }
+
+            if (count($childData) > 0) {
+                fputcsv($f, $childFields, $delimiter);
+                foreach($childData as $row) {
+					 
+                    $row2 = $row['product_name']."\n".$row['product_style_no']."\n".$row['color'];
+
+                    $lineData = array(
+                        $row2,
+                        $row['35'] ? $row['35'] : '',
+                        $row['40'] ? $row['40'] : '',
+                        $row['45'] ? $row['45'] : '',
+                        $row['50'] ? $row['50'] : '',
+                        $row['55'] ? $row['55'] : '',
+                        $row['60'] ? $row['60'] : '',
+                        $row['65'] ? $row['65'] : '',
+                        $row['70'] ? $row['70'] : '',
+						$row['73'] ? $row['73'] : '',
+                        $row['75'] ? $row['75'] : '',
+						'',
+                        $row['total']
+                    );
+
+                    fputcsv($f, $lineData, $delimiter);
+                    $count++;
+                }
+            }
+
+            // Move back to beginning of file
+            fseek($f, 0);
+
+            // Set headers to download file rather than displayed
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '";');
+
+            //output all remaining data on a file pointer
+            fpassthru($f);
+        }
+    }
+
+
 }

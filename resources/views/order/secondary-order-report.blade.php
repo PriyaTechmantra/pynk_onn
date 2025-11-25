@@ -235,6 +235,7 @@
                                     <tr>
                                         <th class="sl_no index-col">#</th>
                                         <th>Brand Permission</th>
+                                        <th>Report</th>
                                         <th>Product</th> 
                                         <th>Qty</th>
                                         <th>Order No</th>
@@ -299,10 +300,31 @@
                                                     ->implode(', ');
                                             }
 
+
+                                            
+                                            $validOrder=DB::table('order_products')->where('order_id',$item->id)->get();
+                                            $user=DB::table('teams')->where('store_id',$item->store_id)->first();
+                                            if(!empty($user)){
+                                            $userName=DB::table('users')->where('id',$user->distributor_id)->first();
+                                            }
+                                            
+
                                     @endphp
 
                                            {{ $brandPermissions ?? '' }}
                                         </td>
+                            @if(count($validOrder)==0)
+                                <td>
+                                <p class="text-danger">Invalid Order</p>
+                                </td>
+                                @else
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="{{ route('secondary.order.pdf', $item->id) }}" class="btn btn-sm btn-primary">PDF</a>
+                                        
+                                    </div>
+                                </td>
+                            @endif
                             <td>
                                 <p class="text-dark mb-1">({{$item->style_no}}) {{$item->product_name}}</p>
                                 <p class="small text-muted mb-1">{{$item->color_name ?? ''}}</p>
