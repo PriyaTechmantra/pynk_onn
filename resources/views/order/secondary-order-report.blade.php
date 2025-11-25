@@ -265,7 +265,7 @@
                             $all_orders_total_amount += ($item->qty);
 					       $color=DB::table('colors')->where('id',$item->color)->first();
                         @endphp
-                        <tr id="row_{{$item->id}}">
+                        <tr id="row_{{$item->order_id}}">
                             <td>
                                 {{ $index + 1 }}
                             </td>
@@ -302,8 +302,8 @@
 
 
                                             
-                                            $validOrder=DB::table('order_products')->where('order_id',$item->id)->get();
-                                            dd($validOrder);
+                                            $validOrder=DB::table('order_products')->where('order_id',$item->order_id)->get();
+                                            
                                             $user=DB::table('teams')->where('store_id',$item->store_id)->first();
                                             if(!empty($user)){
                                             $userName=DB::table('users')->where('id',$user->distributor_id)->first();
