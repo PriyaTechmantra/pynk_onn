@@ -8,7 +8,7 @@
         <div class="card-body">
             <div class="row">
                 <div class="col-6">
-                    <a href="{{ route('secondary.orders.index') }}" class="btn btn-dark">
+                    <a href="{{ route('secondary.orders.index') }}" class="btn btn-primary">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-left"><polyline points="15 18 9 12 15 6"></polyline></svg>
                         Back to all Orders
                     </a>
@@ -61,12 +61,9 @@
                         </div>
                     </div>
                 </div>
-                <div style="border:2px solid #000;  margin-top:25px;">
-                    <div class="row">
-                        <div class="col-12">
-                            <table class="table table-sm table-bordered" >
-                                
-                                <thead>
+                <div class="table-responsive">
+                                        <table class="table table-sm" style="border-left:2px solid #000; border-bottom:2px solid #000;">
+                                            <thead>
                                                 @if(count(orderProductsUpdatedMatrix($data->orderProducts)) > 0)
                                                 <tr>
                                                     <th style="font-size: 13px; min-width:200px; border-top:2px solid #000; width: 242px;">Name of Quality Shape & Unit</th>
@@ -163,29 +160,26 @@
                                                     @endforeach
                                                 </tbody>
                                                 @endif
-                                <tbody>
-                                    <tr>
-                                        <td style="">
-                                            <p class="small text-dark mb-0"><strong>Total</strong></p>
-                                        </td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-                                        <td></td>
-										<td></td>
-                                        <td style="border-left:2px solid #000;"><p class="small text-dark fw-bold mb-0">{{$data->orderProducts->sum('qty')}}</p></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                        </div>
-                    </div>
-                </div>
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="">
+                                                            <p class="small text-muted  mb-0">Total</p>
+                                                        </td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td></td>
+                                                        <td style="border-left:2px solid #000; border-bottom:2px solid #000;border-right:2px solid #000;"><p class="small text-muted fw-bold mb-0">{{ $totalCOunt }}</p></td>
+                                                        
+                                                    </tr>
+                                                </tbody>
+                                        </table>
+                                    </div>
             </div>
         </div>
     </div>
