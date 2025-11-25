@@ -321,7 +321,7 @@
                                 @else
                                 <td>
                                     <div class="btn-group">
-                                        <a href="{{ route('secondary.order.pdf', $item->id) }}" class="btn btn-sm btn-primary">PDF</a>
+                                        <a href="{{ url('secondary/order/'.$item->order_id.'/pdf') }}" class="btn btn-sm btn-primary">PDF</a>
                                         
                                     </div>
                                 </td>
