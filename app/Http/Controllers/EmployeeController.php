@@ -977,6 +977,18 @@ public function index(Request $request): View
             } else {
                 $state = State::where('name', $rowData['state'])->first();
                 $city = Area::where('name', $rowData['city'])->first();
+                $areaId='';
+                if(empty($city)){
+                    $saveArea=new Area();
+                    $saveArea->name=$rowData['city'];
+                    $saveArea->state_id=$state?->id;
+                    $saveArea->status=1;
+                    $saveArea->is_deleted=0;
+                    $saveArea->save();
+                    $areaId=$saveArea->id;
+                }else{
+                        $areaId=$city->id;
+                }
 
                 // Brand mapping
                 $brandText = (trim($rowData['brand'] ?? ''));
@@ -997,7 +1009,7 @@ public function index(Request $request): View
                     "mobile" => $rowData['mobile'],
                     "whatsapp_no" => $rowData['whatsapp_no'],
                     "state" => $state?->id,
-                    "city" => $city?->id,
+                    "city" => $areaId,
                     "date_of_joining" => $rowData['date_of_joining'],
                     "brand" => $brandValue,
                     "password" => $rowData['password'],
