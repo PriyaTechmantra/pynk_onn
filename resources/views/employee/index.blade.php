@@ -224,7 +224,7 @@
                                              @if($item->type == 4)
                                             <p class="small text-dark">{{$area}}</p>
                         				    @endif
-                                          {{$item->area->name}},{{$item->stateDetail->name ??''}}
+                                          {{$item->area->name ??''}},{{$item->stateDetail->name ??''}}
                                          
                                           
                                         </td>
