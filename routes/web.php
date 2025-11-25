@@ -269,6 +269,8 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('secondary/order/report', [OrderController::class, 'secondaryOrderReport'])->name('secondary.order.report');
     Route::get('secondary/order/report/csv/export', [OrderController::class, 'secondaryOrderReportExport'])->name('secondary.order.report.export');
 
+    Route::get('secondary/order/{id}/pdf', [OrderController::class, 'pdfExport'])->name('secondary.order.pdf');
+	Route::get('secondary/order/{id}/csv/download', [OrderController::class, 'individualcsvExport'])->name('secondary.order.report.csv');
 
     //attendance
     Route::get('attendance/report', [EmployeeController::class, 'attendanceReport'])->name('attendance.report');
