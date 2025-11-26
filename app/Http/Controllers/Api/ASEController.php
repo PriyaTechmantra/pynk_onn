@@ -7223,7 +7223,7 @@ public function aseSalesreport(Request $request)
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/cart/pdf/view/?storeId='.$request->storeId.'&brand='.$brandId,
+            'data' => url('/').'/api/retailer/b2b/cart/pdf/view/?storeId='.$request->storeId.'&brand='.$brandId,
         ]);
     }
 
