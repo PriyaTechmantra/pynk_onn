@@ -300,7 +300,7 @@ Route::post('retailer/invoice/store', [ASEController::class, 'retailerinvoiceSto
 
 Route::get('retailer/b2b/cart/user/{id}', [ASEController::class, 'retailerb2bshowByUser']);
 Route::get('retailer/b2b/cart/clear/{id}', [ASEController::class, 'retailerb2bclearCart']);
-Route::get('retailer/b2b/cart/qty/{cartId}/{q}', [ASEController::class, 'retailerb2bqtyUpdateLatest']);
+Route::get('retailer/b2b/cart/qty', [ASEController::class, 'retailerb2bqtyUpdateLatest']);
 //cart -delete
 Route::get('retailer/b2b/cart/delete/{id}', [ASEController::class, 'retailerb2bcartdelete']);
 // cart preview
