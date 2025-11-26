@@ -6705,6 +6705,38 @@ public function aseSalesreport(Request $request)
         
         }
 
+    public function retailerTransaction(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' =>['required'],
+			'pageNo' => ['required'],
+            
+        ]);
+        if (!$validator->fails()) {
+          $resp = [];
+          $perPage =$request->pageNo;
+          $userId =$request->user_id;
+          $userExist=Store::where('id','=',$userId)->first();
+            if(!$userExist){
+                return response()->json(['error'=>false, 'resp'=>'User is invalid']);
+            }else{
+                
+                   $resp = RetailerUserTxnHistory::where('user_id',$userId)->orderby('id','desc')->with('qrcode')->paginate($perPage);
+                    
+            }
+            return response()->json([
+                'error' => false,
+                'message' => 'Transaction history fetch successfully',
+                'data' => $resp,
+				'count'=>$count,
+            ]);
+
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+        
+    }
+
 
 
 
