@@ -29,11 +29,15 @@
             
         }
 
-        $moreinformation = \App\Models\Team::where('store_id', $data->id)->first();
-            $distributor = $moreinformation->distributor_id;
-            
+        $moreinformation = Team::where('store_id', $data->id)->first();
+
+        if (!$moreinformation) {
+            // No data found → set empty distributor name
             $displayDistName = '';
-            foreach(explode(',',$moreinformation->distributor_id) as $distKey => $distVal) 
+        } else {
+            $displayDistName = '';
+
+            foreach (explode(',', $moreinformation->distributor_id ?? '') as $distVal) 
             {
                 //dd($distVal);
                 $catDetails = \App\Models\Distributor::where('id', $distVal)->get();
@@ -46,6 +50,7 @@
             
             
             }
+        }
 
             $vp = $moreinformation->vp_id;
             
