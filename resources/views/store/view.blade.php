@@ -29,7 +29,7 @@
             
         }
 
-        $moreinformation = Team::where('store_id', $data->id)->first();
+        $moreinformation = \App\Models\Team::where('store_id', $data->id)->first();
 
         if (!$moreinformation) {
             // No data found → set empty distributor name
