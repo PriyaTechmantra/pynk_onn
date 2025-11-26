@@ -203,20 +203,7 @@
                 @endcan
 
                 @if($user->can('view new store registration') || $user->can('view store login count') || $user->can('view reward product')|| $user->can('view reward qrcode')|| $user->can('view qrcode redeem history')|| $user->can('view retailer wise transaction report')|| $user->can('view retailer wise scan report monthly')|| $user->can('view retailer order')|| $user->can('view retailer terms'))
-                @php
-                    $rewardMenuActive = request()->is([
-                        'reward/retailer/user*',
-                        'reward/retailer/user/login*',
-                        'reward/product*',
-                        'reward/qrcode*',
-                        'reward/qrcode/redeem*',
-                        'admin/reward/qrcode/redeem/retailer/wise/report*',
-                        'admin/reward/qrcode/redeem/retailer/scan/report/monthly*',
-                        'reward/order*',
-                        'reward/terms*'
-                    ]);
-                @endphp
-                <li class="{{ $rewardMenuActive ? 'active' : '' }}">
+                <li class="{{ request()->is('reward/retailer/user*') ||  request()->is('reward/retailer/user/login*') ||request()->is('reward/product*') || request()->is('reward/qrcode*') || request()->is('reward/qrcode/redeem*') || request()->is('admin/reward/qrcode/redeem/retailer/wise/report*') || request()->is('admin/reward/qrcode/redeem/retailer/wise/report*') || request()->is('admin/reward/qrcode/redeem/retailer/scan/report/monthly*') ||request()->is('reward/order*')|| request()->is('reward/terms*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Reward App</span></a>
                     <ul>
                         @can('view new store registration')
