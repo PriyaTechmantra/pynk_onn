@@ -41,8 +41,7 @@ class RetailerUserController extends Controller
         /**
          * STEP 2: Base query — join teams table for distributor relation
          */
-        $query = Store::select('stores.*', 'teams.distributor_id')
-            ->join('teams', 'teams.store_id', '=', 'stores.id');
+        $query = Store::select('stores.*');
 
         /**
          * STEP 3: Brand filter
