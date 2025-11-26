@@ -6853,7 +6853,7 @@ public function aseSalesreport(Request $request)
           }
 			
         
-        return response()->json(['status' => true, 'message' => 'Product successfully added to cart'], Response::HTTP_CREATED);
+        return response()->json(['status' => true, 'message' => 'Product successfully added to cart']);
         
         } else {
             return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
