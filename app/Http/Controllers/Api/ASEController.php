@@ -7383,14 +7383,14 @@ public function aseSalesreport(Request $request)
     
     			// notification: sender, receiver, type, route, title
                 // notification to ASE
-                sendNotification($collectedData['user_id'], $brandValue,'admin', 'secondary-order-place', 'front.user.order', $totalOrderQty.' New order placed',$totalOrderQty.' new order placed  '.$name);
+                sendNotification($collectedData['store_id'], $brandValue,'admin', 'secondary-order-place', 'front.user.order', $totalOrderQty.' New order placed',$totalOrderQty.' new order placed  '.$name);
     
     
     			// notification to ASM
     			$loggedInUser = $aseName;
     				$asm = DB::select("SELECT u.id as asm_id FROM `teams` t  INNER JOIN employees u ON u.id = t.asm_id where t.ase_id = '".$collectedData['user_id']."' GROUP BY t.asm_id");
     			foreach($asm as $value){
-    				sendNotification($collectedData['user_id'], $brandValue, $value->asm_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
+    				sendNotification($collectedData['store_id'], $brandValue, $value->asm_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
     			}
     
                
@@ -7398,14 +7398,14 @@ public function aseSalesreport(Request $request)
     			$loggedInUser = $aseName;
     			$rsm = DB::select("SELECT u.id as rsm_id FROM `teams` t  INNER JOIN employees u ON u.id = t.rsm_id where t.ase_id = '".$collectedData['user_id']."' GROUP BY t.rsm_id");
     			foreach($rsm as $value){
-    				sendNotification($collectedData['user_id'], $brandValue, $value->rsm_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
+    				sendNotification($collectedData['store_id'], $brandValue, $value->rsm_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
     			}
     			
     			// notification to vp
     			$loggedInUser = $aseName;
     			$zsm = DB::select("SELECT u.id as vp_id FROM `teams` t  INNER JOIN employees u ON u.id = t.vp_id where t.ase_id = '".$collectedData['user_id']."' GROUP BY t.vp_id");
     			foreach($zsm as $value){
-    				sendNotification($collectedData['user_id'], $brandValue, $value->vp_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
+    				sendNotification($collectedData['store_id'], $brandValue, $value->vp_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
     			}
     
     
