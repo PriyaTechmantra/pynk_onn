@@ -6501,39 +6501,39 @@ public function aseSalesreport(Request $request)
             $barcode=RetailerBarcode::where('code',$code)->first();
             //barcode exist check
             if(!$barcode){
-                return response()->json(['error'=>false, 'resp'=>'Sorry! Coupon is invalid']);
+                return response()->json(['status'=>false, 'message'=>'Sorry! Coupon is invalid']);
             }else{
 				if ($barcode->start_date > \Carbon\Carbon::now()) {
-                    return response()->json(['error'=>true, 'resp'=>'Coupon is not valid now']);
+                    return response()->json(['status'=>false, 'message'=>'Coupon is not valid now']);
                 }else{
                 // coupon code validity check
 					if ($barcode->end_date < \Carbon\Carbon::now() || $barcode->status == 0) {
-						return response()->json(['error'=>true, 'resp'=>'Sorry! Coupon is expired']);
+						return response()->json(['status'=>false, 'message'=>'Sorry! Coupon is expired']);
 					}else{
 					        $maxtimeusage = RetailerWalletTxn::where('user_id',$userId)->where('type',1)->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
                         					         
                             $limit=20;
                             					    
 					    if ($maxtimeusage >= $limit) {
-                                 return response()->json(['error'=>true, 'resp'=>'Sorry! You have reached your monthly limit']);
+                                 return response()->json(['status'=>false, 'message'=>'Sorry! You have reached your monthly limit']);
                         }else{
 						//no of usage check
     						if ($barcode->no_of_usage == $barcode->max_time_of_use || $barcode->no_of_usage >= $barcode->max_time_of_use){
-    							return response()->json(['error'=>true, 'resp'=>'Sorry! Coupon Already scanned']);
+    							return response()->json(['status'=>false, 'message'=>'Sorry! Coupon Already scanned']);
     						}else{
     						     $walletusage = RetailerWalletTxn::where('barcode',$barcode->code)->count();
                                  if ($walletusage >= $barcode->max_time_of_use || $walletusage >= $barcode->max_time_one_can_use) {
-                                     return response()->json(['error'=>true, 'resp'=>'Sorry! Coupon Already scanned']);
+                                     return response()->json(['status'=>false, 'message'=>'Sorry! Coupon Already scanned']);
                                 }else{
     							    $usage = RetailerWalletTxn::where('barcode_id',$barcode->id)->where('user_id',$userId)->count();
                                      if ($usage >= $barcode->max_time_of_use || $usage >= $barcode->max_time_one_can_use) {
-                                         return response()->json(['error'=>true, 'resp'=>'Sorry! Coupon Already scanned']);
+                                         return response()->json(['status'=>false, 'message'=>'Sorry! Coupon Already scanned']);
                                     }else{
                                         
                                          
         							    $userExist=Store::where('id',$userId)->first();
         								if(!$userExist){
-        									return response()->json(['error'=>false, 'resp'=>'User is invalid']);
+        									return response()->json(['status'=>false, 'message'=>'User is invalid']);
         								}else{
         									
         									$userAmount=RetailerWalletTxn::where('user_id',$userId)->orderby('id','desc')->first();
