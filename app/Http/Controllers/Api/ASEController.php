@@ -6394,8 +6394,9 @@ public function aseSalesreport(Request $request)
                 'message' => 'Invalid brand value.',
             ]);
         }
-        $data=DB::table('reward_terms')->where('brand',$brandValue)->latest('id')->first();
-         return response()->json(['status' => true, 'message' => 'Terms & condition fetched Successfully','data'=>$data]);
+        //$data=DB::table('reward_terms')->where('brand',$brandValue)->latest('id')->first();
+        $data=DB::table('reward_terms')->latest('id')->first();
+        return response()->json(['status' => true, 'message' => 'Terms & condition fetched Successfully','data'=>$data]);
     }
     
     
@@ -6418,7 +6419,8 @@ public function aseSalesreport(Request $request)
         }
         $scanLimit=20;
         
-        $data=RetailerUserTxnHistory::where('user_id',$id)->where('brand',$brandValue)->where('type','qrcode scan')->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
+        //$data=RetailerUserTxnHistory::where('user_id',$id)->where('brand',$brandValue)->where('type','qrcode scan')->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
+        $data=RetailerUserTxnHistory::where('user_id',$id)->where('type','qrcode scan')->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
         return response()->json(['status' => true, 'message' => 'Monthly Scan Limit History','Monthly Scan Limit'=>$scanLimit,'Scan history by retailer'=>$data,'Monthly_Scan_Limit'=>$scanLimit,'Scan_history_by_retailer'=>$data]);
     }
 
@@ -6597,11 +6599,122 @@ public function aseSalesreport(Request $request)
                 'message' => 'Invalid brand value.',
             ]);
         }
-        $order = RetailerOrder::where('user_id',$request->userId)->where('brand',$brandValue)->orderby('id','desc')->take(5)->get();
-        
+        //$order = RetailerOrder::where('user_id',$request->userId)->where('brand',$brandValue)->orderby('id','desc')->take(5)->get();
+        $order = RetailerOrder::where('user_id',$request->userId)->orderby('id','desc')->take(5)->get();
         return response()->json(['status'=>true, 'message'=>'Order history fetched successfully','data'=>$order]);
     }
+
+
+
+    public function retailerproductList(Request $request): JsonResponse
+     {
+ 
+         $products = RetailerProduct::where('status',1)->where('is_deleted',0)->orderby('amount','ASC')->get();
+ 
+         return response()->json(['status'=>true, 'message'=>'Product data fetched successfully','data'=>$products]);
+ 
+     }
    
+     /**
+      * This method is for show product details
+      * @param  $id
+      *
+      */
+    public function retailerproductView(Request $request,$id): JsonResponse
+     {
+		 
+         $products = RetailerProduct::where('id',$id)->first();
+		 $productSpec=DB::table('product_specifications')->where('product_id',$id)->get();
+		 $data[] = [
+                'product' => $products,
+                'productSpecification' => $productSpec,
+            ];
+         return response()->json(['status'=>true, 'message'=>'Product data fetched successfully','data'=>$products,'productSpecification'=>$productSpec]);
+     }
+     
+	/**
+      * This method is for show brochure details
+      * 
+      *
+      */
+    public function retailerbrochureindex(Request $request)
+	{
+        $brochure = Offer::where('is_current',1)->get();
+        return response()->json(['status'=>true, 'message'=>'Product data fetched successfully','data'=>$brochure]);
+    }
+	
+	   /**
+      * This method is to get 5 order details
+      *
+      */
+    public function retailerOrderDetails(Request $request,$orderId)
+    {
+		//dd($request->all());
+        $resp = $orderDetails = [];
+        $order = RetailerOrder::where('id',$orderId)->orderby('created_at','desc')->get();
+        foreach ($order as $data) {
+            $orderDetails = RetailerOrder::where('created_at', $data->created_at)
+            ->orderby('id', 'desc')
+            ->get();
+            $resp[] = [
+                'date' => date('Y-m-d H:i:s', strtotime($data->created_at)),
+                'order_details' => $orderDetails,
+            ];
+        }
+        return response()->json([
+                'status' => true,
+                'message' => 'Order history with quanity',
+                'data' => $resp,
+            ]);
+    }
+
+
+    public function retailerrewardHistory(Request $request)
+      {
+        //dd($userId);
+        $validator = Validator::make($request->all(), [
+            'user_id' =>['required'],
+			'pageNo' => ['required'],
+            
+        ]);
+        if (!$validator->fails()) {
+          $resp = [];
+          $perPage = $request->pageNo ?? 10;
+          $userId =$request->user_id;
+          $userExist=Store::where('id','=',$userId)->first();
+            if(!$userExist){
+                return response()->json(['error'=>false, 'resp'=>'Store/Retailer is invalid']);
+            }else{
+                if(!$pageNo){
+                    $page=1;
+                }else{
+                    $page=$pageNo;
+				}
+                    $limit=20;
+                    $offset=($page-1)*$limit;
+                    $resp = RetailerUserTxnHistory::where('user_id',$userId)->where('type','barcode scan')->groupby('barcode_id')->orderby('id','desc')->paginate($perPage);
+                    
+                
+            }
+            return response()->json([
+                'status' => true,
+                'message' => 'Reward history with quanity',
+                'data' => $resp,
+				
+            ]);
+
+            } else {
+                return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+            }
+        
+        }
+
+
+
+
+
+   
+    
     
 
 
