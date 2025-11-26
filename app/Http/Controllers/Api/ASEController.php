@@ -6585,7 +6585,7 @@ public function aseSalesreport(Request $request)
     }
     public function retailerOrder(Request $request)
     {
-        $brandMap = [
+        /*$brandMap = [
             'ONN'  => 1,
             'PYNK' => 2,
             'Both' => 3,
@@ -6598,7 +6598,7 @@ public function aseSalesreport(Request $request)
                 'status' => false,
                 'message' => 'Invalid brand value.',
             ]);
-        }
+        }*/
         //$order = RetailerOrder::where('user_id',$request->userId)->where('brand',$brandValue)->orderby('id','desc')->take(5)->get();
         $order = RetailerOrder::where('user_id',$request->userId)->orderby('id','desc')->take(5)->get();
         return response()->json(['status'=>true, 'message'=>'Order history fetched successfully','data'=>$order]);
