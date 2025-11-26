@@ -6939,7 +6939,7 @@ public function aseSalesreport(Request $request)
         // If no active items left
         if (empty($activeCartItems)) {
             return response()->json([
-                'error' => true,
+                'status' => false,
                 'message' => 'No active products in cart. Order not placed.',
                 'inactive_products' => $inactiveProducts,
             ]);
@@ -6953,9 +6953,9 @@ public function aseSalesreport(Request $request)
 
         if ((int) $total_amount > (int) $userExist->wallet) {
             return response()->json([
-                'error' => true,
+                'status' => false,
                 'message' => 'Wallet balance is low',
-                'data' => (int)$total_amount - (int)$userExist->wallet,
+                'require_points' => (int)$total_amount - (int)$userExist->wallet,
             ]);
         }
 
