@@ -17,4 +17,6 @@ class RetailerProduct extends Model
         'status',
     ];
 
+    
+
 }
