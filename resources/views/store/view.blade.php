@@ -50,7 +50,7 @@
             
             
             }
-        }
+       
 
             $vp = $moreinformation->vp_id;
             
@@ -102,6 +102,7 @@
             
             
             }
+        }
      $duplicateStore=App\Models\Store::where('owner_name',$data->owner_name)->where('owner_lname',$data->owner_lname)->where('gst_no',$data->gst_no)->count();
   
 @endphp
