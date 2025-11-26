@@ -6727,14 +6727,14 @@ public function aseSalesreport(Request $request)
                     
             }
             return response()->json([
-                'error' => false,
+                'status' => true,
                 'message' => 'Transaction history fetch successfully',
                 'data' => $resp,
 				
             ]);
 
         } else {
-            return response()->json(['status' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
         
     }
