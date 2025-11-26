@@ -7423,7 +7423,7 @@ public function aseSalesreport(Request $request)
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/order/pdf/view/'.$id,
+            'data' => url('/').'/api/retailer/b2b/order/place/pdf/view/'.$id,
         ]);
     }
 
