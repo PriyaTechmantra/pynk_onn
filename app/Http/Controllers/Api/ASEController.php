@@ -33,6 +33,7 @@ use App\Models\Activity;
 use App\Models\Scheme;
 use App\Models\News;
 use App\Models\ProductCatalogue;
+use App\Models\RetailerBarcode;
 use App\Models\SecondaryAseOrder;
 use App\Models\RetailerOrder;
 use App\Models\RetailerUserTxnHistory;
