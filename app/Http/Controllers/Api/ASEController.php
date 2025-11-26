@@ -6744,7 +6744,15 @@ public function aseSalesreport(Request $request)
 
     public function retailerRewardCart(Request $request, $id)
 {
-    $cartItems = RewardCart::where('store_id', $id)->get();
+    $cartItems = RewardCart::where('store_id', $id)->whereHas('product')
+            ->with([
+                
+                'product' => function ($q) {
+                    $q->select('id', 'title','amount')
+                        ->where('status', 1)
+                        ->where('is_deleted', 0);
+                }
+            ])->get();
 
     $grouped = [];
     
@@ -6887,6 +6895,157 @@ public function aseSalesreport(Request $request)
             ]);
         }
     }
+
+
+    public function rewardplaceOrder(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => ['required'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
+        }
+
+        $userExist = Store::where('id', $request['user_id'])->where('status', 1)->where('is_deleted', 1)->first();
+        if (!$userExist) {
+            return response()->json(['status' => false, 'message' => 'User is invalid']);
+        }
+
+        $userBalance = $userExist;
+
+        // Get cart items
+        $cartData = RewardCart::where('store_id', $request['user_id'])->get();
+
+        // Separate inactive products
+        $inactiveProducts = [];
+        $activeCartItems = [];
+
+        foreach ($cartData as $item) {
+            if ($item->product->status != 1) {
+                $inactiveProducts[] = $item->product->title ?? 'Unknown Product';
+                $item->delete(); // Remove inactive product from cart
+            } else {
+                $activeCartItems[] = $item;
+            }
+        }
+
+        // If no active items left
+        if (empty($activeCartItems)) {
+            return response()->json([
+                'error' => true,
+                'message' => 'No active products in cart. Order not placed.',
+                'inactive_products' => $inactiveProducts,
+            ]);
+        }
+
+        // Calculate total amount
+        $total_amount = 0;
+        foreach ($activeCartItems as $item) {
+            $total_amount += $item->product->amount * $item->qty;
+        }
+
+        if ((int) $total_amount > (int) $userExist->wallet) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Wallet balance is low',
+                'data' => (int)$total_amount - (int)$userExist->wallet,
+            ]);
+        }
+
+        // Generate order number
+        $OrderChk = RetailerOrder::select('order_sequence_int')->latest('id')->first();
+        $orderSeq = empty($OrderChk->order_sequence_int) ? 1 : (int) $OrderChk->order_sequence_int + 1;
+        $ordNo = sprintf("%'.05d", $orderSeq);
+        $order_no = "ONNREWARD" . date('y') . '/' . $ordNo;
+
+        // Store user info
+        $user = $userExist;
+        $newEntry = new RetailerOrder;
+        $newEntry->order_sequence_int = $orderSeq;
+        $newEntry->order_no = $order_no;
+        $newEntry->user_id = $request['user_id'];
+        $newEntry->shop_name = $user->store_name ?? null;
+        $newEntry->email = $user->email ?? null;
+        $newEntry->mobile = $user->contact ?? null;
+        $newEntry->billing_address = $user->address ?? null;
+        $newEntry->billing_city = $user->area ?? null;
+        $newEntry->billing_state = $user->state ?? null;
+        $newEntry->billing_pin = $user->pin ?? null;
+
+        // Calculate subtotal and qty
+        $subtotal = $totalOrderQty = 0;
+        foreach ($activeCartItems as $cartValue) {
+            $totalOrderQty += $cartValue->qty;
+            $subtotal += $cartValue->product->amount * $cartValue->qty;
+        }
+
+        $newEntry->amount = $subtotal;
+        $newEntry->qty = $totalOrderQty;
+        $newEntry->final_amount = $subtotal;
+        $newEntry->save();
+
+        // Save order products
+        $orderProducts = [];
+        foreach ($activeCartItems as $cartValue) {
+            $orderProducts[] = [
+                'order_id' => $newEntry->id,
+                'product_id' => $cartValue->product_id,
+                'product_name' => $cartValue->product->title,
+                'product_image' => $cartValue->product->image,
+                'product_slug' => $cartValue->product->slug,
+                'price' => $cartValue->product->amount,
+                'offer_price' => $cartValue->product->amount,
+                'qty' => $cartValue->qty,
+            ];
+        }
+        RewardOrderProduct::insert($orderProducts);
+
+        // Clear remaining cart items
+        RewardCart::where('store_id', $request['user_id'])->delete();
+
+        // Deduct wallet
+        $user->wallet -= $newEntry->final_amount;
+        $user->save();
+
+        // Wallet transaction
+        $userAmount = RetailerWalletTxn::where('user_id', $request['user_id'])->orderBy('id', 'desc')->first();
+        $walletTxn = new RetailerWalletTxn();
+        $walletTxn->user_id = $newEntry->user_id;
+        $walletTxn->amount = $newEntry->final_amount;
+        $walletTxn->type = 2;
+        $walletTxn->final_amount = $userAmount
+            ? $userAmount->final_amount - $newEntry->final_amount
+            : 0;
+        $walletTxn->created_at = now();
+        $walletTxn->updated_at = now();
+        $walletTxn->save();
+
+        // Transaction history
+        $userwalletTxn = new RetailerUserTxnHistory();
+        $userwalletTxn->user_id = $request['user_id'];
+        $userwalletTxn->order_id = $newEntry->id;
+        $userwalletTxn->amount = $newEntry->final_amount;
+        $userwalletTxn->type = 'points redeem';
+        $userwalletTxn->title = 'Redeem points';
+        $userwalletTxn->description = 'You Purchase gift';
+        $userwalletTxn->status = 'decrement';
+        $userwalletTxn->created_at = now();
+        $userwalletTxn->updated_at = now();
+        $userwalletTxn->save();
+
+        // Send notification
+        sendNotification('admin', '', 'reward-order-place', 'front.user.order', $totalOrderQty . ' New order placed', $totalOrderQty . ' new order placed  ' . $user->store_name);
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Order placed successfully',
+            'inactive_products' => $inactiveProducts,
+            'data' => $user->wallet,
+        ]);
+    }
+
+
 
 
     
