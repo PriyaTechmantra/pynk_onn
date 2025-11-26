@@ -257,7 +257,7 @@ Route::post('retailer/update/profile/{id}', [ASEController::class, 'retailerupda
 //change password
 Route::post('retailer/change/password', [ASEController::class, 'retailerchangePassword']);
 //fetch top 5  product
-Route::get('retailer/product/{id}', [ASEController::class, 'retailerproductView']);
+Route::get('retailer/product/view/{id}', [ASEController::class, 'retailerproductView']);
 //fetch all product
 Route::get('retailer/product/list', [ASEController::class, 'retailerproductList']);
 //fetch product by slug
