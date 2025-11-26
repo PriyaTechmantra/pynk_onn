@@ -6909,7 +6909,7 @@ public function aseSalesreport(Request $request)
             return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
 
-        $userExist = Store::where('id', $request['user_id'])->where('status', 1)->where('is_deleted', 1)->first();
+        $userExist = Store::where('id', $request['user_id'])->where('status', 1)->where('is_deleted', 0)->first();
         if (!$userExist) {
             return response()->json(['status' => false, 'message' => 'User is invalid']);
         }
