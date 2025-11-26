@@ -6685,13 +6685,9 @@ public function aseSalesreport(Request $request)
             if(!$userExist){
                 return response()->json(['error'=>false, 'resp'=>'Store/Retailer is invalid']);
             }else{
-                if(!$pageNo){
-                    $page=1;
-                }else{
-                    $page=$pageNo;
-				}
+                
                     $limit=20;
-                    $offset=($page-1)*$limit;
+                   
                     $resp = RetailerUserTxnHistory::where('user_id',$userId)->where('type','barcode scan')->groupby('barcode_id')->orderby('id','desc')->paginate($perPage);
                     
                 
