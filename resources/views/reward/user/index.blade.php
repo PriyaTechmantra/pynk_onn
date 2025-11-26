@@ -204,11 +204,11 @@
                                             <td>{{ ucwords($item->address) }}<br>{{ $item->area->name }}<br>{{ $item->city }}<br>{{ $item->state->name }}
                                             </td>
                                             <td>
-                                              @can('store status change')
-                                                <a href="{{ url('stores/'.$item->id.'/status/change') }}">
+                                              
+                                               
                                                     <span class="badge badge-status bg-{{ $item->status == 1 ? 'success' : 'danger' }}">{{ $item->status == 1 ? 'Active' : 'Inactive' }}</span>
-                                                </a>
-                                              @endcan
+                                                
+                                              
                                             </td>
                                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y g:i:s A')}}
                                             
