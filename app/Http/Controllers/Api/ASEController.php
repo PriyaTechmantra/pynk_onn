@@ -6728,7 +6728,7 @@ public function aseSalesreport(Request $request)
                 'error' => false,
                 'message' => 'Transaction history fetch successfully',
                 'data' => $resp,
-				'count'=>$count,
+				
             ]);
 
         } else {
