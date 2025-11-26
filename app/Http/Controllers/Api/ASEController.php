@@ -6742,7 +6742,7 @@ public function aseSalesreport(Request $request)
 
 
 
-    public function retailerRewardCart(Request $request, $id): JsonResponse
+    public function retailerRewardCart(Request $request, $id)
 {
     $cartItems = RewardCart::where('store_id', $id)->get();
 
