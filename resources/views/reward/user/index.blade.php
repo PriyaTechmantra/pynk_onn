@@ -167,7 +167,6 @@
                                         <th>Uniquecode</th> 
                                         <th>Store</th>
                                         <th>Contact</th>
-                                        <th>Distributor</th>
                                         <th>Address</th>
                                          
                                         <th>Status</th>
@@ -227,22 +226,20 @@
                                             
                                             
                                             <td>{{ $item->email }}<br>{{ $item->contact }}</td>
-                                            <td>
-                                                {{ $distName ? $distName->name : '' }}
-                                            </td> 
+                                           
                                             <td>{{ ucwords($item->address) }}<br>{{ $item->area->name }}<br>{{ $item->city }}<br>{{ $item->state->name }}
                                             </td>
                                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y g:i:s A')}}
                                             </td>
-                                           
+                                              @can('store status change')
+                                                <a href="{{ url('stores/'.$item->id.'/status/change') }}">
+                                                    <span class="badge badge-status bg-{{ $item->status == 1 ? 'success' : 'danger' }}">{{ $item->status == 1 ? 'Active' : 'Inactive' }}</span>
+                                                </a>
+                                              @endcan
                                             <td>
-                                            @can('store status change')
-                                            <a href="{{ url('stores/'.$item->id.'/status/change') }}">
-                                                <span class="badge badge-status bg-{{ $item->status == 1 ? 'success' : 'danger' }}">{{ $item->status == 1 ? 'Active' : 'Inactive' }}</span>
-                                            </a>
-                                            @endcan
-                                        </td>
-                                        <td>{{date('d-m-Y', strtotime($item->created_at))}}</td>
+                                            
+                                        
+                                       
                                         <td style="white-space: nowrap;">
                                             @can('update store')
                                             <a href="{{ url('stores/'.$item->id.'/edit') }}" class="btn btn-cta">
