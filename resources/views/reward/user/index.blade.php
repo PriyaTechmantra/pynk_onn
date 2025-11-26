@@ -163,7 +163,7 @@
                             <table class="table" id="example5">
                                 <thead>
                                     <tr>
-                                        {{-- <th>#SR</th> --}}
+                                     
                                         <th>Uniquecode</th> 
                                         <th>Store</th>
                                         <th>Contact</th>
@@ -185,37 +185,11 @@
                                             }
                                         }
 
-                                        // ase name
-                                        $ase = $item->user_id;
-                                        $username = \App\Models\Employee::select('name')->where('id', $ase)->first();
-                                        $displayASEName = '';
-                                        foreach(explode(',',$item->user_id) as $aseKey => $aseVal) 
-                                        {
-                                            //dd($distVal);
-                                            $catDetails = DB::table('users')->where('id', $aseVal)->get();
-                                    
-                                            if(count($catDetails)>0){
-                                                $displayASEName .=  $catDetails[0]->name.',';
-                                            }else{
-                                                $displayASEName .= '';
-                                            }
-                                        
-                                        
-                                        }
-                                        // distributor name
-                                    $store_name = $item->name;
-                                        
-                                    $distName = \App\Models\Distributor::select('name')->where('id', $item->state_id)->first();
-                                    // $displayName = '';
-                                    // foreach(explode(',',$distName->distributor_name) as $distKey => $distVal) 
-                                    // {
-                                        //dd($distVal);
-                                    //   $displayName .= $distVal.'';
-                                    //}
+                                
                                         @endphp
 
                                         <tr>
-                                            {{-- <td>{{ $index + $data->firstItem() }}</td> --}}
+                                           
                                             <td>
                                                 {{ $item ? $item->unique_code : '' }}
                                             </td>
@@ -229,14 +203,15 @@
                                            
                                             <td>{{ ucwords($item->address) }}<br>{{ $item->area->name }}<br>{{ $item->city }}<br>{{ $item->state->name }}
                                             </td>
-                                            <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y g:i:s A')}}
-                                            </td>
+                                            <td>
                                               @can('store status change')
                                                 <a href="{{ url('stores/'.$item->id.'/status/change') }}">
                                                     <span class="badge badge-status bg-{{ $item->status == 1 ? 'success' : 'danger' }}">{{ $item->status == 1 ? 'Active' : 'Inactive' }}</span>
                                                 </a>
                                               @endcan
-                                            <td>
+                                            </td>
+                                            <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y g:i:s A')}}
+                                            
                                             
                                         
                                        
