@@ -130,7 +130,7 @@
                     
                      <h4 class="d-flex">Store Detail
                         <a href="{{ url('stores') }}" class="btn btn-cta ms-auto">Back</a>
-                        @can('update employee')
+                        @can('update stores')
                             <a href="{{ url('stores/'.$data->id.'/edit') }}" class="btn btn-cta">Edit</a>
                         @endcan
                     </h4>
