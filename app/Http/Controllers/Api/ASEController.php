@@ -6380,7 +6380,7 @@ public function aseSalesreport(Request $request)
 	
 	public function retailerterms(Request $request)
     {
-        $brandMap = [
+        /*$brandMap = [
             'ONN'  => 1,
             'PYNK' => 2,
             'Both' => 3,
@@ -6393,7 +6393,7 @@ public function aseSalesreport(Request $request)
                 'status' => false,
                 'message' => 'Invalid brand value.',
             ]);
-        }
+        }*/
         //$data=DB::table('reward_terms')->where('brand',$brandValue)->latest('id')->first();
         $data=DB::table('reward_terms')->latest('id')->first();
         return response()->json(['status' => true, 'message' => 'Terms & condition fetched Successfully','data'=>$data]);
