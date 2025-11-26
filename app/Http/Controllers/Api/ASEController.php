@@ -35,6 +35,7 @@ use App\Models\News;
 use App\Models\ProductCatalogue;
 use App\Models\RetailerProduct;
 use App\Models\RetailerBarcode;
+use App\Models\RewardCart;
 use App\Models\SecondaryAseOrder;
 use App\Models\RetailerOrder;
 use App\Models\RetailerUserTxnHistory;
