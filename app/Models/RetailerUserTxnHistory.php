@@ -8,4 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class RetailerUserTxnHistory extends Model
 {
     use HasFactory;
+
+    public function qrcode() {
+        return $this->belongsTo('App\Models\RetailerBarcode', 'barcode_id', 'id');
+    }
 }

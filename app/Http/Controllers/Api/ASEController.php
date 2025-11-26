@@ -6688,7 +6688,7 @@ public function aseSalesreport(Request $request)
                 
                     $limit=20;
                    
-                    $resp = RetailerUserTxnHistory::where('user_id',$userId)->where('type','barcode scan')->groupby('barcode_id')->orderby('id','desc')->paginate($perPage);
+                    $resp = RetailerUserTxnHistory::where('user_id',$userId)->where('type','barcode scan')->groupby('barcode_id')->orderby('id','desc')->with('qrcode')->paginate($perPage);
                     
                 
             }
@@ -6704,6 +6704,9 @@ public function aseSalesreport(Request $request)
             }
         
         }
+
+
+
 
 
 
