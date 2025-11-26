@@ -7002,7 +7002,7 @@ public function aseSalesreport(Request $request)
                 'product_image' => $cartValue->product->image,
                 'product_slug' => $cartValue->product->slug,
                 'price' => $cartValue->product->amount,
-                'offer_price' => $cartValue->product->amount,
+              
                 'qty' => $cartValue->qty,
             ];
         }
@@ -7052,6 +7052,9 @@ public function aseSalesreport(Request $request)
             'data' => $newEntry
         ]);
     }
+
+
+
 
 
 
