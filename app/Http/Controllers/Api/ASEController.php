@@ -6600,7 +6600,7 @@ public function aseSalesreport(Request $request)
             ]);
         }*/
         //$order = RetailerOrder::where('user_id',$request->userId)->where('brand',$brandValue)->orderby('id','desc')->take(5)->get();
-        $order = RetailerOrder::where('user_id',$request->userId)->orderby('id','desc')->take(5)->get();
+        $order = RetailerUserTxnHistory::where('user_id',$request->userId)->where('type','points redeem')->orderby('id','desc')->with('order')->take(5)->get();
         return response()->json(['status'=>true, 'message'=>'Order history fetched successfully','data'=>$order]);
     }
 
@@ -6736,6 +6736,11 @@ public function aseSalesreport(Request $request)
         }
         
     }
+
+
+    //top 5 reedem for dashboard
+
+
 
 
 

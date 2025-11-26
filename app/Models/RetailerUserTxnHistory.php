@@ -12,4 +12,9 @@ class RetailerUserTxnHistory extends Model
     public function qrcode() {
         return $this->belongsTo('App\Models\RetailerBarcode', 'barcode_id', 'id');
     }
+
+
+    public function order() {
+        return $this->belongsTo('App\Models\RetailerOrder', 'order_id', 'id');
+    }
 }
