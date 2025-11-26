@@ -6608,7 +6608,7 @@ public function aseSalesreport(Request $request)
 
 
 
-    public function retailerproductList(Request $request): JsonResponse
+    public function retailerproductList(Request $request)
      {
  
          $products = RetailerProduct::where('status',1)->where('is_deleted',0)->orderby('amount','ASC')->get();
@@ -6622,7 +6622,7 @@ public function aseSalesreport(Request $request)
       * @param  $id
       *
       */
-    public function retailerproductView(Request $request,$id): JsonResponse
+    public function retailerproductView(Request $request,$id)
      {
 		 
          $products = RetailerProduct::where('id',$id)->first();
