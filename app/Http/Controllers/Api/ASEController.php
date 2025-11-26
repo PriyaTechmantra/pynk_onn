@@ -6899,7 +6899,7 @@ public function aseSalesreport(Request $request)
     }
 
 
-    public function rewardplaceOrder(Request $request)
+    public function retailerrewardplaceOrder(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'user_id' => ['required'],
