@@ -6734,9 +6734,159 @@ public function aseSalesreport(Request $request)
             ]);
 
         } else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => true, 'message' => $validator->errors()->first()]);
         }
         
+    }
+
+
+
+    public function retailerRewardCart(Request $request, $id): JsonResponse
+{
+    $cartItems = RewardCart::where('store_id', $id)->get();
+
+    $grouped = [];
+    
+    $total_amount = 0;
+    foreach ($cartItems as $item) {
+        $productId = $item->product_id;
+
+        if (!isset($grouped[$productId])) {
+            $grouped[$productId] = [
+                'id' => $item->id,
+                'store_id' => $item->store_id,
+                'device_id' => $item->device_id,
+                'product_id' => $item->product_id,
+                'status' => $item->status,
+                'created_at' => $item->created_at,
+                'updated_at' => $item->updated_at,
+
+                // Aggregated values
+                'qty' => 0,
+                'price' => 0,
+                'final_amount' => 0,
+            ];
+        }
+        
+
+        $grouped[$productId]['qty'] += $item->qty;
+        $grouped[$productId]['final_amount'] += $item->product->amount * $item->qty;
+        $grouped[$productId]['price'] += $item->product->amount;
+        
+        
+        $total_amount += $item->product->amount * $item->qty;
+    }
+
+    $data = array_values($grouped);
+
+    // Total cart values
+    $cart_count = DB::select("select ifnull(sum(qty),0) as total_qty, ifnull(sum(final_amount),0) as total_amount from reward_carts where store_id = ?", [$id]);
+
+    $total_quantity = $cart_count[0]->total_qty ?? 0;
+    //$total_amount = $cart_count[0]->total_amount ?? 0;
+
+    return response()->json([
+        'status' => true,
+        'message' => 'Cart data fetched successfully',
+        'data' => $data,
+        'total_quantity' => $total_quantity,
+        'total_amount' => (string) $total_amount,
+    ]);
+}
+
+	
+    /**
+     * This method is for show reward cart delete
+     * @return \Illuminate\Http\JsonResponse
+     */
+	public function retailerRewardCartclear(Request $request, $id)
+    {
+        $data = RewardCart::findOrFail($id)->delete();
+
+        if ($data) {
+            return response()->json(['error' => false, 'resp' => 'Product removed from cart']);
+            // return response()->json(null, Response::HTTP_NO_CONTENT);
+        } else {
+            return response()->json(['error' => true, 'resp' => 'Something happened']);
+            # code...
+        }
+        
+        
+    }
+	
+	/**
+     * This method is for reward product add to cart
+     * @return \Illuminate\Http\JsonResponse
+     */
+
+    public function retailerrewardbulkAddTocart(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'store_id' => ['required', 'integer', 'min:1'],
+            'device_id' => ['nullable'],
+            'product_id' => ['required', 'integer'],
+            'qty' => ['required'],
+           
+        ]);
+
+        if (!$validator->fails()) {
+            $params = $request->except('_token');
+            $collectedData = $params;
+            
+            $cartExists = RewardCart::where('product_id', $collectedData['product_id'])->where('store_id', $collectedData['store_id'])->first();
+        if ($cartExists) {
+                $cartExists->qty = $cartExists->qty + $collectedData['qty'];
+			    $cartExists->final_amount = $cartExists->price * $cartExists->qty;
+                $cartExists->save();
+        } else {
+            
+            $productDetails=RetailerProduct::where('id',$collectedData['product_id'])->first();
+            $newEntry = new RewardCart;
+            $newEntry->device_id = $collectedData['device_id'] ?? null;
+            $newEntry->store_id = $collectedData['store_id'] ?? null;
+            $newEntry->product_id = $collectedData['product_id'];
+            $newEntry->product_name = $productDetails->title;
+            $newEntry->product_image = $productDetails->image;
+            $newEntry->price = $productDetails->amount;
+			$newEntry->final_amount = $productDetails->amount * $collectedData['qty'];
+            $newEntry->qty = $collectedData['qty'];
+            $newEntry->save();
+          }
+			
+        
+        return response()->json(['error' => false, 'resp' => 'Product successfully added to cart'], Response::HTTP_CREATED);
+        
+        } else {
+            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+        }
+    }
+	
+	/**
+     * This method is for update quantity for reward cart
+     * @param  $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+   
+
+    // $type = "incr"/ "decr"
+    public function retailerRewardCartqtyUpdate(Request $request, $cartId,$q)
+    {
+        $cart = RewardCart::findOrFail($cartId);
+
+        if ($cart) {
+			 $cart->qty = $q;
+			 $cart->final_amount = $cart->price * $q;
+			 $cart->save();
+            return response()->json([
+                'error' => false,
+                'message' => 'Quantity updated'
+            ]);
+        } else {
+            return response()->json([
+                'error' => true,
+                'message' => 'Something Happened'
+            ]);
+        }
     }
 
 
