@@ -6805,10 +6805,10 @@ public function aseSalesreport(Request $request)
         $data = RewardCart::findOrFail($id)->delete();
 
         if ($data) {
-            return response()->json(['error' => false, 'resp' => 'Product removed from cart']);
+            return response()->json(['status' => true, 'message' => 'Product removed from cart']);
             // return response()->json(null, Response::HTTP_NO_CONTENT);
         } else {
-            return response()->json(['error' => true, 'resp' => 'Something happened']);
+            return response()->json(['status' => false, 'message' => 'Something happened']);
             # code...
         }
         
@@ -6846,8 +6846,6 @@ public function aseSalesreport(Request $request)
             $newEntry->device_id = $collectedData['device_id'] ?? null;
             $newEntry->store_id = $collectedData['store_id'] ?? null;
             $newEntry->product_id = $collectedData['product_id'];
-            $newEntry->product_name = $productDetails->title;
-            $newEntry->product_image = $productDetails->image;
             $newEntry->price = $productDetails->amount;
 			$newEntry->final_amount = $productDetails->amount * $collectedData['qty'];
             $newEntry->qty = $collectedData['qty'];
@@ -6855,10 +6853,10 @@ public function aseSalesreport(Request $request)
           }
 			
         
-        return response()->json(['error' => false, 'resp' => 'Product successfully added to cart'], Response::HTTP_CREATED);
+        return response()->json(['status' => true, 'message' => 'Product successfully added to cart'], Response::HTTP_CREATED);
         
         } else {
-            return response()->json(['error' => true, 'message' => $validator->errors()->first()]);
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
     }
 	
@@ -6879,12 +6877,12 @@ public function aseSalesreport(Request $request)
 			 $cart->final_amount = $cart->price * $q;
 			 $cart->save();
             return response()->json([
-                'error' => false,
+                'status' => true,
                 'message' => 'Quantity updated'
             ]);
         } else {
             return response()->json([
-                'error' => true,
+                'status' => false,
                 'message' => 'Something Happened'
             ]);
         }
