@@ -7148,7 +7148,7 @@ public function aseSalesreport(Request $request)
         }
     }
 
-    public function retailerb2bshowByUser(Request $request)
+    public function retailerb2bshowByUser(Request $request,$storeId)
     {
         // Brand mapping
         $brandMap = [
@@ -7161,7 +7161,7 @@ public function aseSalesreport(Request $request)
         $brandId = $brandMap[$brandName] ?? null;
 
         // Base query
-        $query = Cart::where('store_id', $request->storeId)
+        $query = Cart::where('store_id', $storeId)
            ->whereHas('product')
             ->with([
                 'size:id,name,size_details',
