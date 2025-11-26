@@ -40,6 +40,7 @@ use App\Models\SecondaryAseOrder;
 use App\Models\RetailerOrder;
 use App\Models\RewardOrderProduct;
 use App\Models\RetailerUserTxnHistory;
+use App\Models\RetailerWalletTxn;
 use Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
