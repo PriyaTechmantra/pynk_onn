@@ -123,7 +123,7 @@ class RetailerUserController extends Controller
         /**
          * STEP 8: Execute query
          */
-        $data = $query->where('stores.is_deleted', 0)
+        $data = $query->where('stores.user_id', NULL)->where('stores.is_deleted', 0)
             ->orderBy('stores.id', 'desc')
             ->paginate(25);
 
