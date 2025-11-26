@@ -6917,7 +6917,11 @@ public function aseSalesreport(Request $request)
         $userBalance = $userExist;
 
         // Get cart items
-        $cartData = RewardCart::where('store_id', $request['user_id'])->get();
+        $cartData = RewardCart::where('store_id', $request['user_id'])->whereHas('product')
+            ->with(['product' => function ($query) {
+                $query->where('status', 1)
+                    ->where('is_deleted', 0);
+            }])->get();
 
         // Separate inactive products
         $inactiveProducts = [];
@@ -6959,7 +6963,7 @@ public function aseSalesreport(Request $request)
         $OrderChk = RetailerOrder::select('order_sequence_int')->latest('id')->first();
         $orderSeq = empty($OrderChk->order_sequence_int) ? 1 : (int) $OrderChk->order_sequence_int + 1;
         $ordNo = sprintf("%'.05d", $orderSeq);
-        $order_no = "ONNREWARD" . date('y') . '/' . $ordNo;
+        $order_no = "REWARD" . date('y') . '/' . $ordNo;
 
         // Store user info
         $user = $userExist;
@@ -6971,8 +6975,8 @@ public function aseSalesreport(Request $request)
         $newEntry->email = $user->email ?? null;
         $newEntry->mobile = $user->contact ?? null;
         $newEntry->billing_address = $user->address ?? null;
-        $newEntry->billing_city = $user->area ?? null;
-        $newEntry->billing_state = $user->state ?? null;
+        $newEntry->billing_city = $user->area_id ?? null;
+        $newEntry->billing_state = $user->state_id ?? null;
         $newEntry->billing_pin = $user->pin ?? null;
 
         // Calculate subtotal and qty
@@ -7037,13 +7041,14 @@ public function aseSalesreport(Request $request)
         $userwalletTxn->save();
 
         // Send notification
-        sendNotification('admin', '', 'reward-order-place', 'front.user.order', $totalOrderQty . ' New order placed', $totalOrderQty . ' new order placed  ' . $user->store_name);
+        sendNotification('admin', '', 'reward-order-place', 'front.user.order', $totalOrderQty . ' New order placed', $totalOrderQty . ' new order placed  ' . $user->name);
 
         return response()->json([
-            'error' => false,
+            'status' => true,
             'message' => 'Order placed successfully',
             'inactive_products' => $inactiveProducts,
-            'data' => $user->wallet,
+            'wallet' => $user->wallet,
+            'data' => $newEntry
         ]);
     }
 
