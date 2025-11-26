@@ -33,6 +33,7 @@ use App\Models\Activity;
 use App\Models\Scheme;
 use App\Models\News;
 use App\Models\ProductCatalogue;
+use App\Models\RetailerProduct;
 use App\Models\RetailerBarcode;
 use App\Models\SecondaryAseOrder;
 use App\Models\RetailerOrder;
@@ -6739,7 +6740,7 @@ public function aseSalesreport(Request $request)
     }
 
 
-    //top 5 reedem for dashboard
+    
 
 
 
