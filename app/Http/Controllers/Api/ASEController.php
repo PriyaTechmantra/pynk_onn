@@ -38,6 +38,7 @@ use App\Models\RetailerBarcode;
 use App\Models\RewardCart;
 use App\Models\SecondaryAseOrder;
 use App\Models\RetailerOrder;
+use App\Models\RewardOrderProduct;
 use App\Models\RetailerUserTxnHistory;
 use Str;
 use Carbon\Carbon;
