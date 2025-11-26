@@ -305,7 +305,7 @@ Route::get('retailer/b2b/cart/qty', [ASEController::class, 'retailerb2bqtyUpdate
 Route::get('retailer/b2b/cart/delete/{id}', [ASEController::class, 'retailerb2bcartdelete']);
 // cart preview
 Route::get('retailer/b2b/cart/pdf/url', [ASEController::class, 'retailerb2bcartPlacePDF_URL']);
-Route::get('retailer/b2b/cart/pdf/view/{id}', [ASEController::class, 'retailerb2bcartPreviewPDF_view'])->name('retailer.cart.place.pdf');
+Route::get('retailer/b2b/cart/pdf/view', [ASEController::class, 'retailerb2bcartPreviewPDF_view'])->name('retailer.cart.place.pdf');
 //multicolor bulk add
 Route::post('retailer/b2b/bulkAddTocart', [ASEController::class, 'retailerb2bbulkAddTocart']);
 //order
