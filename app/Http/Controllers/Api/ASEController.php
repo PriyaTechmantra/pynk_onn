@@ -6766,6 +6766,8 @@ public function aseSalesreport(Request $request)
                 'store_id' => $item->store_id,
                 'device_id' => $item->device_id,
                 'product_id' => $item->product_id,
+                'product_name' => $item->product->title,
+                'product_image' => $item->product->image,
                 'status' => $item->status,
                 'created_at' => $item->created_at,
                 'updated_at' => $item->updated_at,
