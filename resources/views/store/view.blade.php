@@ -28,7 +28,10 @@
 			}
             
         }
-
+        $displayDistName = '';
+        $displayVPName = '';
+        $displayRSMName = '';
+        $displayASMName = '';
         $moreinformation = \App\Models\Team::where('store_id', $data->id)->first();
 
         if (!$moreinformation) {
