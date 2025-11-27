@@ -204,12 +204,13 @@ class RetailerUserController extends Controller
     {
         $request->validate([
             'owner_name'        => 'required|string|max:255',
-            'shop_name'         => 'required|string|min:2|max:255',
-            'shop_address'      => 'required|string|max:500',
+             'owner_lname'        => 'required|string|max:255',
+            'name'         => 'required|string|min:2|max:255',
+            'address'      => 'required|string|max:500',
             'contact'           => 'required|digits:10',
-            'whatsapp_contact'  => 'nullable|digits:10',
-            'state'             => 'required|integer',
-            'area'              => 'nullable|integer',
+            'whatsapp'  => 'nullable|digits:10',
+            'state_id'             => 'required|integer',
+            'area_id'              => 'nullable|integer',
             'brand'             => 'nullable|integer|in:1,2,3',
             'aadhar'            => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10000',
             'pan'               => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:10000',
@@ -218,8 +219,8 @@ class RetailerUserController extends Controller
 
         $store = Store::findOrFail($id);
 
-        if ($store->name !== $request->shop_name) {
-            $slug = Str::slug($request->shop_name, '-');
+        if ($store->name !== $request->name) {
+            $slug = Str::slug($request->name, '-');
             $exists = Store::where('slug', $slug)->where('id', '!=', $id)->exists();
             if ($exists) {
                 $slug .= '-' . time();
@@ -228,16 +229,17 @@ class RetailerUserController extends Controller
         }
 
         $store->owner_name   = $request->owner_name;
-        $store->name         = $request->shop_name;
-        $store->address      = $request->shop_address;
+        $store->owner_lname   = $request->owner_lname;
+        $store->name         = $request->name;
+        $store->address      = $request->address;
         $store->contact      = $request->contact;
-        $store->whatsapp     = $request->whatsapp_contact;
-        $store->state_id     = $request->state;
-        $store->area_id      = $request->area;
+        $store->whatsapp     = $request->whatsapp;
+        $store->state_id     = $request->state_id;
+        $store->area_id      = $request->area_id;
         $store->brand        = $request->brand;
 
 
-          $upload_path = "public/uploads/new-store/";
+          $upload_path = "public/uploads/store/";
 
         if (isset($request['aadhar'])) {
             $image = $request['aadhar'];
@@ -263,7 +265,24 @@ class RetailerUserController extends Controller
 
         $store->updated_at = now();
         $store->save();
+        $changedFields = $store->getChanges();
 
+        foreach ($changedFields as $field => $newValue) {
+            if (in_array($field, ['updated_at'])) continue; // skip timestamps
+
+            $oldValue = $oldData->$field ?? null;
+
+            DB::table('edit_logs')->insert([
+                'table_name' => 'stores',
+                'record_id' => $store->id,
+                'field' => $field,
+                'old_value' => $oldValue,
+                'new_value' => $newValue,
+                'action' => 'updated',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
+        }
         return redirect()
             ->route('reward.retailer.user.index')
             ->with('success', 'Store information updated successfully.');
@@ -283,73 +302,201 @@ class RetailerUserController extends Controller
         $data->is_deleted = 1;
         $data->save();
 
+        DB::table('edit_logs')->insert([
+                'table_name' => 'stores',
+                'record_id' => $data->id,
+                'action' => 'deleted',
+                'updated_by' => Auth::id(),
+                'created_at' => now(),
+            ]);
         return redirect()->route('reward.retailer.user.index')
             ->with('success', 'Store deleted successfully.');
     }
 
-    public function exportCSV(Request $request)
+     public function exportCSV(Request $request)
     {
-        // dd($request->all());
-        $query = Store::query(); // Example model
+       $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
 
-        // Apply filters if present
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
+        // Base query
+        $query = Store::select('stores.*');
+
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
         if ($request->filled('brand')) {
-            $query->where('brand', $request->brand);
+            $query->where(function ($q) use ($request) {
+                if ($request->brand == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('stores.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('stores.brand', $request->brand)
+                    ->orWhere('stores.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
+
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('stores.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('stores.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
         }
+
+
+        /**
+         * STEP 2: Date range filter (if available)
+         */
         if ($request->filled('date_from') && $request->filled('date_to')) {
-            $query->whereBetween('created_at', [$request->date_from, $request->date_to]);
+            $from = date('Y-m-d 00:00:00', strtotime($request->date_from));
+            $to   = date('Y-m-d 23:59:59', strtotime($request->date_to));
+            $query->whereBetween('stores.created_at', [$from, $to]);
         }
+        /**
+         * STEP 3: Distributor filter
+         */
+        
+        /**
+         * STEP 3: State filter
+         */
         if ($request->filled('state')) {
-            $query->where('state_id', $request->state);
-        }
-        if ($request->filled('distributor')) {
-            $query->where('distributor_id', $request->distributor);
+            $query->where('stores.state_id', $request->state);
         }
 
-        // Fetch data
-        $data = $query->get();
+        /**
+         * STEP 4: Area filter
+         */
+        if ($request->filled('area')) {
+            $query->where('stores.area_id', $request->area);
+        }
+        /**
+         * STEP 4: ASE filter
+         */
+        
 
-        // Prepare CSV
-        $csvData = [];
-        foreach ($data as $item) {
-            $csvData[] = [
-                'Store Name' => $item->name,
-                'Contact' => $item->contact,
-                'Distributor' => $item->name,
-                'Date' => $item->created_at->format('Y-m-d'),
-                // Add more fields as needed
-            ];
+        /**
+         * STEP 5: Keyword search (optional)
+         */
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('stores.name', 'like', "%$keyword%")
+                ->orWhere('stores.unique_code', 'like', "%$keyword%")
+                ->orWhere('stores.contact', 'like', "%$keyword%");
+            });
         }
 
-        // CSV Headers
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="stores.csv"',
-            'Pragma' => 'no-cache',
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Expires' => '0',
-        ];
+        /**
+         * STEP 6: Fetch data with pagination
+         */
+        $data = $query->where('user_id',NULL)->where('stores.is_deleted',0)->orderBy('stores.id', 'desc')->get();
 
-        // Open output stream
-        $handle = fopen('php://output', 'w');
-        fputcsv($handle, array_keys($csvData[0])); // Write header row
+        if (count($data) > 0) {
+            $delimiter = ",";
+            $filename = "store-list-".date('Y-m-d').".csv";
 
-        // Write rows
-        foreach ($csvData as $row) {
-            fputcsv($handle, $row);
+            // Create a file pointer
+            $f = fopen('php://memory', 'w');
+
+            // Set column headers
+            // $fields = array('SR', 'STORE', 'FIRM', 'MOBILE', 'EMAIL', 'WHATSAPP', 'DISTRIBUTOR', 'ASE', 'ASM', 'RSM', 'VP', 'ADDRESS', 'AREA', 'STATE', 'CITY', 'PINCODE', 'OWNER', 'OWNER DATE OF BIRTH', 'OWNER DATE OF ANNIVERSARY', 'CONTACT PERSON', 'CONTACT PERSON PHONE', 'CONTACT PERSON WHATSAPP', 'CONTACT PERSON DATE OF BIRTH', 'CONTACT PERSON DATE OF ANNIVERSARY', 'GST NUMBER', 'STATUS', 'DATETIME');
+            $fields = array('SR','UNIQUE CODE', 'STORE', 'FIRM', 'ADDRESS', 'AREA','PINCODE','STATE','OWNER NAME','MOBILE', 'WHATSAPP', 'CONTACT PERSON', 'CONTACT PERSON PHONE', 'OWNER DATE OF BIRTH', 'OWNER DATE OF ANNIVERSARY','EMAIL', 'GST NUMBER','PAN NUMBER','ONN CURRENCY','DISTRIBUTOR', 'ASE', 'ASM', 'RSM', 'VP', 'STATUS', 'DATETIME');
+            fputcsv($f, $fields, $delimiter);
+
+            $count = 1;
+
+            foreach($data as $row) {
+				//dd($data);
+                $datetime = date('j F, Y', strtotime($row['created_at']));
+                //$ase = $row->user_id;
+               // $username = User::select('name')->where('id', $ase)->first();
+				
+				$store_name = $row->name ?? '';
+                //$storename = RetailerListOfOcc::select('distributor_name','vp','rsm','asm')->where('retailer', $store_name)->where('ase', $username->name)->where('area', $row->area)->first();
+				
+                // dd($store->store_name, $ase->name, $ase->mobile);
+
+                $lineData = array(
+                    $count,
+					$row->unique_code?? '',
+                    ucwords($row->name)?? '',
+                    ucwords($row->bussiness_name)?? '',
+					ucwords($row->address)?? '',
+                    $row->area->name?? '',
+                    $row->pin?? '',
+					$row->state->name?? '',
+					ucwords($row->owner_name.' '.$row->owner_lname),
+                    $row->contact?? '',
+					$row->whatsapp?? '',
+					$row->contact_person.' '.$row->contact_person_lname,
+                    $row->contact_person_phone?? '',
+					$row->date_of_birth?? '',
+                    $row->date_of_anniversary?? '',
+                    $row->email?? '',
+                    $row->gst_no?? '',
+                    $row->pan_no?? '',
+					$row->wallet?? '',
+                    'NA',
+                    'NA',
+                    'NA',
+                    'NA',
+                     'NA',
+                 
+                    
+                   // $row->city,
+                   
+                   
+                    
+                   // $row->contact_person_whatsapp,
+                   // $row->contact_person_date_of_birth,
+                   // $row->contact_person_date_of_anniversary,
+                   
+                    ($row->status == 1) ? 'Active' : 'Inactive',
+                    $datetime
+                );
+
+                fputcsv($f, $lineData, $delimiter);
+
+                $count++;
+            }
+
+            // Move back to beginning of file
+            fseek($f, 0);
+
+            // Set headers to download file rather than displayed
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment; filename="' . $filename . '";');
+
+            //output all remaining data on a file pointer
+            fpassthru($f);
         }
 
-        fclose($handle);
-
-        return response()->stream(
-            function () {
-                // Output the data
-            },
-            200,
-            $headers
-        );
     }
-
     public function loginCount(Request $request)
     {
         $stateId = $request->input('state_id');

@@ -21,15 +21,19 @@
                                 @csrf
                                     <h4 class="page__subtitle">Edit New Register Store</h4>
                                     <div class="form-group mb-3">
-                                        <label class="label-control">Owner Name<span class="text-danger">*</span></label>
+                                        <label class="label-control">Owner First Name<span class="text-danger">*</span></label>
                                         <input type="text" name="owner_name" placeholder="" class="form-control" value="{{ $data->owner_name }}">
                                         @error('owner_name') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Owner Last Name<span class="text-danger">*</span></label>
+                                        <input type="text" name="owner_lname" placeholder="" class="form-control" value="{{ $data->owner_lname }}">
+                                        @error('owner_lname') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Store Name<span class="text-danger">*</span></label>
-                                        <input type="text" name="shop_name" placeholder="" class="form-control" value="{{ $data->name }}">
-                                        @error('shop_name') <p class="small text-danger">{{ $message }}</p> @enderror
+                                        <input type="text" name="name" placeholder="" class="form-control" value="{{ $data->name }}">
+                                        @error('name') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Business Name<span class="text-danger">*</span></label>
