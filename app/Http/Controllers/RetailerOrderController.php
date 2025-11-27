@@ -49,8 +49,8 @@ class RetailerOrderController extends Controller
 
         ->latest('retailer_orders.id');
 
-    $data = $query->with('retailer_orders.user')->get();
-
+    $data = $query->with('order.user')->get();
+    dd($data);
     $allUser = Store::orderBy('name')->get();
     $products = RetailerProduct::orderBy('title')->get();
 
