@@ -499,6 +499,7 @@ class RetailerUserController extends Controller
     }
     public function loginCount(Request $request)
     {
+        $user = auth()->user();
         $stateId = $request->input('state_id');
 
         $query = \DB::table('stores as s')
@@ -551,6 +552,7 @@ class RetailerUserController extends Controller
 
     public function loginCountexportCSV(Request $request)
     {
+        $user = auth()->user();
         $stateId = $request->input('state_id');
 
         // Base query
