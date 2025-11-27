@@ -418,7 +418,7 @@ class RetailerUserController extends Controller
 
         if (count($data) > 0) {
             $delimiter = ",";
-            $filename = "store-list-".date('Y-m-d').".csv";
+            $filename = "new-store-registration-list-".date('Y-m-d').".csv";
 
             // Create a file pointer
             $f = fopen('php://memory', 'w');
