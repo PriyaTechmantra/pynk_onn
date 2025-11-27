@@ -49,7 +49,7 @@
     padding: 0.25rem 1rem;
 }
 
-.data-form .btn-submit {
+.card-body .btn-submit {
     color: #fff;
     border-radius: 6px;
     background: #dc3545;
