@@ -81,15 +81,7 @@
                                                         <label for="date_to" class="small text-muted">Date to</label>
                                                         <input type="date" name="date_to" id="date_to" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_to') ?? date('Y-m-d') }}">
                                                     </div>
-                                                    <div class="col">
-                                                        <label for="distributor" class="small text-muted">Distributor</label>
-                                                        <select class="form-select form-select-sm select2" id="distributor" name="distributor">
-                                                            <option value="" selected disabled>Select</option>
-                                                            @foreach ($allDistributors as $item)
-                                                                <option value="{{$item->id}}" {{ (request()->input('distributor') == $item->id) ? 'selected' : '' }}>{{$item->name}}({{$item->states->name}})</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
+                                                    
                                                     <!-- <div class="col">
                                                         <label for="ase" class="small text-muted">ASE</label>
                                                         <select class="form-select form-select-sm select2" id="ase" name="ase">
@@ -120,15 +112,7 @@
                                                             <option value="{{ $request->area }}">Select state first</option>
                                                         </select>
                                                     </div>
-                                                    <div class="col-3">
-                                                        <label for="ase" class="small text-muted">Status</label>
-                                                        <select class="form-select form-select-sm select2" id="status" name="status_id">
-                                                            <option value="" >Select</option>
-                                                            
-                                                                <option value="active" {{ request()->input('status_id') == 'active' ? 'selected' : '' }}>Active</option>
-                                                            <option value="inactive" {{ request()->input('status_id') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                                                        </select>
-                                                    </div>
+                                                    
                                                     <div class="col-3">
                                                                  <label for="ase" class="small text-muted">Keyword</label>
                                                                 <input type="search" name="keyword" id="keyword" class="form-control form-control-sm" placeholder="Search by store name/ contact" value="{{request()->input('keyword')}}" autocomplete="off">
