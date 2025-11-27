@@ -28,10 +28,14 @@
                                         @forelse($data->orderProduct as $productKey => $productValue)
                                         <div class="admin__content">
                                             <aside>
+                                                @can('view reward product')
                                                 <a href="{{ route('reward.retailer.product.view', $productValue->product_id) }}" target="_blank">
                                                     <nav>{{$productValue->product_name}}</nav>
                                                     <img src="{{ asset($productValue->product_image) }}" class="mt-2" style="width: 80%;">
                                                 </a>
+                                                @else
+                                                 <nav>{{$productValue->product_name}}</nav>
+                                                @endcan
                                             </aside>
                                             <content>
                                                 
@@ -87,13 +91,15 @@
                             <div class="col-sm-7">
                                 <div class="card shadow-sm">
                                     <div class="card-body">
-                                        <div class="btn-group" role="group" aria-label="Basic outlined example">
+                                           @can('reward order product status change')
+                                            <div class="btn-group" role="group" aria-label="Basic outlined example">
                                                 <a href="{{ route('reward.retailer.order.status', [$data->id, 1]) }}" type="button" class="btn btn-outline-primary btn-sm {{($data->status == 1) ? 'active' : ''}}">New</a>
                                                 <a href="{{ route('reward.retailer.order.status', [$data->id, 2]) }}" type="button" class="btn btn-outline-primary btn-sm {{($data->status == 2) ? 'active' : ''}}">Confirm</a>
                                                 <a href="{{ route('reward.retailer.order.status', [$data->id, 3]) }}" type="button" class="btn btn-outline-primary btn-sm {{($data->status == 3) ? 'active' : ''}}">Shipped</a>
                                                 <a href="{{ route('reward.retailer.order.status', [$data->id, 4]) }}" type="button" class="btn btn-outline-success btn-sm {{($data->status == 4) ? 'active' : ''}}">Delivered</a>
                                                 <a href="{{ route('reward.retailer.order.status', [$data->id, 5]) }}" type="button" class="btn btn-outline-danger btn-sm {{($data->status == 5) ? 'active' : ''}}">Cancelled</a>
                                             </div>
+                                            @endcan
                                                 <!-- Modal -->
                                                 <!-- 'reward.retailer.order.dispatch.status', [$data->id, 7] -->
                                                     <div class="modal fade" id="dispatchModal" tabindex="-1" aria-hidden="true">
