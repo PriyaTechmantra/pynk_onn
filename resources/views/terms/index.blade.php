@@ -30,7 +30,7 @@
                 </div>
                         <div class="card">
                             <div class="card-body">
-                                @if(!empty($data))
+                                
                                     <form method="POST" action="{{ route('reward.retailer.terms.update',['id'=>$data->id]) }}" enctype="multipart/form-data">
                                     @csrf
                                         <h4 class="page__subtitle">Edit</h4>
@@ -70,66 +70,10 @@
                                         
                                         
                                         <div class="form-group">
-                                            <button type="submit" class="btn btn-cta ms-auto">Update</button>
+                                            <button type="submit" class="btn btn-submit">Update</button>
                                         </div>
                                     </form>
-                                @else
-                                    <form method="POST" action="{{ route('reward.retailer.terms.store') }}" enctype="multipart/form-data">
-                                    @csrf
-                                        <h4 class="page__subtitle">Add</h4>
-                                        <div class="form-group mb-3">
-                                            <label class="label-control">Terms and Condition <span class="text-danger">*</span> </label>
-                                            <textarea type="text" id="terms" name="terms" placeholder="" class="form-control"></textarea>
-                                            @error('terms') <p class="small text-danger">{{ $message }}</p> @enderror
-                                        </div>
-                                        {{--<div class="card shadow-sm">
-                                            <div class="mb-3">
-                                                <div class="card-header">
-                                                    Brand Permission:
-                                                </div>
-                                                <div class="card-body">
-
-                                                    <div class="form-check">
-                                                        <input 
-                                                            class="form-check-input medium-checkbox" 
-                                                            type="checkbox" 
-                                                            id="brandOnn" 
-                                                            value="1"
-                                                            onchange="updateBrandValue()"
-                                                        >
-                                                        <label class="form-check-label" for="brandOnn">Onn</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input 
-                                                            class="form-check-input medium-checkbox" 
-                                                            type="checkbox" 
-                                                            id="brandPynk" 
-                                                            value="2"
-                                                            onchange="updateBrandValue()"
-                                                        >
-                                                        <label class="form-check-label" for="brandPynk">Pynk</label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input 
-                                                            class="form-check-input medium-checkbox" 
-                                                            type="checkbox" 
-                                                            id="brandBoth" 
-                                                            value="3"
-                                                            onchange="updateBrandValue()"
-                                                        >
-                                                        <label class="form-check-label" for="brandBoth">Both</label>
-                                                    </div>
-                                                    <input type="hidden" name="brand" id="brandValue">
-                                                </div>
-                                            </div>
-                                        </div>--}}
-                                            
-                                        
-                                        <div class="form-group">
-                                            <button type="submit" class="btn btn-submit">Save</button>
-                                        </div>
-                                    </form>
-                                @endif
+                                
                             </div>
                         </div>
             </div>
