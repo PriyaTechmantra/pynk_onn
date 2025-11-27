@@ -126,33 +126,40 @@
 								                    @elseif($item->distributor_approval == 0) <p>{{$item->distributor_note}}</p>
 									                @endif
                                                 </td>
-							                    @can('reward order status change')
+							                        
                                                     <td>
-                                                        @if($item->asm_approval != 2 || $item->rsm_approval != 2 || $item->vp_approval != 2 || $item->distributor_approval!=2)
-                                                            @if($item->admin_status == 2)
-                                                            <div class="btn-group" role="group">
-                                                                <a href="{{ route('reward.retailer.order.approval', [$item->id, 1]) }}" type="button" class="status_1 btn btn-outline-primary btn-sm {{($item->admin_status == 1) ? 'active' : ''}}">Approved</a>
+                                                        @can('view retailer reward order')
+                                                            <a href="{{ route('reward.retailer.order.view', [$item->id, 1]) }}" class="btn btn-cta">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" height="512" x="0" y="0" viewBox="0 0 511.999 511.999" style="enable-background:new 0 0 512 512" xml:space="preserve" class=""><g><path d="M508.745 246.041c-4.574-6.257-113.557-153.206-252.748-153.206S7.818 239.784 3.249 246.035a16.896 16.896 0 0 0 0 19.923c4.569 6.257 113.557 153.206 252.748 153.206s248.174-146.95 252.748-153.201a16.875 16.875 0 0 0 0-19.922zM255.997 385.406c-102.529 0-191.33-97.533-217.617-129.418 26.253-31.913 114.868-129.395 217.617-129.395 102.524 0 191.319 97.516 217.617 129.418-26.253 31.912-114.868 129.395-217.617 129.395z" fill="#ffffff" opacity="1" data-original="#000000" class=""></path><path d="M255.997 154.725c-55.842 0-101.275 45.433-101.275 101.275s45.433 101.275 101.275 101.275S357.272 311.842 357.272 256s-45.433-101.275-101.275-101.275zm0 168.791c-37.23 0-67.516-30.287-67.516-67.516s30.287-67.516 67.516-67.516 67.516 30.287 67.516 67.516-30.286 67.516-67.516 67.516z" fill="#ffffff" opacity="1" data-original="#000000" class=""></path></g></svg>
+                                                            </a>
+                                                        @endcan
+                                                        @can('reward order status change')
+                                                            @if($item->asm_approval != 2 || $item->rsm_approval != 2 || $item->vp_approval != 2 || $item->distributor_approval!=2)
+                                                                @if($item->admin_status == 2)
+                                                                <div class="btn-group" role="group">
+                                                                    <a href="{{ route('reward.retailer.order.approval', [$item->id, 1]) }}" type="button" class="status_1 btn btn-outline-primary btn-sm {{($item->admin_status == 1) ? 'active' : ''}}">Approved</a>
 
-                                                                <a href="{{ route('reward.retailer.order.approval', [$item->id, 0]) }}" type="button" class="status_2 btn btn-outline-danger btn-sm {{($item->admin_status == 0) ? 'active' : ''}}">Rejected</a>
-                                                            </div>
-                                                            @elseif($item->admin_status == 1)
-                                                                <span class="badge bg-success">Approved</span>
-                                                            @else <span class="badge bg-danger">Rejected</span>
+                                                                    <a href="{{ route('reward.retailer.order.approval', [$item->id, 0]) }}" type="button" class="status_2 btn btn-outline-danger btn-sm {{($item->admin_status == 0) ? 'active' : ''}}">Rejected</a>
+                                                                </div>
+                                                                @elseif($item->admin_status == 1)
+                                                                    <span class="badge bg-success">Approved</span>
+                                                                @else <span class="badge bg-danger">Rejected</span>
+                                                                @endif
                                                             @endif
-                                                        @endif
-                                                        @if($item->admin_status == 0)
-                                                        <form action="{{ route('reward.retailer.order.note.save')}}" method="POST">
-                                                            @csrf
-                                                            <div id="textbox" >
-                                                                <label for="text">Reason for rejection:</label>
-                                                                <input type="hidden" name="id" value="{{$item->id}}">
-                                                                <textarea type="text" id="text" name="admin_note" row="3" col="3" >{{$item->admin_note}}</textarea>
-                                                                <button type="submit"  title="" class="btn btn-sm btn-danger" data-bs-original-title="Search">Save</button>
-                                                            </div>
-                                                        </form>
-                                                        @endif
+                                                            @if($item->admin_status == 0)
+                                                            <form action="{{ route('reward.retailer.order.note.save')}}" method="POST">
+                                                                @csrf
+                                                                <div id="textbox" >
+                                                                    <label for="text">Reason for rejection:</label>
+                                                                    <input type="hidden" name="id" value="{{$item->id}}">
+                                                                    <textarea type="text" id="text" name="admin_note" row="3" col="3" >{{$item->admin_note}}</textarea>
+                                                                    <button type="submit"  title="" class="btn btn-sm btn-danger" data-bs-original-title="Search">Save</button>
+                                                                </div>
+                                                            </form>
+                                                            @endif
+                                                        @endcan
                                                     </td>
-							                    @endcan
+							                    
                                             </tr>
                                         @empty
                                             <tr><td colspan="9" class="text-center">No record found</td></tr>
