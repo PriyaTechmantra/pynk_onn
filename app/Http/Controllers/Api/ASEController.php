@@ -6656,10 +6656,10 @@ public function aseSalesreport(Request $request)
     {
 		//dd($request->all());
         $resp = $orderDetails = [];
-        $order = RetailerOrder::where('id',$orderId)->orderby('created_at','desc')->with('orderProduct')->get();
+        $order = RetailerOrder::where('id',$orderId)->orderby('created_at','desc')->get();
         foreach ($order as $data) {
             $orderDetails = RetailerOrder::where('created_at', $data->created_at)
-            ->orderby('id', 'desc')
+            ->orderby('id', 'desc')->with('orderProduct')
             ->get();
             $resp[] = [
                 'date' => date('Y-m-d H:i:s', strtotime($data->created_at)),
