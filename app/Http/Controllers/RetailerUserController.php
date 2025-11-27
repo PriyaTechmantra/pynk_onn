@@ -425,12 +425,30 @@ class RetailerUserController extends Controller
 
             // Set column headers
             // $fields = array('SR', 'STORE', 'FIRM', 'MOBILE', 'EMAIL', 'WHATSAPP', 'DISTRIBUTOR', 'ASE', 'ASM', 'RSM', 'VP', 'ADDRESS', 'AREA', 'STATE', 'CITY', 'PINCODE', 'OWNER', 'OWNER DATE OF BIRTH', 'OWNER DATE OF ANNIVERSARY', 'CONTACT PERSON', 'CONTACT PERSON PHONE', 'CONTACT PERSON WHATSAPP', 'CONTACT PERSON DATE OF BIRTH', 'CONTACT PERSON DATE OF ANNIVERSARY', 'GST NUMBER', 'STATUS', 'DATETIME');
-            $fields = array('SR','UNIQUE CODE', 'STORE', 'FIRM', 'ADDRESS', 'AREA','PINCODE','STATE','OWNER NAME','MOBILE', 'WHATSAPP', 'CONTACT PERSON', 'CONTACT PERSON PHONE', 'OWNER DATE OF BIRTH', 'OWNER DATE OF ANNIVERSARY','EMAIL', 'GST NUMBER','PAN NUMBER','ONN CURRENCY','DISTRIBUTOR', 'ASE', 'ASM', 'RSM', 'VP', 'STATUS', 'DATETIME');
+            $fields = array('SR','BRAND','UNIQUE CODE', 'STORE', 'FIRM', 'ADDRESS', 'AREA','PINCODE','STATE','OWNER NAME','MOBILE', 'WHATSAPP', 'CONTACT PERSON', 'CONTACT PERSON PHONE', 'OWNER DATE OF BIRTH', 'OWNER DATE OF ANNIVERSARY','EMAIL', 'GST NUMBER','PAN NUMBER','ONN CURRENCY','DISTRIBUTOR', 'ASE', 'ASM', 'RSM', 'VP', 'STATUS', 'DATETIME');
             fputcsv($f, $fields, $delimiter);
 
             $count = 1;
 
             foreach($data as $row) {
+
+                $assignedPermissions = [$row->brand];
+
+                    $brandMap = [
+                        1 => 'ONN',
+                        2 => 'PYNK',
+                        3 => 'Both',
+                    ];
+
+                    if (in_array(3, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } elseif (in_array(1, $assignedPermissions) && in_array(2, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } else {
+                        $brandPermissions = collect($assignedPermissions)
+                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                        ->implode(', ');
+                    }
 				//dd($data);
                 $datetime = date('j F, Y', strtotime($row['created_at']));
                 //$ase = $row->user_id;
@@ -443,6 +461,7 @@ class RetailerUserController extends Controller
 
                 $lineData = array(
                     $count,
+                    $brandPermissions,
 					$row->unique_code?? '',
                     ucwords($row->name)?? '',
                     ucwords($row->bussiness_name)?? '',
@@ -606,15 +625,33 @@ class RetailerUserController extends Controller
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
-        $columns = ['State Name', 'Login Count'];
+        $columns = ['Brand','State Name', 'Login Count'];
 
         $callback = function() use ($data, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
             foreach ($data as $row) {
+                $assignedPermissions = [$row->brand];
+
+                    $brandMap = [
+                        1 => 'ONN',
+                        2 => 'PYNK',
+                        3 => 'Both',
+                    ];
+
+                    if (in_array(3, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } elseif (in_array(1, $assignedPermissions) && in_array(2, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } else {
+                        $brandPermissions = collect($assignedPermissions)
+                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                        ->implode(', ');
+                    }
                 $stateName = DB::table('states')->where('id', $row->state_id)->value('name');
                 fputcsv($file, [
+                    $brandPermissions,
                     $stateName ?? 'Unknown',
                     $row->count
                 ]);
