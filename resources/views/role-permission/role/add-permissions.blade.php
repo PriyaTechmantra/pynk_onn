@@ -32,22 +32,9 @@
                                     <div class="row">
                                         <!-- Loop through each category -->
                                         @foreach ($permissions as $category => $permission)
-                                           @php
-                                             if($category=='admin'){
-                                              $category='Admin Management';
-                                              }elseif($category=='lms'){
-                                                 $category='Library Management';
-                                              }elseif($category=='fms'){
-                                                $category='Facility Management';
-                                              }elseif($category=='member'){
-                                                $category='Member Management';
-                                              }else{
-                                                 $category='Cave Management';
-                                              }
-                                              
-                                           @endphp
+                                           
                                             <div class="col-md-6">
-                                                <h5 class="category-title">{{ $category }}</h5>
+                                                <h5 class="category-title">{{ $category }} Management</h5>
                                                 <!-- Loop through each permission within the category -->
                                                 <div class="permissions-list">
                                                     @foreach($permission as $item)
