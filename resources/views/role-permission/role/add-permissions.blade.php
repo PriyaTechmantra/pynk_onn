@@ -39,6 +39,14 @@
 
 .card-header h4 {
     font-size: 18px;
+    
+}
+
+.card-header .btn-cta {
+    color: #fff;
+    border-radius: 6px;
+    background: #dc3545;
+    padding: 0.25rem 1rem;
 }
 </style>
 <div class="container mt-4">
