@@ -70,7 +70,7 @@
                                         
                                         
                                         <div class="form-group">
-                                            <button type="submit" class="btn btn-submit">Update</button>
+                                            <button type="submit" class="btn btn-cta ms-auto">Update</button>
                                         </div>
                                     </form>
                                 @else
