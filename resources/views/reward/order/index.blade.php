@@ -87,6 +87,9 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php
+                                            $all_orders_total_amount = 0;
+                                        @endphp
                                         @forelse ($data as $index => $item)
                                             @php
 
