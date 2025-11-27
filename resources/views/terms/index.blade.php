@@ -70,7 +70,7 @@
                                         
                                         
                                         <div class="form-group">
-                                            <button type="submit" class="btn btn-cta ms-auto">Save</button>
+                                            <button type="submit" class="btn btn-submit">Save</button>
                                         </div>
                                     </form>
                                
