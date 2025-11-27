@@ -27,14 +27,19 @@
                                     </div>
 
                                     <div class="form-group mb-3">
-                                        <label class="label-control">Shop Name<span class="text-danger">*</span></label>
+                                        <label class="label-control">Store Name<span class="text-danger">*</span></label>
                                         <input type="text" name="shop_name" placeholder="" class="form-control" value="{{ $data->name }}">
                                         @error('shop_name') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
-                                        <label class="label-control">Shop Name<span class="text-danger">*</span></label>
-                                        <textarea row="2" name="shop_address" class="form-control" >{{ $data->address }}</textarea>
-                                        @error('shop_address') <p class="small text-danger">{{ $message }}</p> @enderror
+                                        <label class="label-control">Business Name<span class="text-danger">*</span></label>
+                                        <input type="text" name="bussiness_name" placeholder="" class="form-control" value="{{ $data->bussiness_name }}">
+                                        @error('bussiness_name') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Store Address<span class="text-danger">*</span></label>
+                                        <textarea row="2" name="address" class="form-control" >{{ $data->address }}</textarea>
+                                        @error('address') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Contact<span class="text-danger">*</span></label>
@@ -43,12 +48,12 @@
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Whatsapp Contact</label>
-                                        <input type="number" name="whatsapp_contact" placeholder="" class="form-control" value="{{ $data->whatsapp }}">
-                                        @error('whatsapp_contact') <p class="small text-danger">{{ $message }}</p> @enderror
+                                        <input type="number" name="whatsapp" placeholder="" class="form-control" value="{{ $data->whatsapp }}">
+                                        @error('whatsapp') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">State<span class="text-danger">*</span></label>
-                                        <select name="state" id="state" class="form-control">
+                                        <select name="state_id" id="state_id" class="form-control">
                                             <option value="" disabled>Select</option>
                                             @foreach ($state as $item)
                                                 <option value="{{ $item->id }}" {{ $data->state_id == $item->id ? 'selected' : '' }}>
@@ -56,11 +61,11 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                        @error('state') <p class="small text-danger">{{ $message }}</p> @enderror
+                                        @error('state_id') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">City<span class="text-danger">*</span></label>
-                                        <select class="form-control" id="area" name="area" {{ empty($data->state_id) ? 'disabled' : '' }}>
+                                        <select class="form-control" id="area_id" name="area_id" {{ empty($data->state_id) ? 'disabled' : '' }}>
                                             @if(!empty($data->state_id))
                                                 <option value="{{ $data->area_id }}">{{ $data->area->name ?? 'Selected area' }}</option>
                                             @else
@@ -68,7 +73,7 @@
                                             @endif
                                         </select>
 
-                                        @error('city') <p class="small text-danger">{{ $message }}</p> @enderror
+                                        @error('area_id') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">
