@@ -137,7 +137,7 @@
                                                                     ];
 
                                                                     // Collect brand IDs from items (avoid duplicates)
-                                                                    $brands = $data->pluck('brand')->unique()->toArray();
+                                                                    $brands = $loginCountWiseReport->pluck('brand')->unique()->toArray();
 
                                                                     // Determine brand permissions
                                                                     if (in_array(3, $brands)) {
