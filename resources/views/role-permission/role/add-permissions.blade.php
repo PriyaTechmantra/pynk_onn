@@ -1,71 +1,120 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+    .permission-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    color: #333;
+    border-bottom: 1px solid #eee;
+}
 
-<div class="container mt-5">
-        <div class="row">
-            <div class="col-md-12">
+.custom-checkbox {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 14px;
+    cursor: pointer;
+}
 
-                @if (session('status'))
-                    <div class="alert alert-success">{{ session('status') }}</div>
-                @endif
+.custom-checkbox input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
 
-                <div class="card data-card">
-                    <div class="card-header">
-                        <h4 class="d-flex align-items-center">
-                            Role : {{ucfirst( $role->name) }}
-                            <p>&nbsp;&nbsp;&nbsp;(Add/Edit Permission)</p>
-                            <a href="{{ url('roles') }}" class="btn btn-cta ms-auto">Back</a>
-                        </h4>
-                        
-                    </div>
-                    <div class="card-body" style="max-width: 100%; overflow: auto;">
-                        <form action="{{ url('roles/'.$role->id.'/give-permissions') }}" method="POST" class="data-form">
-                            @csrf
-                            @method('PUT')
-                    
-                            <div class="mb-3">
-                                @error('permission')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                    
+.permission-block {
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.card {
+    border-radius: 12px !important;
+}
+
+.card-header h4 {
+    font-size: 18px;
+}
+</style>
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+
+            @if (session('status'))
+                <div class="alert alert-success">{{ session('status') }}</div>
+            @endif
+
+            <div class="card shadow-sm rounded-3">
+                <div class="card-header bg-white border-0 pt-4 pb-2">
+                    <h4 class="d-flex align-items-center mb-0">
+                        <span class="fw-bold">Designation Permission</span>
+                        <span class="text-muted ms-2">→ {{ ucfirst($role->name) }}</span>
+
+                        <a href="{{ url('roles') }}" class="btn btn-dark btn-sm ms-auto">
+                            <i class="bi bi-arrow-left"></i> Back
+                        </a>
+                    </h4>
+                </div>
+
+                <div class="card-body">
+
+                    <form action="{{ url('roles/'.$role->id.'/give-permissions') }}" 
+                          method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="permission-wrapper">
+
+                            @foreach ($permissions as $category => $permission)
+                                
+                                <div class="permission-block mb-4">
+
+                                    {{-- Category Title --}}
+                                    <h5 class="permission-title">
+                                        {{ strtoupper($category) }} MANAGEMENT
+                                    </h5>
+
                                     <div class="row">
-                                        <!-- Loop through each category -->
-                                        @foreach ($permissions as $category => $permission)
-                                           
-                                            <div class="col-md-6">
-                                                <h5 class="category-title">{{ $category }} Management</h5>
-                                                <!-- Loop through each permission within the category -->
-                                                <div class="permissions-list">
-                                                    @foreach($permission as $item)
-                                                        <div class="form-check">
-                                                            <input
-                                                                type="checkbox"
-                                                                name="permission[]"
-                                                                class="form-check-input"
-                                                                value="{{ $item->name }}"
-                                                                {{ in_array($item->id, $rolePermissions) ? 'checked':'' }}
-                                                            />
-                                                            <label class="form-check-label">
-                                                                {{ucfirst( $item->name) }}
-                                                            </label>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
+
+                                        @foreach ($permission as $item)
+                                            <div class="col-md-3 col-6 mb-2">
+                                                <label class="custom-checkbox">
+                                                    <input 
+                                                        type="checkbox"
+                                                        name="permission[]"
+                                                        value="{{ $item->name }}"
+                                                        {{ in_array($item->id, $rolePermissions) ? 'checked' : '' }}
+                                                    >
+                                                    <span>{{ ucfirst($item->name) }}</span>
+                                                </label>
                                             </div>
                                         @endforeach
+                                        
                                     </div>
-                    
-                            </div>
-                            <div class="text-end mb-3">
-                                <button type="submit" class="btn btn-submit">Update</button>
-                            </div>
-                        </form>
-                    </div>
+                                </div>
+                            @endforeach
+
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4">
+                                Update
+                            </button>
+                        </div>
+
+                    </form>
+
                 </div>
             </div>
+
         </div>
     </div>
+</div>
 
 
 @endsection
