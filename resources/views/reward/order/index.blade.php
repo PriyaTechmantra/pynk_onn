@@ -156,7 +156,7 @@
                                             <tr><td colspan="9" class="text-center">No record found</td></tr>
                                         @endforelse
                                         <tr>
-                                            <td></td>
+                                           
                                             
                                             <td>
                                                 <p class="small text-dark mb-1 fw-bold">TOTAL</p>
