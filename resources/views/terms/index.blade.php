@@ -44,7 +44,7 @@
                                             <div class="card-header">
                                                 Brand Permission:
                                             </div>
-                                                <div class="card-body">
+                                                {{--<div class="card-body">
 
                                                     <div class="form-check">
                                                                 <input type="checkbox" id="brandOnn" value="1" onchange="updateBrandValue()" 
@@ -64,7 +64,7 @@
                                                                 <label class="form-check-label" for="brandBoth">Both</label>
                                                             </div>
                                                         <input type="hidden" name="brand" id="brandValue" value="{{$data->brand}}">
-                                                </div>
+                                                </div>--}}
                                             </div>
                                     </div>
                                         
