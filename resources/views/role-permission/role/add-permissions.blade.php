@@ -55,8 +55,8 @@
                         <span class="fw-bold">Designation Permission</span>
                         <span class="text-muted ms-2">→ {{ ucfirst($role->name) }}</span>
 
-                        <a href="{{ url('roles') }}" class="btn btn-dark btn-sm ms-auto">
-                            <i class="bi bi-arrow-left"></i> Back
+                        <a href="{{ url('roles') }}" class="btn btn-cta ms-auto">
+                           Back
                         </a>
                     </h4>
                 </div>
@@ -102,7 +102,7 @@
                         </div>
 
                         <div class="text-end mt-4">
-                            <button type="submit" class="btn btn-primary px-4">
+                            <button type="submit" class="btn btn-submit">
                                 Update
                             </button>
                         </div>
