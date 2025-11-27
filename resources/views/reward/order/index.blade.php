@@ -166,7 +166,7 @@ $(document).ready(function() {
                     results: $.map(data, function(item) {
                         return {
                             id: item.id,
-                            $text = $item->title . ' (' . $item->amount . ')';
+                             text: item.title + " (" + item.amount + ")"
                         }
                     })
                 };
