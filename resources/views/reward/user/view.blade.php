@@ -129,7 +129,7 @@
                     <div class="card-header">
                     
                      <h4 class="d-flex">Store Detail
-                        <a href="{{ url('reward.retailer.user.index') }}" class="btn btn-cta ms-auto">Back</a>
+                        <a href="{{ route('reward.retailer.user.index') }}" class="btn btn-cta ms-auto">Back</a>
                         @can('update new registered stores')
                             <a href="{{ url('reward/user/'.$data->id.'/edit') }}" class="btn btn-cta">Edit</a>
                         @endcan
