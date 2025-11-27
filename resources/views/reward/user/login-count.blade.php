@@ -8,7 +8,7 @@
             @if (session('status'))
                 <div class="alert alert-success">{{ session('status') }}</div>
             @endif
-            @php
+                    @php
                             $assignedPermissions = DB::table('user_permission_categories')
                             ->select('user_permission_categories.*')
                             ->join('users','users.id','=','user_permission_categories.user_id')
@@ -33,121 +33,122 @@
                                         ->map(fn($brand) => $brandMap[$brand] ?? $brand)
                                         ->implode(', ');
                                 }
-                                @endphp
-                <div class="card data-card mt-3">
-                    <div class="card-header">
-                        <h4 class="d-flex">Store Login Count State Wise
-                            <a href="{{ route('reward.retailer.user.loginCountExportCSV', request()->all()) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                CSV
-                            </a>
-                        </h4>
+                    @endphp
+            <div class="card data-card mt-3">
+                <div class="card-header">
+                    <h4 class="d-flex">Store Login Count State Wise
+                        <a href="{{ route('reward.retailer.user.loginCountExportCSV', request()->all()) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            CSV
+                        </a>
+                    </h4>
 
-                        <div class="search__filter mb-0">
-                            <div class="row">
-                                <div class="col-12">
+                    <div class="search__filter mb-0">
+                        <div class="row">
+                            <div class="col-12">
                                     <p class="text-muted mt-1 mb-0">Showing {{$loginCountWiseReport->count()}} Entries</p>
-                                </div>
-                                
                             </div>
-                            <div class="row">
+                                
+                        </div>
+                        <div class="row">
                                         
-                                <div class="col-12">
-                                    <form action="{{route('reward.retailer.user.loginCount')}}">
-                                        <div class="row g-2 align-items-center">
-                                            @if($brandPermissions=='Both')
-                                            <div class="col-4">
-                                                 <label class="small text-muted">Brand</label>
-                                                <select name="brand_selection" class="form-control form-control-sm">
-                                                    <option value="">Select Brand</option>
-                                                    <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>ALL</option>
-                                                    <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>ONN</option>
-                                                    <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>PYNK</option>
-                                                </select>
-                                                
-                                            </div>
-                                            @endif
-                                            <div class="col-4">
+                            <div class="col-12">
+                                <form action="{{route('reward.retailer.user.loginCount')}}">
+                                    <div class="row g-2 align-items-center">
+                                        @if($brandPermissions=='Both')
+                                        <div class="col-4">
+                                                <label class="small text-muted">Brand</label>
+                                            <select name="brand_selection" class="form-control form-control-sm">
+                                                <option value="">Select Brand</option>
+                                                <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>ALL</option>
+                                                <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>ONN</option>
+                                                <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>PYNK</option>
+                                            </select>
+                                            
+                                        </div>
+                                        @endif
+                                        <div class="col-4">
 
-                                             <label class="small text-muted">State</label>
-                                                 <label for="state" class="small text-muted">State</label>
-                                                        <select name="state_id" id="state" class="form-select form-select-sm select2">
-                                                            <option value="" disabled>Select</option>
-                                                            <option value="" selected>All</option>
-                                                            @foreach ($states as $state)
-                                                                <option value="{{$state->id}}" {{ request()->input('state') == $state->id ? 'selected' : '' }}>{{$state->name}}</option>
-                                                            @endforeach
-                                                        </select>
-                                            </div>
-
-
-                                            <div class="col-4 text-end">
-                                                <button type="submit" class="btn btn-sm btn-cta">Filter</button>
-                                                <a href="{{ url()->current() }}" 
-                                                class="btn btn-sm btn-cta" 
-                                                data-bs-toggle="tooltip" 
-                                                title="Clear Filter">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" 
-                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                                                        class="feather feather-x">
-                                                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                    </svg>
-                                                </a>
-                                            </div>
+                                            <label class="small text-muted">State</label>
+                                                <label for="state" class="small text-muted">State</label>
+                                                    <select name="state_id" id="state" class="form-select form-select-sm select2">
+                                                        <option value="" disabled>Select</option>
+                                                        <option value="" selected>All</option>
+                                                        @foreach ($states as $state)
+                                                            <option value="{{$state->id}}" {{ request()->input('state') == $state->id ? 'selected' : '' }}>{{$state->name}}</option>
+                                                        @endforeach
+                                                    </select>
                                         </div>
 
-                                       
-                                    </form>
-                                </div>
-                                        
+
+                                        <div class="col-4 text-end">
+                                            <button type="submit" class="btn btn-sm btn-cta">Filter</button>
+                                            <a href="{{ url()->current() }}" 
+                                            class="btn btn-sm btn-cta" 
+                                            data-bs-toggle="tooltip" 
+                                            title="Clear Filter">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" 
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
+                                                    class="feather feather-x">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    
+                                </form>
                             </div>
+                                        
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table no-sticky" id="example5">
-                                <thead>
-                                    <tr>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table no-sticky" id="example5">
+                            <thead>
+                                <tr>
+                                
+                                    <th>State</th>
+                                    <th>Count</th>
+                                    <th></th>
                                     
-                                        <th>State</th>
-                                        <th>Count</th>
-                                        <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
                                         
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                            
-                                    @foreach ($loginCountWiseReport as $aseKey => $item)
+                                @foreach ($loginCountWiseReport as $aseKey => $item)
+                                
+                                                @php
+                                                        $stateData=DB::table('states')->where('id',$item->state_id)->first();
+                                                
+                                                    @endphp
+                                                        <tr>
+                    
+                                                            <td>
+                    
+                                                                {{$stateData->name ??''}}
+                                                            </td>
+                                                            <td> {{number_format($item->count)}}</td>
+                                                            @if(!empty($stateData))
+                                                            <td> <a href="{{route('reward.retailer.user.login.store.count',$stateData->id)}}" class="btn btn-primary">View</a></td>
+                                                            @endif
+                                                        </tr>
+                                                        
+                                                    @endforeach
                                     
-                                                    @php
-                                                            $stateData=DB::table('states')->where('id',$item->state_id)->first();
-                                                    
-                                                        @endphp
-                                                            <tr>
-                        
-                                                                <td>
-                        
-                                                                    {{$stateData->name ??''}}
-                                                                </td>
-                                                                <td> {{number_format($item->count)}}</td>
-                                                                @if(!empty($stateData))
-                                                                <td> <a href="{{route('reward.retailer.user.login.store.count',$stateData->id)}}" class="btn btn-primary">View</a></td>
-                                                                @endif
-                                                            </tr>
-                                                            
-                                                        @endforeach
-                                      
-                                </tbody>
-                            </table>     
+                            </tbody>
+                        </table>     
                             
                             
-                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-
-
-    
 </div>
 @endsection
 
