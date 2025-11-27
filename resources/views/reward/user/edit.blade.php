@@ -36,20 +36,21 @@
                                         <input type="text" name="bussiness_name" placeholder="" class="form-control" value="{{ $data->bussiness_name }}">
                                         @error('bussiness_name') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label class="label-control">Store Address<span class="text-danger">*</span></label>
-                                        <textarea row="2" name="address" class="form-control" >{{ $data->address }}</textarea>
-                                        @error('address') <p class="small text-danger">{{ $message }}</p> @enderror
-                                    </div>
+                                    
                                     <div class="form-group mb-3">
                                         <label class="label-control">Contact<span class="text-danger">*</span></label>
                                         <input type="number" name="contact" placeholder="" class="form-control" value="{{ $data->contact }}">
                                         @error('contact') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
-                                        <label class="label-control">Whatsapp Contact</label>
+                                        <label class="label-control">Whatsapp</label>
                                         <input type="number" name="whatsapp" placeholder="" class="form-control" value="{{ $data->whatsapp }}">
                                         @error('whatsapp') <p class="small text-danger">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label class="label-control">Store Address<span class="text-danger">*</span></label>
+                                        <textarea row="2" name="address" class="form-control" >{{ $data->address }}</textarea>
+                                        @error('address') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">State<span class="text-danger">*</span></label>
