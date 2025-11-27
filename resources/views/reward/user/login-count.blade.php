@@ -2,13 +2,38 @@
 
 @section('content')
 <div class="container mt-2">
-        <div class="row">
-            <div class="col-md-12">
+    <div class="row">
+        <div class="col-md-12">
 
-                @if (session('status'))
-                    <div class="alert alert-success">{{ session('status') }}</div>
-                @endif
+            @if (session('status'))
+                <div class="alert alert-success">{{ session('status') }}</div>
+            @endif
+            @php
+                            $assignedPermissions = DB::table('user_permission_categories')
+                            ->select('user_permission_categories.*')
+                            ->join('users','users.id','=','user_permission_categories.user_id')
+                            ->where('user_permission_categories.user_id', Auth::user()->id)
+                            ->get();
 
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+                            // Check conditions
+                                if (in_array(3, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } else {
+                                    $brandPermissions = collect($brands)
+                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                        ->implode(', ');
+                                }
+                                @endphp
                 <div class="card data-card mt-3">
                     <div class="card-header">
                         <h4 class="d-flex">Store Login Count State Wise
@@ -30,7 +55,7 @@
                                 <div class="col-12">
                                     <form action="{{route('reward.retailer.user.loginCount')}}">
                                         <div class="row g-2 align-items-center">
-                                            
+                                            @if($brandPermissions=='Both')
                                             <div class="col-4">
                                                  <label class="small text-muted">Brand</label>
                                                 <select name="brand_selection" class="form-control form-control-sm">
@@ -41,6 +66,7 @@
                                                 </select>
                                                 
                                             </div>
+                                            @endif
                                             <div class="col-4">
 
                                              <label class="small text-muted">State</label>
@@ -122,7 +148,7 @@
 
 
     
-</section>
+</div>
 @endsection
 
 @section('script')
