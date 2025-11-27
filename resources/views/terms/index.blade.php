@@ -39,12 +39,12 @@
                                             <textarea type="text" id="terms" name="terms" placeholder="" class="form-control">{{ $data->terms }}</textarea>
                                             @error('terms') <p class="small text-danger">{{ $message }}</p> @enderror
                                         </div>
-                                        <div class="card shadow-sm">
+                                        {{--<div class="card shadow-sm">
                                             <div class="mb-4">
                                             <div class="card-header">
                                                 Brand Permission:
                                             </div>
-                                                {{--<div class="card-body">
+                                                <div class="card-body">
 
                                                     <div class="form-check">
                                                                 <input type="checkbox" id="brandOnn" value="1" onchange="updateBrandValue()" 
@@ -64,13 +64,13 @@
                                                                 <label class="form-check-label" for="brandBoth">Both</label>
                                                             </div>
                                                         <input type="hidden" name="brand" id="brandValue" value="{{$data->brand}}">
-                                                </div>--}}
+                                                </div>
                                             </div>
-                                    </div>
+                                        </div>--}}
                                         
                                         
                                         <div class="form-group">
-                                            <button type="submit" class="btn btn-sm btn-danger">Update</button>
+                                            <button type="submit" class="btn btn-submit">Update</button>
                                             
                                         </div>
                                     </form>
@@ -127,7 +127,7 @@
                                             
                                         
                                         <div class="form-group">
-                                            <button type="submit" class="btn btn-sm btn-danger">ADD</button>
+                                            <button type="submit" class="btn btn-submit">Save</button>
                                         </div>
                                     </form>
                                 @endif

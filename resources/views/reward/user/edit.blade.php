@@ -175,7 +175,7 @@
                                     };
                                     </script>
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-sm btn-danger">Update</button>
+                                        <button type="submit" class="btn btn-submit">Update</button>
                                     </div>
                                 </form>
                             </div>
