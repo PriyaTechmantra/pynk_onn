@@ -203,15 +203,15 @@
                 @endcan
 
                 @if($user->can('view new store registration') || $user->can('view store login count') || $user->can('view reward product')|| $user->can('view reward qrcode')|| $user->can('view qrcode redeem history')|| $user->can('view retailer wise transaction report')|| $user->can('view retailer wise scan report monthly')|| $user->can('view retailer order')|| $user->can('view retailer terms'))
-                 <li class="@if(request()->is('reward/retailer/user*')||request()->is('reward/retailer/user/login*')||request()->is('reward/product*')||request()->is('reward/qrcode*')||request()->is('reward/qrcode/redeem*')||request()->is('catalogues*')||request()->is('schemes*')||request()->is('news*')) { {{'active'}} }  @endif">
+                <li class="@if(request()->is('reward/user*') ||  request()->is('reward/user/login*') ||request()->is('reward/product*') || request()->is('reward/qrcode*') || request()->is('reward/qrcode/redeem*') || request()->is('admin/reward/qrcode/redeem/retailer/wise/report*') || request()->is('admin/reward/qrcode/redeem/retailer/wise/report*') || request()->is('admin/reward/qrcode/redeem/retailer/scan/report/monthly*') ||request()->is('reward/order*')|| request()->is('reward/terms*')) { {{'active'}} }  @endif">
                     <a href="#"><i class="fi fi-br-cube"></i> <span>Reward App</span></a>
                     <ul>
                         @can('view new store registration')
-                	    <li class="{{ ( request()->is('reward/retailer/user*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.index')}}"><i class="fi fi-br-database"></i> <span>New Store Registration Request</span></a>
+                	    <li class="{{ ( request()->is('reward/user*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.index')}}"><i class="fi fi-br-database"></i> <span>New Store Registration Request</span></a>
                         </li> 
                         @endcan
                         @can('view store login count')
-                	    <li class="{{ ( request()->is('reward/retailer/user/login*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.loginCount')}}"><i class="fi fi-br-database"></i> <span>Store Login Count</span></a></li> 
+                	    <li class="{{ ( request()->is('reward/user/login*') ) ? 'active' : '' }}"><a href="{{route('reward.retailer.user.loginCount')}}"><i class="fi fi-br-database"></i> <span>Store Login Count</span></a></li> 
                         @endcan
                         @can('view reward product')
                         <li class="{{ request()->is('reward/product*') ? 'active' : '' }}">
