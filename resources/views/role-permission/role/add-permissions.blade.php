@@ -48,6 +48,13 @@
     background: #dc3545;
     padding: 0.25rem 1rem;
 }
+
+.data-form .btn-submit {
+    color: #fff;
+    border-radius: 6px;
+    background: #dc3545;
+    padding: 0.25rem 1rem;
+}
 </style>
 <div class="container mt-4">
     <div class="row justify-content-center">
