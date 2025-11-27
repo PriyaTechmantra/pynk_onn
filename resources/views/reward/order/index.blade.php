@@ -37,27 +37,27 @@
                             </div>
                             <form action="{{route('reward.retailer.order.index')}}">
                                 <div class="row">
-                                    <div class="col-3">
+                                    <div class="col">
                                         <label class="text-muted small">Date from</label>
                                         <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request()->input('date_from') ?? date('Y-m-01') }}">
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col">
                                         <label class="text-muted small">Date to</label>
                                         <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request()->input('date_to') ?? date('Y-m-d') }}">
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col">
                                         <label class="small text-muted">Product</label>
                                         <select name="product" id="productSelect" class="form-control select2" style="width: 100%;">
                                             <option value="">Select product</option>
                                         </select>
                                     </div>
-                                    <div class="col-3">
+                                    <div class="col">
                                         <label class="small text-muted">Search for Order No</label>
                                         <input type="search" name="term" class="form-control form-control-sm" placeholder="Search here.." value="{{ request()->input('term') }}">
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-3">
+                                    <div class="col">
                                         <div class="text-end">
                                             <button type="submit" class="btn btn-sm btn-cta">
                                                 Filter
