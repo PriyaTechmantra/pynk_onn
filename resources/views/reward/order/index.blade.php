@@ -55,6 +55,8 @@
                                         <label class="small text-muted">Search for Order No</label>
                                         <input type="search" name="term" class="form-control form-control-sm" placeholder="Search here.." value="{{ request()->input('term') }}">
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-3">
                                         <div class="text-end">
                                             <button type="submit" class="btn btn-sm btn-cta">
@@ -104,7 +106,7 @@
                                                 </td>
                                                 <td>{{ $item->order->user->name ?? '' }}</td>
                                                 <td>{{ $item->order->user->email ?? '' }}</td>
-                                                <td>{{ $item->order->user->mobile ?? '' }}</td>
+                                                <td>{{ $item->order->user->contact ?? '' }}</td>
                                                 <td>{{ date('j M Y g:i A', strtotime($item->created_at)) }}</td>
                                                 <td>
                                                     @if($item->asm_approval== 1) <span class="badge bg-success">Approved by ASM </span>
