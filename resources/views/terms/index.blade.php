@@ -83,7 +83,7 @@
                                             <textarea type="text" id="terms" name="terms" placeholder="" class="form-control"></textarea>
                                             @error('terms') <p class="small text-danger">{{ $message }}</p> @enderror
                                         </div>
-                                        <div class="card shadow-sm">
+                                        {{--<div class="card shadow-sm">
                                             <div class="mb-3">
                                                 <div class="card-header">
                                                     Brand Permission:
@@ -123,7 +123,7 @@
                                                     <input type="hidden" name="brand" id="brandValue">
                                                 </div>
                                             </div>
-                                            </div>
+                                        </div>--}}
                                             
                                         
                                         <div class="form-group">
