@@ -56,7 +56,7 @@
                                         <input type="search" name="term" class="form-control form-control-sm" placeholder="Search here.." value="{{ request()->input('term') }}">
                                     </div>
                                 </div>
-                                <div class="row">
+                                <div class="row mt-2">
                                     <div class="col">
                                         <div class="text-end">
                                             <button type="submit" class="btn btn-sm btn-cta">
