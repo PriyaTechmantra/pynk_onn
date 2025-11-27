@@ -14,20 +14,19 @@
 
                 <div class="card data-card mt-3">
                     <div class="card-header">
-                        <h4>Order report
+                        <h4>Reward Order report
 
-                            
+                             @can('retailer reward order csv download')
                              <a href="{{ route('reward.retailer.order.export.csv', [
                                                 'date_from'=>$request->date_from,
                                                 'date_to'=>$request->date_to,
-                                                'user_id'=>$request->user_id,
                                                 'product'=>$request->product,
                                                 'term'=>$request->term
                                             ]) }}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 CSV
                              </a>
-                           
+                            @endif
                         </h4>
 
                         <div class="search__filter mb-0">
@@ -48,14 +47,8 @@
                                     </div>
                                     <div class="col-2">
                                         <label class="small text-muted">Product</label>
-                                        <select name="product" class="form-control select2">
-                                            <option value="" disabled>Select</option>
-                                            <option value="" {{ request()->input('product') == 'all' ? 'selected' : '' }}>All</option>
-                                            @foreach($products as $product)
-                                                <option value="{{ $product->id }}" {{ request()->input('product') == $product->id ? 'selected' : '' }}>
-                                                    {{ $product->title }}
-                                                </option>
-                                            @endforeach
+                                        <select name="product" id="productSelect" class="form-control select2" style="width: 100%;">
+                                            <option value="">Select product</option>
                                         </select>
                                     </div>
                                     <div class="col-3">
@@ -155,6 +148,43 @@
         $('.select2').select2();
     });
 </script>
+
+<script>
+$(document).ready(function() {
+    $('#productSelect').select2({
+        placeholder: "Search product...",
+        minimumInputLength: 2,  // start search after typing 2 letters
+        ajax: {
+            url: "{{ route('reward.retailer.product.product.search.ajax') }}",
+            dataType: 'json',
+            delay: 250,
+            data: function(params) {
+                return { keyword: params.term };
+            },
+            processResults: function(data) {
+                return {
+                    results: $.map(data, function(item) {
+                        return {
+                            id: item.id,
+                            $text = $item->title . ' (' . $item->amount . ')';
+                        }
+                    })
+                };
+            }
+        }
+    });
+
+    // KEEP OLD SELECTED VALUE (for filters)
+    @if(request()->input('product'))
+        var id = "{{ request()->input('product') }}";
+        var text = "{{ $selectedProductName ?? '' }}";
+
+        var option = new Option(text, id, true, true);
+        $('#productSelect').append(option).trigger('change');
+    @endif
+});
+</script>
+
 @endsection
 
 

@@ -41,6 +41,18 @@ class RetailerProductController extends Controller
         return view('reward.product.index', compact('data', 'request'));
     }
 
+
+    public function ajaxSearch(Request $request)
+    {
+        $keyword = $request->keyword;
+
+        $products = RetailerProduct::where('title', 'LIKE', "%$keyword%")
+                    
+                    ->get(['id', 'title','amount']);
+
+        return response()->json($products);
+    }
+
     public function create(Request $request)
     {
         return view('reward.product.create');

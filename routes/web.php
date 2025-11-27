@@ -317,7 +317,7 @@ Route::group(['middleware' => ['auth']], function() {
 			Route::post('/specification/add', [RetailerProductController::class, 'specificationAdd'])->name('specification.add');
             Route::get('/specification/{id}/delete', [RetailerProductController::class, 'specificationDestroy'])->name('specification.delete');
             Route::post('/specification/{id}/edit', [RetailerProductController::class, 'specificationEdit'])->name('specification.edit');
-
+            Route::get('/ajax/product-search', [RetailerProductController::class, 'ajaxSearch'])->name('product.search.ajax');
         });
 
         // product
