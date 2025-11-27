@@ -102,9 +102,9 @@
                                                     #{{ $item->order_no }}
                                     
                                                 </td>
-                                                <td>{{ $item->user->name ?? '' }}</td>
-                                                <td>{{ $item->user->email ?? '' }}</td>
-                                                <td>{{ $item->user->mobile ?? '' }}</td>
+                                                <td>{{ $item->order->user->name ?? '' }}</td>
+                                                <td>{{ $item->order->user->email ?? '' }}</td>
+                                                <td>{{ $item->order->user->mobile ?? '' }}</td>
                                                 <td>{{ date('j M Y g:i A', strtotime($item->created_at)) }}</td>
                                                 <td>
                                                     @if($item->asm_approval== 1) <span class="badge bg-success">Approved by ASM </span>
