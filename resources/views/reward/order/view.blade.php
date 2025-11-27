@@ -188,12 +188,12 @@
                                                 <p class="small text-dark mb-0"> <span class="text-muted">Actual address : </span> {{$data->user->address}}</p>
                                                 <p class="small text-dark mb-0"> {{$data->user->city.', '.$data->user->pin.', '.$data->user->state->name ??''}}</p>
                                             </div>
-                                            <div class="col-md-6">
+                                            {{--<div class="col-md-6">
                                                 <p class="small text-dark mb-0"> <span class="text-muted">Shipping address : </p>
                                                 @if(!empty($data->shipping_address) || !empty($data->shipping_city) || !empty($data->shipping_pin) || !empty($data->shipping_state) || !empty($data->shipping_landmark))
                                                 <p class="small text-dark mb-0">{{$data->shipping_address.', '.$data->shipping_city.', '.$data->shipping_pin.', '.$data->shipping_state.', '.$data->shipping_landmark}}</p>
                                                 @endif
-                                            </div>
+                                            </div>--}}
                                             <div class="col-md-6">
                                                 @if(!empty($data->docket_no) || !empty($data->gift_dispatch_date))
                                                 <p class="small text-dark mb-0"> <span class="text-muted">Dispatch details : </p>
