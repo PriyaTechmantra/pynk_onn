@@ -2043,7 +2043,7 @@ public function index(Request $request): View
         /**
          * STEP 6: Fetch data with pagination
          */
-        $data = $query->where('employees.type',4)->where('employees.is_deleted',0)->orderBy('employees.id', 'desc')->get();
+        $data = $query->where('employees.type',4)->where('employees.is_deleted',0)->where('teams.store_id',NULL)->orderBy('employees.id', 'desc')->get();
 
 
 
