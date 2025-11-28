@@ -12,6 +12,33 @@
                 </ul>
                 @endif
 
+                @php
+                            $assignedPermissions = DB::table('user_permission_categories')
+                            ->select('user_permission_categories.*')
+                            ->join('users','users.id','=','user_permission_categories.user_id')
+                            ->where('user_permission_categories.user_id', Auth::user()->id)
+                            ->get();
+
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+                            // Check conditions
+                                if (in_array(3, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } else {
+                                    $brandPermissions = collect($brands)
+                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                        ->implode(', ');
+                                }
+                    @endphp
+
                 <div class="card data-card">
                     <div class="card-header">
                         <h4 class="d-flex">Qrcode Generate
@@ -55,7 +82,11 @@
                                         <input type="number" name="generate_number" placeholder="" class="form-control" value="{{old('generate_number')? old('generate_number') : '100' }}">
                                         @error('generate_number') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="card-body">
+                                    @if($brandPermissions=='Both')
+                                    <div class="mb-3">
+                                            <!-- Communication Medium -->
+                                            <h6>Brand Permission:  <span class="text-danger">*</span></h6>
+                                             @error('brand') <p class="small text-danger">{{ $message }}</p> @enderror
                                             <div class="form-check">
                                                 <input 
                                                     class="form-check-input medium-checkbox" 
@@ -63,7 +94,7 @@
                                                     name="brand" 
                                                     value="1" 
                                                     id="mediumOnn"
-                                                    onchange="checkOnlyOne(this)"
+                                                   onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumLMS">Onn</label>
                                             </div>
@@ -88,10 +119,11 @@
                                                     id="mediumBoth"
                                                     onchange="checkOnlyOne(this)"
                                                 >
-                                                
+                                               
                                                 <label class="form-check-label" for="mediumCave">Both</label>
                                             </div>
                                         </div>
+                                        @endif
                                 
 
                                     <div class="row">
