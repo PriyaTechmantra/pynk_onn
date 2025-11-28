@@ -1067,7 +1067,7 @@ public function index(Request $request): View
                 } else {
                     // single brand selected → include that + both
                     $q->where('employees.brand', $request->brand)
-                    ->orWhere('employees.brand', 3);
+                    ;
                 }
             });
         } else {
@@ -1934,7 +1934,7 @@ public function index(Request $request): View
                 } else {
                     // single brand selected → include that + both
                     $q->where('employees.brand', $request->brand)
-                    ->orWhere('employees.brand', 3);
+                    ;
                 }
             });
         } else {
@@ -2003,7 +2003,7 @@ public function index(Request $request): View
                 } else {
                     // single brand selected → include that + both
                     $q->where('employees.brand', $request->brand)
-                    ->orWhere('employees.brand', 3);
+                    ;
                 }
             });
         } else {
@@ -2132,9 +2132,9 @@ public function index(Request $request): View
             $brand = $request->brand_selection;
 
             if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
+                $query->where('brand', 1);
             } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
+                $query->where('brand', 2);
             } elseif ($brand == '3') {
                 $query->where('brand', 3);
             }
@@ -2171,9 +2171,9 @@ public function index(Request $request): View
             $brand = $request->brand_selection;
 
             if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
+                $query->where('brand', 1);
             } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
+                $query->where('brand', 2);
             } elseif ($brand == '3') {
                 $query->where('brand', 3);
             }
