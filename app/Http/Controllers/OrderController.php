@@ -603,6 +603,11 @@ public function secondaryOrderReport(Request $request)
         }
     }
 
+     // ORDER NO FIX
+    if (!empty($orderNo)) {
+        $query->where('orders.order_no', '=', $orderNo);
+    }
+
     // ✅ Dynamic filters (kept as-is but cleaned)
     $query->when($ase, fn($q) => $q->where('teams.ase_id', $ase));
     $query->when($asm, fn($q) => $q->where('teams.asm_id', $asm));
@@ -611,7 +616,7 @@ public function secondaryOrderReport(Request $request)
     $query->when($distributor, fn($q) => $q->where('teams.distributor_id', $distributor));
     $query->when($state, fn($q) => $q->where('stores.state_id', $state));
     $query->when($area, fn($q) => $q->where('stores.area_id', $area));
-    $query->when($orderNo, fn($q) => $q->where('orders.order_no', '=', $orderNo));
+    
     $query->when($product, fn($q) => $q->where('products.id', $product));
     $query->when($store_id, fn($q) => $q->where('orders.store_id', $store_id));
 
