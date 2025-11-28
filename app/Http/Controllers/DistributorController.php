@@ -349,7 +349,7 @@ class DistributorController extends Controller
                     }
                 
             });
-            $data->allRSM = $query2->groupBy('name')
+            $data->allRSM = $query2->groupBy('name')->orderby('name')
                 ->orderBy('id', 'desc')
                 ->paginate(25);
        $query3=Employee::where('type',3) ->where('is_deleted', 0)
@@ -370,7 +370,7 @@ class DistributorController extends Controller
                     }
                 
             });
-            $data->allASM = $query3->groupBy('name')
+            $data->allASM = $query3->groupBy('name')->orderby('name')
                 ->orderBy('id', 'desc')
                 ->paginate(25);
         $query4=Employee::where('type',4) ->where('is_deleted', 0)
@@ -391,7 +391,7 @@ class DistributorController extends Controller
                     }
                 
             });
-            $data->allASE = $query4->groupBy('name')
+            $data->allASE = $query4->groupBy('name')->orderby('name')
                 ->orderBy('id', 'desc')
                 ->paginate(25);
        
