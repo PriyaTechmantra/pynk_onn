@@ -124,8 +124,8 @@
                                             ];
 
                                             // Collect brand IDs from items (avoid duplicates)
-                                            $brands = $data->pluck('brand')->unique()->toArray();
-
+                                            $brands = [$item->brand];
+                                            
                                             // Determine brand permissions
                                             if (in_array(3, $brands)) {
                                                 // If any brand is "Both"
