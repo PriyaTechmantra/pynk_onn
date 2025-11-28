@@ -258,9 +258,18 @@ class CatalogueController extends Controller
         $changedFields = $storeData->getChanges(); // only changed attributes
 
         foreach ($changedFields as $field => $newValue) {
-            if (in_array($field, ['updated_at'])) continue; // skip timestamps
+            if (in_array($field, ['updated_at'])) continue;
 
             $oldValue = $oldData->$field ?? null;
+
+            // Convert arrays to JSON for storing
+            if (is_array($oldValue)) {
+                $oldValue = json_encode($oldValue);
+            }
+
+            if (is_array($newValue)) {
+                $newValue = json_encode($newValue);
+            }
 
             DB::table('edit_logs')->insert([
                 'table_name' => 'product_catelogues',
@@ -273,6 +282,7 @@ class CatalogueController extends Controller
                 'created_at' => now(),
             ]);
         }
+
         if ($storeData) {
             return redirect('/catalogues');
         } else {
