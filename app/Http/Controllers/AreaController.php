@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Http\RedirectResponse;
 use DB;
 use Auth;
+use Illuminate\Validation\Rule;
 class AreaController extends Controller
 {
     /**
@@ -63,7 +64,11 @@ class AreaController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|unique:areas,name',
+            'name' => ['required',
+                Rule::unique('areas')
+                    ->where('state_id', $request->state_id)
+                    ->where('is_deleted', 0)  // ignore deleted rows
+            ],
             'state_id' => 'required|integer',
         ]);
 
