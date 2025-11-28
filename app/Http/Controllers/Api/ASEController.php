@@ -7495,6 +7495,14 @@ public function aseSalesreport(Request $request)
     }
 
 
+    //cron
+
+
+    public function secondaryOrderCron(Request $request)
+    {
+        
+    } 
+
 
 
 
