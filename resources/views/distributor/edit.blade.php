@@ -523,6 +523,24 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
 @section('script')
 
 <script>
+
+
+    $(document).ready(function() {
+    // Initialize Select2 when modal is shown
+        $('#newRangeModal').on('shown.bs.modal', function () {
+            $('#zsm_data').select2({
+                dropdownParent: $('#newRangeModal'),
+                width: '100%',
+                placeholder: "Select an option",
+                allowClear: true
+            });
+        });
+        
+        // Destroy Select2 when modal is hidden to prevent issues
+        $('#newRangeModal').on('hidden.bs.modal', function () {
+            $('#zsm_data').select2('destroy');
+        });
+    });
     $(document).ready(function() {
     var selectedState = "{{ request()->input('state') ?? $data->state_id }}";
     var selectedArea = "{{ request()->input('area') ?? $data->area_id }}";
