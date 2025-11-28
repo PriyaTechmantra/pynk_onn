@@ -488,41 +488,46 @@ class OrderController extends Controller
 
 public function secondaryOrderReport(Request $request)
 {
-        $user = auth()->user();
+    $user = auth()->user();
 
-    // USER BRAND PERMISSIONS
+    // ✅ Fetch user brand permissions
     $userBrands = DB::table('user_permission_categories')
         ->where('user_id', $user->id)
         ->pluck('brand')
         ->toArray();
 
+    // ✅ Determine which brands user can access
+    $brandsToShow = [];
     if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
-        $brandsToShow = [1,2,3];
+        $brandsToShow = [1, 2, 3]; // Both access
     } elseif (in_array(1, $userBrands)) {
-        $brandsToShow = [1,3];
+        $brandsToShow = [1];
     } elseif (in_array(2, $userBrands)) {
-        $brandsToShow = [2,3];
+        $brandsToShow = [2];
     }
 
-    // DATE RANGE FIX
+    $data = (object) [];
+
+    // ✅ Date range (make sure “to” includes the entire day)
     $from = $request->date_from ?? date('Y-m-01');
-    $to   = $request->date_to 
-            ? $request->date_to . ' 23:59:59'
-            : now();
+    $to = $request->date_to
+        ? date('Y-m-d', strtotime($request->date_to . ' +1 day'))
+        : date('Y-m-d', strtotime('+1 day'));
 
-    // FILTER VARIABLES
-    $brandFilter = $request->brand;
-    $orderNo     = $request->orderNo;
-    $product     = $request->product;
-    $state       = $request->state;
-    $area        = $request->area;
-    $ase         = $request->ase;
-    $asm         = $request->asm;
-    $rsm         = $request->rsm;
-    $vp          = $request->vp;
-    $distributor = $request->distributor;
-    $store_id    = $request->store_id;
+    // ✅ Filters
+    $brandFilter = $request->brand ?? '';
+    $orderNo = $request->orderNo ?? '';
+    $product = $request->product ?? '';
+    $state = $request->state ?? '';
+    $area = $request->area ?? '';
+    $ase = $request->ase ?? '';
+    $asm = $request->asm ?? '';
+    $rsm = $request->rsm ?? '';
+    $vp = $request->vp ?? '';
+    $distributor = $request->distributor ?? '';
+    $store_id = $request->store_id ?? '';
 
+    // ✅ Base query
     $query = OrderProduct::select(
             'order_products.id as order_product_id',
             'order_products.qty',
@@ -531,60 +536,91 @@ public function secondaryOrderReport(Request $request)
             'products.id as product_id',
             'products.name as product_name',
             'products.style_no',
-            'orders.brand',
+            'orders.brand', // ✅ ensure brand comes from orders table
             'orders.id as order_id',
             'orders.order_no',
             'orders.status',
             'orders.created_at',
             'stores.name as store_name',
+            'stores.state_id',
+            'stores.area_id',
+            'employees.name as user_name',
+             'collections.name as collection_name',
+            'categories.name as category_name',
+            'colors.name as color_name',
+            'sizes.name as size_name',
+            'distributors.name as distributor_name',
             'states.name as state_name',
             'areas.name as area_name',
-            'employees.name as user_name'
+             // ✅ team hierarchy names
+            'ase_emp.name as ase_name',
+            'asm_emp.name as asm_name',
+            'rsm_emp.name as rsm_name',
+            'vp_emp.name as vp_name'
         )
-        ->join('products','products.id','=','order_products.product_id')
-        ->join('orders','orders.id','=','order_products.order_id')
-        ->join('stores','stores.id','=','orders.store_id')
-        ->join('teams','stores.id','=','teams.store_id')
-        ->join('employees','employees.id','=','orders.user_id')
-        ->leftJoin('states','states.id','=','stores.state_id')
-        ->leftJoin('areas','areas.id','=','stores.area_id')
+        ->join('products', 'products.id', '=', 'order_products.product_id')
+        ->join('collections', 'collections.id', '=', 'products.collection_id')
+        ->join('categories', 'categories.id', '=', 'products.cat_id')
+        ->join('colors', 'colors.id', '=', 'order_products.color_id')
+        ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
+        ->join('orders', 'orders.id', '=', 'order_products.order_id')
+        ->join('stores', 'stores.id', '=', 'orders.store_id')
+        ->join('teams', 'stores.id', '=', 'teams.store_id')
+        ->join('employees', 'employees.id', '=', 'orders.user_id')
+        ->leftJoin('distributors', 'distributors.id', '=', 'teams.distributor_id')
+        
+        ->leftJoin('states', 'states.id', '=', 'stores.state_id')
+        ->leftJoin('areas', 'areas.id', '=', 'stores.area_id')
+        // ✅ join employees table again for hierarchy
+        ->leftJoin('employees as ase_emp', 'ase_emp.id', '=', 'teams.ase_id')
+        ->leftJoin('employees as asm_emp', 'asm_emp.id', '=', 'teams.asm_id')
+        ->leftJoin('employees as rsm_emp', 'rsm_emp.id', '=', 'teams.rsm_id')
+        ->leftJoin('employees as vp_emp', 'vp_emp.id', '=', 'teams.vp_id')
         ->whereBetween('orders.created_at', [$from, $to]);
 
-    // BRAND FILTER FIX
+    // ✅ Brand filter logic
     if ($request->filled('brand')) {
-
-        if ($brandFilter == 3) {
-            $query->whereIn('orders.brand', [1,2,3]);
-        } else {
-            $query->where(function($q) use ($brandFilter){
-                $q->where('orders.brand', $brandFilter)
-                  ->orWhere('orders.brand', 3);
+        $query->where(function ($q) use ($request) {
+            if ($request->brand == 3) {
+                // “Both” selected → show ONN, PYNK, and Both
+                $q->whereIn('orders.brand', [1, 2, 3]);
+            } else {
+                // Single brand selected → include that + both
+                $q->where('orders.brand', $request->brand)
+                    ->orWhere('orders.brand', 3);
+            }
+        });
+    } else {
+        // If brand not selected — use user permissions
+        if (!empty($userBrands)) {
+            $query->where(function ($q) use ($userBrands) {
+                if (in_array(3, $userBrands)) {
+                    $q->whereIn('orders.brand', [1, 2, 3]);
+                } else {
+                    $q->whereIn('orders.brand', array_merge($userBrands, [3]));
+                }
             });
         }
-
-    } else {
-        // fallback to user permissions
-        $query->whereIn('orders.brand', $brandsToShow);
     }
 
-    // ORDER NO FIX
+     // ORDER NO FIX
     if (!empty($orderNo)) {
-        $query->where('orders.order_no', 'LIKE', "%$orderNo%");
+        $query->where('orders.order_no', '=', $orderNo);
     }
 
-    // OTHER FILTERS
-    $query->when($product, fn($q) => $q->where('products.id', $product));
-    $query->when($state, fn($q) => $q->where('stores.state_id', $state));
-    $query->when($area, fn($q) => $q->where('stores.area_id', $area));
-    $query->when($store_id, fn($q) => $q->where('orders.store_id', $store_id));
+    // ✅ Dynamic filters (kept as-is but cleaned)
     $query->when($ase, fn($q) => $q->where('teams.ase_id', $ase));
     $query->when($asm, fn($q) => $q->where('teams.asm_id', $asm));
     $query->when($rsm, fn($q) => $q->where('teams.rsm_id', $rsm));
     $query->when($vp, fn($q) => $q->where('teams.vp_id', $vp));
     $query->when($distributor, fn($q) => $q->where('teams.distributor_id', $distributor));
+    $query->when($state, fn($q) => $q->where('stores.state_id', $state));
+    $query->when($area, fn($q) => $q->where('stores.area_id', $area));
+    
+    $query->when($product, fn($q) => $q->where('products.id', $product));
+    $query->when($store_id, fn($q) => $q->where('orders.store_id', $store_id));
 
-    // GET DATA
-    $data = (object)[];
+    // ✅ Fetch paginated results
     $data->all_orders = $query->latest('orders.id')->paginate(50);
    //dd($query->toRawSql());
     // ✅ Debug check (remove later)
