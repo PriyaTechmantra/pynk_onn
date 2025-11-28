@@ -79,7 +79,7 @@ public function index(Request $request): View
                 } else {
                     // single brand selected → include that + both
                     $q->where('employees.brand', $request->brand)
-                    ->orWhere('employees.brand', 3);
+                    ;
                 }
             });
         } else {
