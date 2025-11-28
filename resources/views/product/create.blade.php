@@ -289,8 +289,8 @@
         </div>
         <div class="col-sm-3">
 			<div class="card shadow-sm">
-                <div class="card-header" style="background: #fff ; color: #fff;">
-                    <h6>Product Main Image <span class="text-danger">*</span></h6>
+                <div class="card-header" style="background: #dc3546 ; color: #fff;">
+                    <h6>Product Main Image <span class="text-danger" style="background: color: #fff;">*</span></h6>
                 </div>
                 <div class="card-body">
                     <div class="w-100 product__thumb">
