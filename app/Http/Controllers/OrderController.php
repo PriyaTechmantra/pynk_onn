@@ -510,10 +510,7 @@ public function secondaryOrderReport(Request $request)
 
     // ✅ Date range (make sure “to” includes the entire day)
     $from = $request->date_from ?? date('Y-m-01');
-    $to = $request->date_to
-        ? date('Y-m-d', strtotime($request->date_to . ' +1 day'))
-        : date('Y-m-d', strtotime('+1 day'));
-
+    $to = $request->date_to ? $request->date_to . ' 23:59:59' : now();
     // ✅ Filters
     $brandFilter = $request->brand ?? '';
     $orderNo = $request->orderNo ?? '';
@@ -560,10 +557,10 @@ public function secondaryOrderReport(Request $request)
         )
         ->join('orders', 'orders.id', '=', 'order_products.order_id')
         ->join('products', 'products.id', '=', 'order_products.product_id')
-        ->join('collections', 'collections.id', '=', 'products.collection_id')
-        ->join('categories', 'categories.id', '=', 'products.cat_id')
-        ->join('colors', 'colors.id', '=', 'order_products.color_id')
-        ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
+        ->leftJoin('collections', 'collections.id', '=', 'products.collection_id')
+        ->leftJoin('categories', 'categories.id', '=', 'products.cat_id')
+        ->leftJoin('colors', 'colors.id', '=', 'order_products.color_id')
+        ->leftJoin('sizes', 'sizes.id', '=', 'order_products.size_id')
         
         ->join('stores', 'stores.id', '=', 'orders.store_id')
         ->join('teams', 'stores.id', '=', 'teams.store_id')
