@@ -94,7 +94,6 @@ class BarcodeController extends Controller
         ]);
 
         $params = $request->except('_token');
-                                
         function generateUniqueAlphaNumeric($length = 10) {
             $random_string = '';
             for ($i = 0; $i < $length; $i++) {
@@ -109,7 +108,7 @@ class BarcodeController extends Controller
          $slug = \Str::slug($request['name'], '-');
          $slugExistCount = RetailerBarcode::where('slug', $slug)->count();
          if ($slugExistCount > 0) $slug = $slug . '-' . ($slugExistCount + 1);
-          // Get the last serial number and increment for each new entry
+            // Get the last serial number and increment for each new entry
             $lastSerial = RetailerBarcode::max('serial_number');
         
             if (!$lastSerial) {
@@ -117,28 +116,25 @@ class BarcodeController extends Controller
             } else {
                 $lastSerial = (int)$lastSerial;
             }
-
         for($i = 0; $i < $noOfEntries; $i++) {
             $storeData = new RetailerBarcode;
             $storeData->name = $request['name'];
+            $storeData->brand = $request['brand'];
             $storeData->slug = $slug;
-            $storeData->note = 'Please note that this QR code is exclusively intended for authorized retailers through the Onn & Pynk App.';
+    	    $storeData->note = 'Please note that this QR code is exclusively intended for authorized retailers through the ONN Daily App.';
             $storeData->code = strtoupper(generateUniqueAlphaNumeric(10));
-            
             $storeData->amount = $request['amount'];
             $storeData->max_time_of_use = $request['max_time_of_use'];
             $storeData->max_time_one_can_use = $request['max_time_one_can_use'];
             $storeData->start_date = $request['start_date'];
             $storeData->end_date = $request['end_date'];
-            $storeData->brand = $request['brand'];
-            $storeData->is_print = 1;
-            // if(Auth::guard('admin')->user()->email=='testprinter@gmail.com')
-			// {
-			// 	 $storeData->is_print = 1;
-			// }else{
-			// 	$storeData->is_print = 0;
-			// }
-
+			if(Auth::guard('admin')->user()->email=='testprinter@gmail.com')
+			{
+				 $storeData->is_print = 1;
+			}else{
+				$storeData->is_print = 0;
+			}
+    		// Generate and assign serial number
             $serialNumber = $lastSerial++; // Increment serial number for each entry
             if ($serialNumber <= 999999) {
                 $formattedSerialNumber = str_pad($serialNumber, 6, '0', STR_PAD_LEFT);
@@ -148,10 +144,11 @@ class BarcodeController extends Controller
             $storeData->serial_number = $formattedSerialNumber;
             $storeData->save();
         }
+           
         if ($storeData) {
-            return redirect()->route('reward.retailer.barcode.index')->with('success', 'New Qrcode created');
+            return redirect()->route('admin.reward.retailer.barcode.index')->with('success', 'New Qrcode created');
         } else {
-            return redirect()->route('reward.retailer.barcode.create')->withInput($request->all())->with('success', 'Something happened');
+            return redirect()->route('admin.reward.retailer.barcode.create')->withInput($request->all())->with('success', 'Something happened');
         }
     }
 
