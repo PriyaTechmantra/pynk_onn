@@ -802,10 +802,10 @@ class StoreController extends Controller
                 });
             }
         }
-        $data = $query->get();
+        $data = $query->latest('id')->get();
 
         // CSV header
-        $filename = 'no_order_reasons_' . date('Ymd') . '.csv';
+        $filename = 'no_order_reasons_' . date('Y-m-d') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"$filename\"",
