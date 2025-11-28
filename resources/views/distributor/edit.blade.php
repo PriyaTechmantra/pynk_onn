@@ -240,7 +240,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 <div class="col-md-6">
                                                     <label class="small text-muted">Brand</label>
                                                     
-                                                    <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
+                                                    <select class="form-select form-select-sm select2" aria-label="Default select example" name="brand" id="brand">
                                                         <option value="" selected disabled>Select</option>
                                                                 <option value="3" {{ ($row->brand == 3) ? 'selected' : '' }}>All</option>
                                                         
@@ -255,7 +255,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 @endif
                                                 <div class="col-md-6">
                                                     <label for="vp" class="small text-muted">VP *</label>
-                                                    <select class="form-select form-select-sm" name="nsm_id">
+                                                    <select class="form-select form-select-sm select2" name="nsm_id">
                                                         <option value=""  selected>Select</option>
                                                         @foreach ($data->allZSM as $item)
                                                             <option value="{{ $item->id }}" {{ $row->vp_id == $item->id ? 'selected' : '' }}>
@@ -269,7 +269,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 {{-- RSM --}}
                                                 <div class="col-md-6">
                                                     <label class="small text-muted">RSM *</label>
-                                                    <select class="form-select form-select-sm" name="rsm_id">
+                                                    <select class="form-select form-select-sm select2" name="rsm_id">
                                                         <option value=""  selected>Select</option>
                                                         @foreach ($data->allRSM as $item)
                                                             <option value="{{ $item->id }}" {{ $row->rsm_id == $item->id ? 'selected' : '' }}>
@@ -283,7 +283,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 {{-- ASM --}}
                                                 <div class="col-md-6">
                                                     <label class="small text-muted">ASM *</label>
-                                                    <select class="form-select form-select-sm" name="asm_id">
+                                                    <select class="form-select form-select-sm select2" name="asm_id">
                                                         <option value=""  selected>Select</option>
                                                         @foreach ($data->allASM as $item)
                                                             <option value="{{ $item->id }}" {{ $row->asm_id == $item->id ? 'selected' : '' }}>
@@ -297,7 +297,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 {{-- ASE --}}
                                                 <div class="col-md-6">
                                                     <label class="small text-muted">ASE *</label>
-                                                    <select class="form-select form-select-sm" name="ase_id">
+                                                    <select class="form-select form-select-sm select2" name="ase_id">
                                                         <option value=""  selected>Select</option>
                                                         @foreach ($data->allASE as $item)
                                                             <option value="{{ $item->id }}" {{ $row->ase_id == $item->id ? 'selected' : '' }}>
@@ -311,7 +311,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 {{-- State --}}
                                                 <div class="col-md-6">
                                                     <label class="small text-muted">State *</label>
-                                                    <select class="form-select form-select-sm" name="stateId" id="stateId_{{ $row->id }}">
+                                                    <select class="form-select form-select-sm select2" name="stateId" id="stateId_{{ $row->id }}">
                                                         <option value=""  selected>Select</option>
                                                         @foreach ($state as $item)
                                                             <option value="{{ $item->id }}" {{ $row->state_id == $item->id ? 'selected' : '' }}>
@@ -325,7 +325,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 {{-- Area --}}
                                                 <div class="col-md-6">
                                                     <label class="small text-muted">City / Area *</label>
-                                                    <select class="form-select form-select-sm" name="areaId" id="areaId_{{ $row->id }}" {{ empty($row->state_id) ? 'disabled' : '' }}>
+                                                    <select class="form-select form-select-sm select2" name="areaId" id="areaId_{{ $row->id }}" {{ empty($row->state_id) ? 'disabled' : '' }}>
                                                         @if(!empty($row->areas))
                                                             <option value="{{ $row->areas->id }}" selected>{{ $row->areas->name }}</option>
                                                         @else

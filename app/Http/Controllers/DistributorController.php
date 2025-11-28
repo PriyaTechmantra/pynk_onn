@@ -328,7 +328,7 @@ class DistributorController extends Controller
             });
             $data->allZSM = $query1
                 ->orderBy('id', 'desc')
-                ->paginate(25);
+                ->get();
         
                 $query2=Employee::where('type',2) ->where('is_deleted', 0)
                 ->where('status', 1);
@@ -351,7 +351,7 @@ class DistributorController extends Controller
             });
             $data->allRSM = $query2->orderby('name')
                 ->orderBy('id', 'desc')
-                ->paginate(25);
+                ->get();
        $query3=Employee::where('type',3) ->where('is_deleted', 0)
                 ->where('status', 1);
         $query3->where(function ($q) use ($employeeBrand, $userBrands) {
@@ -372,7 +372,7 @@ class DistributorController extends Controller
             });
             $data->allASM = $query3->orderby('name')
                 ->orderBy('id', 'desc')
-                ->paginate(25);
+                ->get();
         $query4=Employee::where('type',4) ->where('is_deleted', 0)
                 ->where('status', 1);
         $query4->where(function ($q) use ($employeeBrand, $userBrands) {
@@ -393,7 +393,7 @@ class DistributorController extends Controller
             });
             $data->allASE = $query4->orderby('name')
                 ->orderBy('id', 'desc')
-                ->paginate(25);
+                ->get();
        
         return view('distributor.edit',compact('data','state','request'));
     }
