@@ -113,7 +113,7 @@
                                     <tr>
                                         <td>{{ $index+1 }}</td>
                                         <td>
-                                            @php
+                                           
                                                 
 
                                             @php
