@@ -262,11 +262,7 @@ class CollectionController extends Controller
 
     public function status(Request $request, $id)
     {
-        $isReferenced = DB::table('products')->where('collection_id', $id)->exists();
-    
-        if ($isReferenced) {
-            return redirect()->route('collections.index')->with('error', 'Category cannot be deleted because it is referenced in another table.');
-        }
+        
         $category = Collection::findOrFail($id);
         $status = ( $category->status == 1 ) ? 0 : 1;
         $category->status = $status;
