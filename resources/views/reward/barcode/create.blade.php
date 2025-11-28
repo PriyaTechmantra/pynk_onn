@@ -60,6 +60,7 @@
                                         <div class="form-check">
                                             <input 
                                                 class="form-check-input medium-checkbox" 
+                                                name="brand"
                                                 type="checkbox" 
                                                 id="brandOnn" 
                                                 value="1"
@@ -70,6 +71,7 @@
                                         <div class="form-check">
                                             <input 
                                                 class="form-check-input medium-checkbox" 
+                                                name="brand"
                                                 type="checkbox" 
                                                 id="brandPynk" 
                                                 value="2"
@@ -80,6 +82,7 @@
                                         <div class="form-check">
                                             <input 
                                                 class="form-check-input medium-checkbox" 
+                                                name="brand"
                                                 type="checkbox" 
                                                 id="brandBoth" 
                                                 value="3"
@@ -87,7 +90,7 @@
                                             >
                                             <label class="form-check-label" for="brandBoth">Both</label>
                                         </div>
-                                        <input type="hidden" name="brand" id="brandValue">
+                                        
                                     </div>
                                 
 
