@@ -132,8 +132,7 @@
                                     // Check conditions
                                         if (in_array(3, $brands)) {
                                             $brandPermissions = 'Both';
-                                        } elseif (in_array(1, $brands) && in_array(2, $brands)) {
-                                            $brandPermissions = 'Both';
+                                        
                                         } else {
                                             $brandPermissions = collect($brands)
                                                 ->map(fn($brand) => $brandMap[$brand] ?? $brand)
