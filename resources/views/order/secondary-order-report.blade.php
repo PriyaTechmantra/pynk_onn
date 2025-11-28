@@ -328,9 +328,11 @@
                             @endif
                             <td>
                                 <p class="text-dark mb-1">({{$item->style_no}}) {{$item->product_name}}</p>
+                                <p class="small text-muted mb-1">{{$item->collection_name}}</p>
+                                <p class="small text-muted mb-1">{{$item->category_name}}</p>
                                 <p class="small text-muted mb-1">{{$item->color_name ?? ''}}</p>
                                 <p class="small text-muted mb-1">{{$item->size_name}}</p>
-
+                                
                             </td>
                             
                             <td>

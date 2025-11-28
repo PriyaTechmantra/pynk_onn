@@ -545,6 +545,8 @@ public function secondaryOrderReport(Request $request)
             'stores.state_id',
             'stores.area_id',
             'employees.name as user_name',
+             'collections.name as collection_name',
+            'categories.name as category_name',
             'colors.name as color_name',
             'sizes.name as size_name',
             'distributors.name as distributor_name',
@@ -557,6 +559,8 @@ public function secondaryOrderReport(Request $request)
             'vp_emp.name as vp_name'
         )
         ->join('products', 'products.id', '=', 'order_products.product_id')
+        ->join('collections', 'collections.id', '=', 'products.collection_id')
+        ->join('categories', 'categories.id', '=', 'products.cat_id')
         ->join('colors', 'colors.id', '=', 'order_products.color_id')
         ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
         ->join('orders', 'orders.id', '=', 'order_products.order_id')
