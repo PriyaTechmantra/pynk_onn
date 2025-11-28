@@ -141,9 +141,9 @@ class BarcodeController extends Controller
         }
            
         if ($storeData) {
-            return redirect()->route('admin.reward.retailer.barcode.index')->with('success', 'New Qrcode created');
+            return redirect()->route('reward.retailer.barcode.index')->with('success', 'New Qrcode created');
         } else {
-            return redirect()->route('admin.reward.retailer.barcode.create')->withInput($request->all())->with('success', 'Something happened');
+            return redirect()->route('reward.retailer.barcode.create')->withInput($request->all())->with('success', 'Something happened');
         }
     }
 
