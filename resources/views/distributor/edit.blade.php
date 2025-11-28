@@ -365,7 +365,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
 @endsection
 
 <div class="modal fade distributor-edit" id="newRangeModal"  aria-labelledby="newRangeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="newRangeModalLabel">Add new team for Distributor</h5>
