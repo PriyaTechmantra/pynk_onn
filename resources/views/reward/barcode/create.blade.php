@@ -55,43 +55,43 @@
                                         <input type="number" name="generate_number" placeholder="" class="form-control" value="{{old('generate_number')? old('generate_number') : '100' }}">
                                         @error('generate_number') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label class="label-control">Brand Permission</label>
-                                        <div class="form-check">
-                                            <input 
-                                                class="form-check-input medium-checkbox" 
-                                                name="brand"
-                                                type="checkbox" 
-                                                id="brandOnn" 
-                                                value="1"
-                                                onchange="updateBrandValue()"
-                                            >
-                                            <label class="form-check-label" for="brandOnn">Onn</label>
+                                    <div class="card-body">
+                                            <div class="form-check">
+                                                <input 
+                                                    class="form-check-input medium-checkbox" 
+                                                    type="checkbox" 
+                                                    name="brand" 
+                                                    value="1" 
+                                                    id="mediumOnn"
+                                                    onchange="checkOnlyOne(this)"
+                                                >
+                                                <label class="form-check-label" for="mediumLMS">Onn</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input 
+                                                    class="form-check-input medium-checkbox" 
+                                                    type="checkbox" 
+                                                    name="brand" 
+                                                    value="2" 
+                                                    id="mediumPynk"
+                                                    onchange="checkOnlyOne(this)"
+                                                >
+                                                <label class="form-check-label" for="mediumFMS">Pynk</label>
+                                            </div>
+                                            
+                                            <div class="form-check">
+                                                <input 
+                                                    class="form-check-input medium-checkbox" 
+                                                    type="checkbox" 
+                                                    name="brand" 
+                                                    value="3" 
+                                                    id="mediumBoth"
+                                                    onchange="checkOnlyOne(this)"
+                                                >
+                                                
+                                                <label class="form-check-label" for="mediumCave">Both</label>
+                                            </div>
                                         </div>
-                                        <div class="form-check">
-                                            <input 
-                                                class="form-check-input medium-checkbox" 
-                                                name="brand"
-                                                type="checkbox" 
-                                                id="brandPynk" 
-                                                value="2"
-                                                onchange="updateBrandValue()"
-                                            >
-                                            <label class="form-check-label" for="brandPynk">Pynk</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input 
-                                                class="form-check-input medium-checkbox" 
-                                                name="brand"
-                                                type="checkbox" 
-                                                id="brandBoth" 
-                                                value="3"
-                                                onchange="updateBrandValue()"
-                                            >
-                                            <label class="form-check-label" for="brandBoth">Both</label>
-                                        </div>
-                                        
-                                    </div>
                                 
 
                                     <div class="row">
