@@ -739,6 +739,7 @@ public function secondaryOrderReportExport(Request $request)
             'orders.status',
             'orders.created_at',
             'stores.name as store_name',
+             'stores.contact as store_contact',
             'stores.state_id',
             'stores.area_id',
             'employees.name as user_name',
@@ -804,7 +805,7 @@ public function secondaryOrderReportExport(Request $request)
     $query->when($distributor, fn($q) => $q->where('teams.distributor_id', $distributor));
     $query->when($state, fn($q) => $q->where('stores.state_id', $state));
     $query->when($area, fn($q) => $q->where('stores.area_id', $area));
-    $query->when($orderNo, fn($q) => $q->where('orders.order_no', 'like', "%$orderNo%"));
+    $query->when($orderNo, fn($q) => $q->where('orders.order_no', '=', $orderNo));
     $query->when($product, fn($q) => $q->where('products.id', $product));
     $query->when($store_id, fn($q) => $q->where('orders.store_id', $store_id));
 
@@ -826,6 +827,7 @@ public function secondaryOrderReportExport(Request $request)
             'Order Date',
             'Brand',
             'Store Name',
+            'Store Mobile',
             'State',
             'Area',
             'ASE',
@@ -860,6 +862,7 @@ public function secondaryOrderReportExport(Request $request)
                     date('d-m-Y', strtotime($row->created_at)),
                     $brandName,
                     $row->store_name,
+                    $row->store_contact,
                     $row->state_name,
                     $row->area_name,
                     $row->ase_name,
