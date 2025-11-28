@@ -9,6 +9,33 @@
                     <div class="alert alert-success">{{ session('status') }}</div>
                 @endif
 
+                @php
+                            $assignedPermissions = DB::table('user_permission_categories')
+                            ->select('user_permission_categories.*')
+                            ->join('users','users.id','=','user_permission_categories.user_id')
+                            ->where('user_permission_categories.user_id', Auth::user()->id)
+                            ->get();
+
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+                            // Check conditions
+                                if (in_array(3, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } else {
+                                    $brandPermissions = collect($brands)
+                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                        ->implode(', ');
+                                }
+                                @endphp
+
                 <div class="card data-card mt-3">
                     <div class="card-header">
                         <h4>Color
@@ -26,7 +53,7 @@
                                 <div class="col-12">
                                     <form action="{{url('colors/')}}">
                                         <div class="row g-2 align-items-center">
-                                             
+                                             @if($brandPermissions=='Both')
                                             <div class="col-6 d-flex align-items-center gap-2">
                                                 <select name="brand_selection" class="form-control form-control-sm">
                                                     <option value="">Select Brand</option>
@@ -40,6 +67,7 @@
                                                     value="{{ app('request')->input('term') }}" 
                                                     autocomplete="off">
                                             </div>
+                                            @endif
 
                                             <div class="col-6 text-end">
                                                 <button type="submit" class="btn btn-sm btn-cta">Filter</button>
@@ -72,6 +100,7 @@
                                 <thead>
                                     <tr>
                                         <th class="index-col">#</th>
+                                        <th>Brand</th>
                                         <th>Title</th>
                                         <th>Status</th>
                                         <th width="20%">Action</th>
@@ -83,6 +112,41 @@
                                     
                                     <tr>
                                         <td>{{ $index+1 }}</td>
+                                        <td>
+                                            @php
+                                                
+
+                                            $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
+
+                                            // Collect brand IDs from items (avoid duplicates)
+                                            $brands = $data->pluck('brand')->unique()->toArray();
+
+                                            // Determine brand permissions
+                                            if (in_array(3, $brands)) {
+                                                // If any brand is "Both"
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                                // If both ONN and PYNK exist
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $brands)) {
+                                                $brandPermissions = 'ONN';
+                                            } elseif (in_array(2, $brands)) {
+                                                $brandPermissions = 'PYNK';
+                                            } else {
+                                                // Fallback for unexpected values
+                                                $brandPermissions = collect($brands)
+                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                    ->implode(', ');
+                                            }
+
+                                        @endphp
+
+                                           {{ $brandPermissions ?? '' }}
+                                        </td>
                                         <td>
                                             <h3 class="text-dark">{{$item->name}}</h3>
                                         </td>
