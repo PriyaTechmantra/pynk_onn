@@ -772,15 +772,34 @@ class StoreController extends Controller
         if ($request->filled('keyword')) {
             $query->where('comment', 'like', '%' . $request->keyword . '%');
         }
-        if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
+        if ($request->filled('brand_selection')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand_selection == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('user_no_order_reasons.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('user_no_order_reasons.brand', $request->brand_selection)
+                    ->orWhere('user_no_order_reasons.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
 
-            if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
-            } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
-            } elseif ($brand == '3') {
-                $query->where('brand', 3);
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('user_no_order_reasons.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('user_no_order_reasons.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
             }
         }
         $data = $query->get();
