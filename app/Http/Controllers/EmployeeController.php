@@ -1921,7 +1921,7 @@ public function index(Request $request): View
         $user = auth()->user();
     
         // Base query
-        $query = Employee::select('employees.*')->join('teams', 'teams.ase_id', '=', 'employees.id')->distinct();
+        $query = Employee::select('employees.*','teams.brand')->join('teams', 'teams.ase_id', '=', 'employees.id')->distinct();
 
         /**
          * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
@@ -1930,10 +1930,10 @@ public function index(Request $request): View
             $query->where(function ($q) use ($request) {
                 if ($request->brand == 3) {
                     // “Both” selected → show ONN (1), PYNK (2), and Both (3)
-                    $q->whereIn('employees.brand', [1, 2, 3]);
+                    $q->whereIn('teams.brand', [1, 2, 3]);
                 } else {
                     // single brand selected → include that + both
-                    $q->where('employees.brand', $request->brand)
+                    $q->where('teams.brand', $request->brand)
                     ;
                 }
             });
@@ -1948,10 +1948,10 @@ public function index(Request $request): View
                 $query->where(function ($q) use ($userBrandPermissions) {
                     if (in_array(3, $userBrandPermissions)) {
                         // user has both brand permission
-                        $q->whereIn('employees.brand', [1, 2, 3]);
+                        $q->whereIn('teams.brand', [1, 2, 3]);
                     } else {
                         // user has limited brand(s)
-                        $q->whereIn('employees.brand', array_merge($userBrandPermissions, [3]));
+                        $q->whereIn('teams.brand', array_merge($userBrandPermissions, [3]));
                     }
                 });
             }
