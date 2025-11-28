@@ -134,16 +134,11 @@
                                             if (in_array(3, $brands)) {
                                                 // If any brand is "Both"
                                                 $brandPermissions = 'Both';
-                                             elseif (in_array(1, $brands)) {
+                                            }elseif (in_array(1, $brands)) {
                                                 $brandPermissions = 'ONN';
                                             } elseif (in_array(2, $brands)) {
                                                 $brandPermissions = 'PYNK';
-                                            } else {
-                                                // Fallback for unexpected values
-                                                $brandPermissions = collect($brands)
-                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
-                                                    ->implode(', ');
-                                            }
+                                            } 
 
                                         @endphp
 

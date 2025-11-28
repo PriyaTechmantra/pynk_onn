@@ -142,12 +142,7 @@
                                                 $brandPermissions = 'ONN';
                                             } elseif (in_array(2, $brands)) {
                                                 $brandPermissions = 'PYNK';
-                                            } else {
-                                                // Fallback for unexpected values
-                                                $brandPermissions = collect($brands)
-                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
-                                                    ->implode(', ');
-                                            }
+                                            } 
 
                                     @endphp
 

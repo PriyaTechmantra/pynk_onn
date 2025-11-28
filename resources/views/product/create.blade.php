@@ -289,7 +289,7 @@
         </div>
         <div class="col-sm-3">
 			<div class="card shadow-sm">
-                <div class="card-header" style="background: #dc3545 ; color: #fff;">
+                <div class="card-header" style="background: #fff ; color: #fff;">
                     <h6>Product Main Image <span class="text-danger">*</span></h6>
                 </div>
                 <div class="card-body">
