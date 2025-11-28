@@ -154,7 +154,7 @@
                                             ];
 
                                             // Collect brand IDs from items (avoid duplicates)
-                                            $brands = [$item->brand];
+                                            $brands = [$item->team_brand];
                                             
                                             // Determine brand permissions
                                             if (in_array(3, $brands)) {
