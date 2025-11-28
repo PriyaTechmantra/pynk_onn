@@ -137,9 +137,7 @@
                                             if (in_array(3, $brands)) {
                                                 // If any brand is "Both"
                                                 $brandPermissions = 'Both';
-                                            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
-                                                // If both ONN and PYNK exist
-                                                $brandPermissions = 'Both';
+                                            
                                             } elseif (in_array(1, $brands)) {
                                                 $brandPermissions = 'ONN';
                                             } elseif (in_array(2, $brands)) {
