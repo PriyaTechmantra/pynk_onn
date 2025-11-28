@@ -1709,7 +1709,69 @@ public function aseSalesreport(Request $request)
     				sendNotification($collectedData['user_id'], $brandValue, $value->vp_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
     			}
     
-    
+                $today = date('Y-m-d');
+
+                foreach ($cart_count as $cartValue) {
+
+                    $checkSecOrder = SecondaryOrder::where('retailer_id', $collectedData['store_id'])
+                        ->where('brand', $brandValue)
+                        ->where('collection_id', $cartValue->product->collection_id)
+                        ->where('cat_id', $cartValue->product->cat_id)
+                        ->where('product_id', $cartValue->product_id)
+                        ->where('order_date', $today)
+                        ->first();
+
+                    if ($checkSecOrder) {
+                        // ✔ Update qty (add if needed)
+                        $checkSecOrder->qty += $cartValue->qty;
+                        $checkSecOrder->save();
+                    } else {
+                        // ✔ Insert new record
+                        $checkOrder = new SecondaryOrder();
+                        $checkOrder->retailer_id   = $collectedData['store_id'];
+                        $checkOrder->brand         = $brandValue;
+                        $checkOrder->collection_id = $cartValue->product->collection_id;
+                        $checkOrder->cat_id        = $cartValue->product->cat_id;
+                        $checkOrder->product_id    = $cartValue->product_id;
+                        $checkOrder->qty           = $cartValue->qty;
+                        $checkOrder->order_date    = $today;
+                        $checkOrder->save();
+                    }
+
+
+
+                    $checkASESecOrder = SecondaryAseOrder::where('ase_id', $collectedData['user_id'])
+                        ->where('brand', $brandValue)
+                        ->where('collection_id', $cartValue->product->collection_id)
+                        ->where('cat_id', $cartValue->product->cat_id)
+                        ->where('product_id', $cartValue->product_id)
+                        ->where('order_date', $today)
+                        ->first();
+
+                    if ($checkASESecOrder) {
+                        // ✔ Update qty (add if needed)
+                        $checkASESecOrder->qty += $cartValue->qty;
+                        $checkASESecOrder->save();
+                    } else {
+                        // ✔ Insert new record
+                        $checkAseOrder = new SecondaryAseOrder();
+                        $checkAseOrder->ase_id   = $collectedData['user_id'];
+                        $checkAseOrder->brand         = $brandValue;
+                        $checkAseOrder->collection_id = $cartValue->product->collection_id;
+                        $checkAseOrder->cat_id        = $cartValue->product->cat_id;
+                        $checkAseOrder->product_id    = $cartValue->product_id;
+                        $checkAseOrder->qty           = $cartValue->qty;
+                        $checkAseOrder->order_date    = $today;
+                        $checkAseOrder->save();
+                    }
+
+
+
+
+                }
+
+
+
                 return response()->json(['error'=>false, 'resp'=>'Order placed successfully','data'=>$newEntry]);
             }else{
                 return response()->json(['error'=>true, 'resp'=>'cart empty']);
