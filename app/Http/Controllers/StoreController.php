@@ -814,11 +814,30 @@ class StoreController extends Controller
         $callback = function() use ($data) {
             $file = fopen('php://output', 'w');
 
-            fputcsv($file, ['#', 'Name', 'Store Name', 'Reason', 'Location', 'Date']);
+            fputcsv($file, ['#', 'Brand','Name', 'Store Name', 'Reason', 'Location', 'Date']);
 
             foreach ($data as $index => $item) {
+
+                $assignedPermissions = [$item->brand];
+
+                    $brandMap = [
+                        1 => 'ONN',
+                        2 => 'PYNK',
+                        3 => 'Both',
+                    ];
+
+                    if (in_array(3, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } elseif (in_array(1, $assignedPermissions) && in_array(2, $assignedPermissions)) {
+                        $brandPermissions = 'Both';
+                    } else {
+                        $brandPermissions = collect($assignedPermissions)
+                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                        ->implode(', ');
+                    }
                 fputcsv($file, [
                     $index + 1,
+                    $brandPermissions,
                     $item->user ? $item->user->name : '',
                     $item->store ? $item->store->name : '',
                     $item->comment .'|'.$item->description,
