@@ -77,7 +77,7 @@ class DistributorController extends Controller
                 } else {
                     // single brand selected → include that + both
                     $q->where('distributors.brand', $request->brand)
-                    ->orWhere('distributors.brand', 3);
+                    ;
                 }
             });
         } else {
@@ -538,7 +538,7 @@ class DistributorController extends Controller
                 } else {
                     // single brand selected → include that + both
                     $q->where('distributors.brand', $request->brand)
-                    ->orWhere('distributors.brand', 3);
+                    ;
                 }
             });
         } else {
@@ -815,7 +815,7 @@ class DistributorController extends Controller
                 } else {
                     // single brand selected → include that + both
                     $q->where('distributors.brand', $request->brand)
-                    ->orWhere('distributors.brand', 3);
+                    ;
                 }
             });
         } else {
