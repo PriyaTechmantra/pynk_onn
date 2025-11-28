@@ -69,6 +69,7 @@
                                 <thead>
                                     <tr>
                                         <th class="index-col">#</th>
+                                         <th>Brand</th>
                                         <th class="text-center"><i class="fi fi-br-picture"></i></th>
                                         <th>Title</th>
                                         <th>Products</th>
@@ -90,6 +91,41 @@
                                     @endphp
                                     <tr>
                                         <td>{{ $index+1 }}</td>
+                                        <td>
+                                            @php
+                                                
+
+                                            $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
+
+                                            // Collect brand IDs from items (avoid duplicates)
+                                            $brands = $data->pluck('brand')->unique()->toArray();
+
+                                            // Determine brand permissions
+                                            if (in_array(3, $brands)) {
+                                                // If any brand is "Both"
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                                // If both ONN and PYNK exist
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $brands)) {
+                                                $brandPermissions = 'ONN';
+                                            } elseif (in_array(2, $brands)) {
+                                                $brandPermissions = 'PYNK';
+                                            } else {
+                                                // Fallback for unexpected values
+                                                $brandPermissions = collect($brands)
+                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                    ->implode(', ');
+                                            }
+
+                                    @endphp
+
+                                           {{ $brandPermissions ?? '' }}
+                                        </td>
                                         <td class="text-center column-thumb">
                                             <img src="{{ asset($item->icon_path) }}" style="max-width: 80px;max-height: 80px;">
                                         </td>
