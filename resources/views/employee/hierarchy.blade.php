@@ -132,6 +132,7 @@
                                 <tbody>
                                     
                                     @forelse ($data as $index => $item)
+                                    {{dd($data)}}
                                         @php
                                             $findTeamDetails = findTeamDetails($item->id, $item->type);
                                            
