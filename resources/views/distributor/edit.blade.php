@@ -112,7 +112,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                     </div>
                                     <div class="mb-3">
                                         <label class="label-control">Password <span class="text-danger">*</span> </label>
-                                        <input type="password" name="password" placeholder="" class="form-control" value="{{old('password',$data->password)}}">
+                                        <input type="password" name="password" placeholder="" class="form-control" value="">
                                         @error('password') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
                                     @if($brandPermissions=='Both')
