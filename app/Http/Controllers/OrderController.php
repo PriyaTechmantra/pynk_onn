@@ -488,7 +488,7 @@ class OrderController extends Controller
 
 public function secondaryOrderReport(Request $request)
 {
-    $user = auth()->user();
+        $user = auth()->user();
 
     // USER BRAND PERMISSIONS
     $userBrands = DB::table('user_permission_categories')
@@ -586,22 +586,74 @@ public function secondaryOrderReport(Request $request)
     // GET DATA
     $data = (object)[];
     $data->all_orders = $query->latest('orders.id')->paginate(50);
+   //dd($query->toRawSql());
+    // ✅ Debug check (remove later)
+    // dd($data->all_orders);
 
-    // FETCH DROPDOWN DATA
-    $product = Product::where('status',1)
-        ->where('is_deleted',0)
-        ->whereIn('brand',$brandsToShow)
+    // ✅ Supporting data
+    $allASEs = Employee::where('type', 4)
+        ->whereIn('brand', $brandsToShow)
+        ->where('status', 1)
+        ->where('is_deleted', 0)
+        ->orderBy('name')
+        ->get();
+
+    $allASMs = Employee::where('type', 3)
+        ->whereIn('brand', $brandsToShow)
+        ->where('status', 1)
+        ->where('is_deleted', 0)
+        ->orderBy('name')
+        ->get();
+
+    $allRSMs = Employee::where('type', 2)
+        ->whereIn('brand', $brandsToShow)
+        ->where('status', 1)
+        ->where('is_deleted', 0)
+        ->orderBy('name')
+        ->get();
+
+    $allVPs = Employee::where('type', 1)
+        ->whereIn('brand', $brandsToShow)
+        ->where('status', 1)
+        ->where('is_deleted', 0)
+        ->orderBy('name')
+        ->get();
+
+    $allDistributors = Distributor::where('status', 1)
+        ->whereIn('brand', $brandsToShow)
+        ->where('is_deleted', 0)
+        ->orderBy('name')
+        ->get();
+
+    $allStores = Store::where('status', 1)
+        ->whereIn('brand', $brandsToShow)
+        ->where('is_deleted', 0)
+        ->orderBy('name')
+        ->get();
+
+    $state = State::where('status', 1)
+        ->where('is_deleted', 0)
+        ->orderBy('name')
+        ->get();
+
+    $product = Product::where('status', 1)->where('is_deleted', 0)
+        ->whereIn('brand', $brandsToShow)
         ->orderBy('style_no')
         ->get();
 
-    $state = State::where('status',1)->where('is_deleted',0)->orderBy('name')->get();
-    $allStores = Store::where('status',1)->where('is_deleted',0)->orderBy('name')->get();
-
     return view('order.secondary-order-report', compact(
-        'data','product','state','request','allStores'
+        'data',
+        'product',
+        'allASEs',
+        'state',
+        'request',
+        'allStores',
+        'allASMs',
+        'allRSMs',
+        'allVPs',
+        'allDistributors'
     ));
 }
-
 
 
 public function secondaryOrderReportExport(Request $request)
