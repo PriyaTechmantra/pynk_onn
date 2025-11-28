@@ -121,31 +121,28 @@
                                     <tr>
                                         <td>{{ $index+1 }}</td>
                                         <td>
-                                            @php
-                                                // Brand map (optional)
-                                                $brandMap = [
-                                                    1 => 'ONN',
-                                                    2 => 'PYNK',
-                                                    3 => 'Both',
-                                                ];
+                                             @php
+                                               
 
-                                                // Collect brand IDs (remove null + unique)
-                                                $brands = $item->pluck('brand')->filter()->unique()->values()->toArray();
+                                            $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
 
-                                                // Default
-                                                $brandPermissions = null;
+                                            $brands = [$item->brand];
 
-                                                // Priority check
-                                                if (in_array(3, $brands)) {
-                                                    $brandPermissions = 'Both';
-                                                } elseif (in_array(1, $brands)) {
-                                                    $brandPermissions = 'ONN';
-                                                } elseif (in_array(2, $brands)) {
-                                                    $brandPermissions = 'PYNK';
-                                                } else {
-                                                    $brandPermissions = 'N/A'; // fallback if none found
-                                                }
-                                            @endphp
+                                    // Check conditions
+                                        if (in_array(3, $brands)) {
+                                            $brandPermissions = 'Both';
+                                        } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                            $brandPermissions = 'Both';
+                                        } else {
+                                            $brandPermissions = collect($brands)
+                                                ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                                ->implode(', ');
+                                        }
+                                    @endphp
 
                                            {{ $brandPermissions ?? '' }}
                                         </td>
