@@ -1921,7 +1921,7 @@ public function index(Request $request): View
         $user = auth()->user();
     
         // Base query
-        $query = Employee::select('employees.*','teams.brand')->join('teams', 'teams.ase_id', '=', 'employees.id')->distinct();
+        $query = Employee::select('employees.*','teams.brand AS team_brand')->join('teams', 'teams.ase_id', '=', 'employees.id')->distinct();
 
         /**
          * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
