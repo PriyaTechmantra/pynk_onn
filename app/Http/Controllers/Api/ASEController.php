@@ -1008,7 +1008,7 @@ public function aseSalesreport(Request $request)
                     p.brand AS brand_id
                 FROM products AS p
                 INNER JOIN categories AS c ON c.id = p.cat_id
-                WHERE p.collection_id = ?
+                WHERE p.collection_id = ? AND c.status=1
                 ORDER BY c.position ASC
             ", [$id]);
 
@@ -1021,7 +1021,7 @@ public function aseSalesreport(Request $request)
                     p.image AS product_image,
                     p.brand AS brand_id
                 FROM products AS p
-                WHERE p.collection_id = ?
+                WHERE p.collection_id = ? AND p.status=1
                 ORDER BY p.position ASC
             ", [$id]);
         } else {
@@ -1034,6 +1034,7 @@ public function aseSalesreport(Request $request)
                     p.brand AS brand_id
                 FROM products AS p
                 INNER JOIN categories AS c ON c.id = p.cat_id
+                WHERE c.status=1
                 ORDER BY c.position ASC
             ");
 
@@ -1046,6 +1047,7 @@ public function aseSalesreport(Request $request)
                     p.brand AS brand_id
                 FROM products AS p
                 INNER JOIN collections AS c ON p.collection_id = c.id
+                 WHERE p.status=1
                 ORDER BY c.position ASC, p.position ASC
             ");
         }
@@ -7490,6 +7492,11 @@ public function aseSalesreport(Request $request)
             return response()->json(['status' => false, 'message' => 'Something happened']);
         }
     }
+
+
+
+
+
 
 
 
