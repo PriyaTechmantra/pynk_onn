@@ -391,7 +391,7 @@ class DistributorController extends Controller
                     }
                 
             });
-            $data->allASE = $query3->groupBy('name')
+            $data->allASE = $query4->groupBy('name')
                 ->orderBy('id', 'desc')
                 ->paginate(25);
        
