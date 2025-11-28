@@ -2565,6 +2565,37 @@ public function aseSalesreport(Request $request)
     			foreach($zsm as $value){
     				sendNotification($collectedData['user_id'], $brandValue, $value->vp_id, 'primary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$loggedInUser ,$totalOrderQty.' new order placed from  '.$name);
     			}
+
+
+                $today = date('Y-m-d');
+
+                foreach ($cart_count as $cartValue) {
+
+                    $checkSecOrder = PrimaryOrder::where('distributor_id', $collectedData['distributor_id'])
+                        ->where('brand', $brandValue)
+                        ->where('collection_id', $cartValue->product->collection_id)
+                        ->where('cat_id', $cartValue->product->cat_id)
+                        ->where('product_id', $cartValue->product_id)
+                        ->where('order_date', $today)
+                        ->first();
+
+                    if ($checkSecOrder) {
+                        // ✔ Update qty (add if needed)
+                        $checkSecOrder->qty += $cartValue->qty;
+                        $checkSecOrder->save();
+                    } else {
+                        // ✔ Insert new record
+                        $checkOrder = new SecondaryOrder();
+                        $checkOrder->distributor_id   = $collectedData['distributor_id'];
+                        $checkOrder->brand         = $brandValue;
+                        $checkOrder->collection_id = $cartValue->product->collection_id;
+                        $checkOrder->cat_id        = $cartValue->product->cat_id;
+                        $checkOrder->product_id    = $cartValue->product_id;
+                        $checkOrder->qty           = $cartValue->qty;
+                        $checkOrder->order_date    = $today;
+                        $checkOrder->save();
+                    }
+                }
     
     
                 return response()->json(['error'=>false, 'resp'=>'Order placed successfully','data'=>$newEntry]);
@@ -5442,7 +5473,35 @@ public function aseSalesreport(Request $request)
                 // notification to ASE
                 sendNotification($collectedData['user_id'], $brandValue, 'admin', 'primary-order-place', 'front.user.order', $totalOrderQty.' New order placed',$totalOrderQty.' new order placed  '.$name);
     
-    
+                $today = date('Y-m-d');
+
+                foreach ($cart_count as $cartValue) {
+
+                    $checkSecOrder = PrimaryOrder::where('distributor_id', $collectedData['distributor_id'])
+                        ->where('brand', $brandValue)
+                        ->where('collection_id', $cartValue->product->collection_id)
+                        ->where('cat_id', $cartValue->product->cat_id)
+                        ->where('product_id', $cartValue->product_id)
+                        ->where('order_date', $today)
+                        ->first();
+
+                    if ($checkSecOrder) {
+                        // ✔ Update qty (add if needed)
+                        $checkSecOrder->qty += $cartValue->qty;
+                        $checkSecOrder->save();
+                    } else {
+                        // ✔ Insert new record
+                        $checkOrder = new SecondaryOrder();
+                        $checkOrder->distributor_id   = $collectedData['distributor_id'];
+                        $checkOrder->brand         = $brandValue;
+                        $checkOrder->collection_id = $cartValue->product->collection_id;
+                        $checkOrder->cat_id        = $cartValue->product->cat_id;
+                        $checkOrder->product_id    = $cartValue->product_id;
+                        $checkOrder->qty           = $cartValue->qty;
+                        $checkOrder->order_date    = $today;
+                        $checkOrder->save();
+                    }
+                }
     
     
                 return response()->json(['error'=>false, 'resp'=>'Order placed successfully','data'=>$newEntry]);
@@ -7479,7 +7538,46 @@ public function aseSalesreport(Request $request)
     			foreach($zsm as $value){
     				sendNotification($collectedData['store_id'], $brandValue, $value->vp_id, 'secondary-order-place', 'front.user.order', $totalOrderQty.' new order placed by ' .$name ,$totalOrderQty.' new order placed from  '.$name);
     			}
-    
+                
+
+
+                $today = date('Y-m-d');
+
+                foreach ($cart_count as $cartValue) {
+
+                    $checkSecOrder = SecondaryOrder::where('retailer_id', $collectedData['store_id'])
+                        ->where('brand', $brandValue)
+                        ->where('collection_id', $cartValue->product->collection_id)
+                        ->where('cat_id', $cartValue->product->cat_id)
+                        ->where('product_id', $cartValue->product_id)
+                        ->where('order_date', $today)
+                        ->first();
+
+                    if ($checkSecOrder) {
+                        // ✔ Update qty (add if needed)
+                        $checkSecOrder->qty += $cartValue->qty;
+                        $checkSecOrder->save();
+                    } else {
+                        // ✔ Insert new record
+                        $checkOrder = new SecondaryOrder();
+                        $checkOrder->retailer_id   = $collectedData['store_id'];
+                        $checkOrder->brand         = $brandValue;
+                        $checkOrder->collection_id = $cartValue->product->collection_id;
+                        $checkOrder->cat_id        = $cartValue->product->cat_id;
+                        $checkOrder->product_id    = $cartValue->product_id;
+                        $checkOrder->qty           = $cartValue->qty;
+                        $checkOrder->order_date    = $today;
+                        $checkOrder->save();
+                    }
+
+
+
+                    
+
+
+
+
+                }
     
                 return response()->json(['status'=>true, 'message'=>'Order placed successfully','data'=>$newEntry]);
             }else{
