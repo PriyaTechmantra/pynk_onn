@@ -128,12 +128,7 @@ class BarcodeController extends Controller
             $storeData->max_time_one_can_use = $request['max_time_one_can_use'];
             $storeData->start_date = $request['start_date'];
             $storeData->end_date = $request['end_date'];
-			if(Auth::guard('admin')->user()->email=='testprinter@gmail.com')
-			{
-				 $storeData->is_print = 1;
-			}else{
-				$storeData->is_print = 0;
-			}
+			
     		// Generate and assign serial number
             $serialNumber = $lastSerial++; // Increment serial number for each entry
             if ($serialNumber <= 999999) {
