@@ -1990,7 +1990,7 @@ public function index(Request $request): View
         $user = auth()->user();
     
         // Base query
-        $query = Employee::select('employees.*')->join('teams', 'teams.ase_id', '=', 'employees.id')->distinct();
+        $query = Employee::select('employees.*','teams.brand AS team_brand')->join('teams', 'teams.ase_id', '=', 'employees.id')->distinct();
 
         /**
          * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
@@ -1999,10 +1999,10 @@ public function index(Request $request): View
             $query->where(function ($q) use ($request) {
                 if ($request->brand == 3) {
                     // “Both” selected → show ONN (1), PYNK (2), and Both (3)
-                    $q->whereIn('employees.brand', [1, 2, 3]);
+                    $q->whereIn('teams.brand', [1, 2, 3]);
                 } else {
                     // single brand selected → include that + both
-                    $q->where('employees.brand', $request->brand)
+                    $q->where('teams.brand', $request->brand)
                     ;
                 }
             });
@@ -2017,10 +2017,10 @@ public function index(Request $request): View
                 $query->where(function ($q) use ($userBrandPermissions) {
                     if (in_array(3, $userBrandPermissions)) {
                         // user has both brand permission
-                        $q->whereIn('employees.brand', [1, 2, 3]);
+                        $q->whereIn('teams.brand', [1, 2, 3]);
                     } else {
                         // user has limited brand(s)
-                        $q->whereIn('employees.brand', array_merge($userBrandPermissions, [3]));
+                        $q->whereIn('teams.brand', array_merge($userBrandPermissions, [3]));
                     }
                 });
             }
@@ -2061,7 +2061,7 @@ public function index(Request $request): View
             $count = 1;
 
             foreach($data as $row) {
-               $assignedPermissions = [$row->brand];
+               $assignedPermissions = [$row->team_brand];
 
                     $brandMap = [
                         1 => 'ONN',
@@ -2069,15 +2069,26 @@ public function index(Request $request): View
                         3 => 'Both',
                     ];
 
-                    if (in_array(3, $assignedPermissions)) {
-                        $brandPermissions = 'Both';
-                    } elseif (in_array(1, $assignedPermissions) && in_array(2, $assignedPermissions)) {
-                        $brandPermissions = 'Both';
-                    } else {
-                        $brandPermissions = collect($assignedPermissions)
-                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
-                        ->implode(', ');
-                    }
+                    
+
+
+                    // Determine brand permissions
+                                            if (in_array(3, $assignedPermissions)) {
+                                                // If any brand is "Both"
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $assignedPermissions) && in_array(2, $assignedPermissions)) {
+                                                // If both ONN and PYNK exist
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $assignedPermissions)) {
+                                                $brandPermissions = 'ONN';
+                                            } elseif (in_array(2, $assignedPermissions)) {
+                                                $brandPermissions = 'PYNK';
+                                            } else {
+                                                // Fallback for unexpected values
+                                                $brandPermissions = collect($assignedPermissions)
+                                                    ->map(fn($brand) => $brandMap[$brand] ?? 'Unknown')
+                                                    ->implode(', ');
+                                            }
                 $findTeamDetails= findTeamDetails($row->id, $row->type);
                 $lineData = array(
                     $count,
