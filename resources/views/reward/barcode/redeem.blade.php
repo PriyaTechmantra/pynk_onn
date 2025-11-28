@@ -145,7 +145,42 @@
                                         <tr>
                                             <td>{{ $index + $data->firstItem() }}</td>
 
-                                            <td>{{ $item->name }}</td>
+                                            <td>
+                                                {{ $item->name }}
+                                                @php
+                                                
+
+                                            $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
+
+                                            // Collect brand IDs from items (avoid duplicates)
+                                            $brands = [$item->brand];
+                                            
+                                            // Determine brand permissions
+                                            if (in_array(3, $brands)) {
+                                                // If any brand is "Both"
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                                // If both ONN and PYNK exist
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $brands)) {
+                                                $brandPermissions = 'ONN';
+                                            } elseif (in_array(2, $brands)) {
+                                                $brandPermissions = 'PYNK';
+                                            } else {
+                                                // Fallback for unexpected values
+                                                $brandPermissions = collect($brands)
+                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                    ->implode(', ');
+                                            }
+
+                                        @endphp
+
+                                               ({{ $brandPermissions ?? '' }})
+                                            </td>
 
                                             <td>{{ $item->code }}</td>
 
