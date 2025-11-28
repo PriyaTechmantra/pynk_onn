@@ -6730,10 +6730,7 @@ public function aseSalesreport(Request $request)
             }else{
                 
                    $resp = RetailerUserTxnHistory::where('user_id',$userId)->orderby('id','desc')->with('qrcode')->paginate($perPage);
-                   $resp = $stores->map(function ($store) use ($brandMap) {
-                        $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
-                        return $store;
-                    });
+                   
             }
             return response()->json([
                 'status' => true,
