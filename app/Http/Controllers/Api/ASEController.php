@@ -2585,7 +2585,7 @@ public function aseSalesreport(Request $request)
                         $checkSecOrder->save();
                     } else {
                         // ✔ Insert new record
-                        $checkOrder = new SecondaryOrder();
+                        $checkOrder = new PrimaryOrder();
                         $checkOrder->distributor_id   = $collectedData['distributor_id'];
                         $checkOrder->brand         = $brandValue;
                         $checkOrder->collection_id = $cartValue->product->collection_id;
@@ -5491,7 +5491,7 @@ public function aseSalesreport(Request $request)
                         $checkSecOrder->save();
                     } else {
                         // ✔ Insert new record
-                        $checkOrder = new SecondaryOrder();
+                        $checkOrder = new PrimaryOrder();
                         $checkOrder->distributor_id   = $collectedData['distributor_id'];
                         $checkOrder->brand         = $brandValue;
                         $checkOrder->collection_id = $cartValue->product->collection_id;
