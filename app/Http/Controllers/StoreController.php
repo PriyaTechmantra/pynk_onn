@@ -707,7 +707,7 @@ class StoreController extends Controller
                     $q->whereIn('user_no_order_reasons.brand', [1, 2, 3]);
                 } else {
                     // single brand selected → include that + both
-                    $q->where('user_no_order_reasons.brand', $request->brand)
+                    $q->where('user_no_order_reasons.brand', $request->brand_selection)
                     ->orWhere('user_no_order_reasons.brand', 3);
                 }
             });
