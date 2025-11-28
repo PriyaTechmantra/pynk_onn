@@ -140,7 +140,7 @@ class RetailerOrderController extends Controller
         }
 
         // Define the CSV filename
-        $filename = 'retailer_orders_' . date('Ymd_His') . '.csv';
+        $filename = 'reward_orders_' . date('Ymd_His') . '.csv';
 
         // Create CSV headers
         $headers = [
@@ -151,13 +151,14 @@ class RetailerOrderController extends Controller
         $columns = [
             'S.No',
             'Order No',
-            'Shop Name',
+            'Store Name',
             'Email',
             'Mobile',
             'Product',
             'Quantity',
             'Final Amount',
             'Status',
+            'Product Status',
             'Order Date'
         ];
 
