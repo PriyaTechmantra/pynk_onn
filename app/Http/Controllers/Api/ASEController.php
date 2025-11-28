@@ -6696,7 +6696,7 @@ public function aseSalesreport(Request $request)
                 
                     $limit=20;
                    
-                    $resp = RetailerUserTxnHistory::where('user_id',$userId)->where('type','barcode scan')->groupby('barcode_id')->orderby('id','desc')->with('qrcode')->paginate($perPage);
+                    $resp = RetailerUserTxnHistory::where('user_id',$userId)->where('type','Qrcode scan')->groupby('barcode_id')->orderby('id','desc')->with('qrcode')->paginate($perPage);
                     
                 
             }
@@ -6730,7 +6730,10 @@ public function aseSalesreport(Request $request)
             }else{
                 
                    $resp = RetailerUserTxnHistory::where('user_id',$userId)->orderby('id','desc')->with('qrcode')->paginate($perPage);
-                    
+                   $resp = $stores->map(function ($store) use ($brandMap) {
+                        $store->brand_name = $brandMap[$store->brand] ?? null; // readable brand name
+                        return $store;
+                    });
             }
             return response()->json([
                 'status' => true,
