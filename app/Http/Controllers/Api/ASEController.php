@@ -6697,8 +6697,15 @@ public function aseSalesreport(Request $request)
                     $limit=20;
                    
                     $resp = RetailerUserTxnHistory::where('user_id',$userId)->where('type','Qrcode scan')->groupby('barcode_id')->orderby('id','desc')->with('qrcode')->paginate($perPage);
-                    
-                
+                    $brandMap = [1 => 'ONN', 2 => 'PYNK', 3 => 'Both'];
+
+                    $resp->getCollection()->transform(function ($item) use ($brandMap) {
+                        if ($item->qrcode) {
+                            $item->qrcode->brand_name = $brandMap[$item->qrcode->brand] ?? 'Unknown';
+                        }
+                        return $item;
+                    });
+                                    
             }
             return response()->json([
                 'status' => true,
