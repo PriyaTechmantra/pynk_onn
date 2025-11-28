@@ -126,7 +126,7 @@
                                             $brands = $data->pluck('brand')->unique()->toArray();
 
                                             // Determine brand permissions
-                                            if (in_array(3, $brands)) {
+                                        if (in_array(3, $brands)) {
                                             $brandPermissions = 'Both';
                                         
                                         } else {
