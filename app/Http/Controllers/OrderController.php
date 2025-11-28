@@ -558,12 +558,13 @@ public function secondaryOrderReport(Request $request)
             'rsm_emp.name as rsm_name',
             'vp_emp.name as vp_name'
         )
+        ->join('orders', 'orders.id', '=', 'order_products.order_id')
         ->join('products', 'products.id', '=', 'order_products.product_id')
         ->join('collections', 'collections.id', '=', 'products.collection_id')
         ->join('categories', 'categories.id', '=', 'products.cat_id')
         ->join('colors', 'colors.id', '=', 'order_products.color_id')
         ->join('sizes', 'sizes.id', '=', 'order_products.size_id')
-        ->join('orders', 'orders.id', '=', 'order_products.order_id')
+        
         ->join('stores', 'stores.id', '=', 'orders.store_id')
         ->join('teams', 'stores.id', '=', 'teams.store_id')
         ->join('employees', 'employees.id', '=', 'orders.user_id')
