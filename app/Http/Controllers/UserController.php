@@ -27,7 +27,7 @@ class UserController extends Controller
 
     public function create()
     {
-        $roles = Role::pluck('name','name')->all();
+        $roles = Role::where('is_deleted',0)->pluck('name','name')->all();
         
        
         return view('role-permission.user.create', ['roles' => $roles]);
@@ -70,7 +70,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $roles = Role::pluck('name','name')->all();
+        $roles = Role::where('is_deleted',0)->pluck('name','name')->all();
         $userRoles = $user->roles->pluck('name','name')->all();
         return view('role-permission.user.edit', [
             'user' => $user,

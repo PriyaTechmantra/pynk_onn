@@ -42,7 +42,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="">Roles</label>
-                                        <select name="roles[]" class="form-control" multiple>
+                                        <select name="roles" class="form-control">
                                             <option value="">Select Role</option>
                                             @foreach ($roles as $role)
                                             @php
