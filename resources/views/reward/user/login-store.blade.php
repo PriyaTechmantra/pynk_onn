@@ -135,7 +135,7 @@
                                     if ($item->status == 1) continue;
                                     }
                                     }
-                                    $distName = \App\Models\Team::select('users.name')->join('users', 'users.id', 'teams.distributor_id')->where('store_id', $item->id)->first();
+                                    $distName = \App\Models\Team::select('distributors.name')->join('distributors', 'distributors.id', 'teams.distributor_id')->where('store_id', $item->id)->first();
                                     $storename = \App\Models\Team::where('store_id', $item->id)->first();
                                     @endphp
                                     <tr>
