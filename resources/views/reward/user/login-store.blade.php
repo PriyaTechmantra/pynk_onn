@@ -119,7 +119,7 @@
                                         <th>Distributor</th>
                                         <th>Address</th>
                                         <th>Date</th>
-                                        <th>Approval</th>
+                                        
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
