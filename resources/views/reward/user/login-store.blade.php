@@ -170,9 +170,7 @@
                                         <td>{{ ucwords($item->address) }}<br>{{ $item->areas->name ??'' }}<br>{{ $item->areas->name ??''}}<br>{{ $item->states->name ??''}}</td>
                                         <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y g:i:s A')}}
                                         </td>
-                                        <td>
-                                            <span class="badge bg-secondary">Waiting for approval </span>
-                                        </td>
+                                       
                                         <td><span class="badge bg-{{($item->status == 1) ? 'success' : 'danger'}}">{{($item->status == 1) ? 'Active' : 'Inactive'}}</span></td>
                                         <td>
 
