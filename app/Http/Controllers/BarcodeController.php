@@ -103,7 +103,7 @@ class BarcodeController extends Controller
     // FINAL RESULT
     // -------------------------------
     $data = $query->select('retailer_barcodes.*')
-                  ->distinct('name')
+                  ->groupBy('name')
                   ->orderBy('id', 'desc')
                   ->paginate(25);
 
