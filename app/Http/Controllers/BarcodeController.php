@@ -287,16 +287,47 @@ class BarcodeController extends Controller
             $f = fopen('php://memory', 'w'); 
 
             // Set column headers 
-            $fields = array('SR', 'CODE','NOTE'); 
+            $fields = array('SR', 'BRAND','CODE','NOTE'); 
             fputcsv($f, $fields, $delimiter); 
 
             $count = 1;
 
             foreach($data as $row) {
                // $datetime = date('j F, Y h:i A', strtotime($row['created_at']));
+                
+                                                
 
+                        $brandMap = [
+                            1 => 'ONN',
+                            2 => 'PYNK',
+                            3 => 'Both',
+                        ];
+
+                    // Collect brand IDs from items (avoid duplicates)
+                    $brands = [$row->brand];
+                    
+                    // Determine brand permissions
+                    if (in_array(3, $brands)) {
+                        // If any brand is "Both"
+                        $brandPermissions = 'Both';
+                    } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                        // If both ONN and PYNK exist
+                        $brandPermissions = 'Both';
+                    } elseif (in_array(1, $brands)) {
+                        $brandPermissions = 'ONN';
+                    } elseif (in_array(2, $brands)) {
+                        $brandPermissions = 'PYNK';
+                    } else {
+                        // Fallback for unexpected values
+                        $brandPermissions = collect($brands)
+                            ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                            ->implode(', ');
+                    }
+
+                                                    
                 $lineData = array(
                     $count,
+                    $brandPermissions ?? '',
                     $row['code'],
                     $row['note'],
                 );
