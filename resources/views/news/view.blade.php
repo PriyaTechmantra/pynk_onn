@@ -32,26 +32,29 @@
                                             <h3 class="text-dark font-weight-bold">{{ $data->title }}</h3>
                                             <p>Status:<span class="btn {{ $data->status == '1' ? 'btn-success' : 'btn-danger'}}">{{ $data->status == '1' ? 'Active' : 'Inactive'}}</span></p>
                                             @php
-                                            $roles = [
-                                                1 => 'VP',
-                                                2 => 'RSM',
-                                                3 => 'ASM',
-                                                4 => 'ASE',
-                                            ];
+                                                $roles = [
+                                                    1 => 'VP',
+                                                    2 => 'RSM',
+                                                    3 => 'ASM',
+                                                    4 => 'ASE',
+                                                ];
 
-                                            $userTypes = is_array($data->user_type) ? $data->user_type : json_decode($data->user_type, true);
-                                            $roleNames = [];
+                                                $userTypes = is_array($data->user_type)
+                                                    ? $data->user_type
+                                                    : explode(',', $data->user_type);
 
-                                            if (is_array($userTypes)) {
-                                                foreach ($userTypes as $type) {
-                                                    $roleNames[] = $roles[$type] ?? $type;
+                                                $roleNames = [];
+
+                                                if (is_array($userTypes)) {
+                                                    foreach ($userTypes as $type) {
+                                                        $roleNames[] = $roles[$type] ?? $type;
+                                                    }
                                                 }
-                                            }
-                                        @endphp
+                                                @endphp
 
-                                        <p class="small">
-                                            Access For: {{ implode(', ', $roleNames) ?: 'N/A' }}
-                                        </p>
+                                                <p class="small">
+                                                    Access For: {{ implode(', ', $roleNames) ?: 'N/A' }}
+                                                </p>
                                             <img src="{{ asset($data->image) }}" alt="" style="height: 150px">
                                             <br>
                                             <a class="btn btn-primary" href="{{ asset($data->pdf) }}" target="_blank">View PDF</a>
