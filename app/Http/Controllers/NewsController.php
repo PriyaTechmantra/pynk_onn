@@ -163,7 +163,7 @@ class NewsController extends Controller
         $upload_path = "public/uploads/news/";
 
         $storeData->title = $request->title;
-        $storeData->user_type = $request->user_type;
+        $storeData->user_type = implode(',',$request->user_type);
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
         $storeData->brand = $request->brand;
