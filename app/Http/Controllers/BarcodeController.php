@@ -25,88 +25,91 @@ use Auth;
 class BarcodeController extends Controller
 {
     public function index(Request $request)
-    {
-        $user = auth()->user();
-        $userBrands = DB::table('user_permission_categories')
-                ->where('user_id', Auth::id())
-                ->pluck('brand')
-                ->toArray();
-        
-            $brandsToShow = [];
+{
+    $user = auth()->user();
 
-            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
-                // Both brands access
-                $brandsToShow = [1, 2, 3];
-            } elseif (in_array(1, $userBrands)) {
-                $brandsToShow = [1];
-            } elseif (in_array(2, $userBrands)) {
-                $brandsToShow = [2];
-            }
-        $query = RetailerBarcode::query();
+    // -------------------------------
+    // USER BRAND PERMISSIONS
+    // -------------------------------
+    $userBrands = DB::table('user_permission_categories')
+        ->where('user_id', $user->id)
+        ->pluck('brand')
+        ->toArray();
 
-        // Search filter
-        if (!empty($request->term)) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'LIKE', '%' . $request->term . '%')
-                ->orWhere('code', 'LIKE', '%' . $request->term . '%');
-            });
-        }
-
-        // Brand filter
-        if ($request->filled('brand_selection')) {
-            $query->where(function ($q) use ($request) {
-                if ($request->brand_selection == 3) {
-                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
-                    $q->whereIn('retailer_barcodes.brand', [1, 2, 3]);
-                } else {
-                    // single brand selected → include that + both
-                    $q->where('retailer_barcodes.brand', $request->brand_selection)
-                    ->orWhere('retailer_barcodes.brand', 3);
-                }
-            });
-        } else {
-            // if brand not selected — show according to user permission
-            $userBrandPermissions = DB::table('user_permission_categories')
-                ->where('user_id', $user->id)
-                ->pluck('brand')
-                ->toArray();
-
-            if (!empty($userBrandPermissions)) {
-                $query->where(function ($q) use ($userBrandPermissions) {
-                    if (in_array(3, $userBrandPermissions)) {
-                        // user has both brand permission
-                        $q->whereIn('retailer_barcodes.brand', [1, 2, 3]);
-                    } else {
-                        // user has limited brand(s)
-                        $q->whereIn('retailer_barcodes.brand', array_merge($userBrandPermissions, [3]));
-                    }
-                });
-            }
-        }
-
-        // Date filter
-        if (!empty($request->date_from) && !empty($request->date_to)) {
-            $from = $request->date_from;
-            $to = $request->date_to;
-
-            $query->where(function ($q) use ($from, $to) {
-                $q->whereBetween('start_date', [$from, $to])
-                ->orWhereBetween('end_date', [$from, $to])
-                ->orWhere(function ($q2) use ($from, $to) {
-                    $q2->where('start_date', '<=', $from)
-                        ->where('end_date', '>=', $to);
-                });
-            });
-        } elseif (!empty($request->date_from)) {
-            $query->where('end_date', '>=', $request->date_from);
-        } elseif (!empty($request->date_to)) {
-            $query->where('start_date', '<=', $request->date_to);
-        }
-
-        $data = $query->groupBy('name')->orderBy('id', 'desc')->paginate(25);
-       
-        return view('reward.barcode.index', compact('data'));
+    if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+        $brandsToShow = [1, 2, 3];
+    } elseif (in_array(1, $userBrands)) {
+        $brandsToShow = [1, 3];
+    } elseif (in_array(2, $userBrands)) {
+        $brandsToShow = [2, 3];
+    } else {
+        $brandsToShow = [];
     }
+
+    $query = RetailerBarcode::query();
+
+    // -------------------------------
+    // SEARCH
+    // -------------------------------
+    if (!empty($request->term)) {
+        $query->where(function ($q) use ($request) {
+            $q->where('name', 'LIKE', "%{$request->term}%")
+              ->orWhere('code', 'LIKE', "%{$request->term}%");
+        });
+    }
+
+    // -------------------------------
+    // BRAND FILTER
+    // -------------------------------
+    if ($request->filled('brand_selection')) {
+
+        $selected = (int) $request->brand_selection;
+
+        if ($selected == 3) {
+            $query->whereIn('retailer_barcodes.brand', [1, 2, 3]);
+        } else {
+            $query->whereIn('retailer_barcodes.brand', [$selected, 3]);
+        }
+
+    } else {
+        $query->whereIn('retailer_barcodes.brand', $brandsToShow);
+    }
+
+    // -------------------------------
+    // DATE FILTER
+    // -------------------------------
+    if ($request->date_from && $request->date_to) {
+
+        $from = $request->date_from;
+        $to   = $request->date_to;
+
+        $query->where(function ($q) use ($from, $to) {
+            $q->whereBetween('start_date', [$from, $to])
+              ->orWhereBetween('end_date', [$from, $to])
+              ->orWhere(function ($q2) use ($from, $to) {
+                  $q2->where('start_date', '<=', $from)
+                     ->where('end_date', '>=', $to);
+              });
+        });
+
+    } elseif ($request->date_from) {
+        $query->where('end_date', '>=', $request->date_from);
+
+    } elseif ($request->date_to) {
+        $query->where('start_date', '<=', $request->date_to);
+    }
+
+    // -------------------------------
+    // FINAL RESULT
+    // -------------------------------
+    $data = $query->select('retailer_barcodes.*')
+                  ->distinct('name')
+                  ->orderBy('id', 'desc')
+                  ->paginate(25);
+
+    return view('reward.barcode.index', compact('data'));
+}
+
 
 
     public function create(Request $request)
