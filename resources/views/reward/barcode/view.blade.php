@@ -30,7 +30,44 @@
                             <div class="col-md-12">
                                 <p class="small text-muted mt-4 mb-2">Details</p>
                                 <table class="">
+                                    <tr>
+                                                    <td class="text-muted">Brand: </td>
+                                                    <td>
+                                                    @php
+                                                
 
+                                                            $brandMap = [
+                                                                1 => 'ONN',
+                                                                2 => 'PYNK',
+                                                                3 => 'Both',
+                                                            ];
+
+                                                        // Collect brand IDs from items (avoid duplicates)
+                                                        $brands = [$data->brand];
+                                                        
+                                                        // Determine brand permissions
+                                                        if (in_array(3, $brands)) {
+                                                            // If any brand is "Both"
+                                                            $brandPermissions = 'Both';
+                                                        } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                                            // If both ONN and PYNK exist
+                                                            $brandPermissions = 'Both';
+                                                        } elseif (in_array(1, $brands)) {
+                                                            $brandPermissions = 'ONN';
+                                                        } elseif (in_array(2, $brands)) {
+                                                            $brandPermissions = 'PYNK';
+                                                        } else {
+                                                            // Fallback for unexpected values
+                                                            $brandPermissions = collect($brands)
+                                                                ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                                ->implode(', ');
+                                                        }
+
+                                                    @endphp
+
+                                                        {{ $brandPermissions ?? '' }}
+                                                    </td>
+                                                </tr>
                                     <tr>
                                         <td class="text-muted">Points: </td>
                                         <td>{{$data->type == 1 ? $data->amount.' ' : ' '. $data->amount}}</td>
