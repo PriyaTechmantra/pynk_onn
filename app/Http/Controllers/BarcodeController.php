@@ -69,7 +69,7 @@ class BarcodeController extends Controller
             $query->whereIn('retailer_barcodes.brand', [1, 2, 3]);
         } else {
             // single brand selected → include that + both
-                    $q->where('retailer_barcodes.brand', $request->brand_selection)
+                    $query->where('retailer_barcodes.brand', $request->brand_selection)
                     ->orWhere('retailer_barcodes.brand', 3);
         }
 
