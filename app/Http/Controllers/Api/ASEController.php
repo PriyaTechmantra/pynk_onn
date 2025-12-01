@@ -2058,8 +2058,8 @@ public function aseSalesreport(Request $request)
         $data = News::where('status', 1)
             ->where('is_deleted', 0)
             ->whereDate('end_date', '>=', $today)
-            ->where(function($q) use ($userTypes) {
-                foreach ($userTypes as $type) {
+            ->where(function($q) use ($userType) {
+                foreach ($userType as $type) {
                     $q->orWhereRaw("FIND_IN_SET(?, user_type)", [$type]);
                 }
             })
