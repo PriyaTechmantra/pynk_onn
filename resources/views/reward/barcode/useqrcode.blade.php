@@ -140,7 +140,7 @@
                                                         
                                                     
                                                         <td><div style="width: 120px;" class="text-center">
-                                                            <img src="https://chart.apis.google.com/chart?cht=qr&chs=300x300&chl={{$coupon->code}}" alt="" style="height: 105px;width:105px">
+                                                            <img src="https://bwipjs-api.metafloor.com/?bcid=qrcode&text={{$coupon->code}}&height=6&textsize=10&scale=6&includetext" alt="" style="height: 105px;width:105px" id="{{$coupon->code}}">
 
                                                         <p class="text-center my-3">{{$coupon->code}}</p></div>
                                                         
