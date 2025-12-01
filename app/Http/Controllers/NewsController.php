@@ -9,21 +9,56 @@ class NewsController extends Controller
 {
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
         $query = News::query();
 
         if (!empty($request->term)) {
             $query->where('title', 'LIKE', '%' . $request->term . '%');
         }
 
-         if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
+         if ($request->filled('brand_selection')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand_selection == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('news.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('news.brand', $request->brand_selection)
+                    ->orWhere('news.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
 
-            if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
-            } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
-            } elseif ($brand == '3') {
-                $query->where('brand', 3);
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('news.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('news.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
             }
         }
 
@@ -75,7 +110,7 @@ class NewsController extends Controller
 
         $storeData = new News;
         $storeData->title = $request->title;
-        $storeData->user_type = $request->user_type;
+        $storeData->user_type = implode(',',$request->user_type);
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
         $storeData->brand = $request->brand ;

@@ -32,7 +32,7 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="">User Type <span class="text-danger">*</span></label>
-                                        <select name="user_type[]" class="form-control" id="userTypeSelect" multiple>
+                                        <select name="user_type" class="form-control" id="userTypeSelect" multiple>
                                             <option value="1" {{ (collect(old('user_type'))->contains(1)) ? 'selected' : '' }}>VP</option>
                                             <option value="2" {{ (collect(old('user_type'))->contains(2)) ? 'selected' : '' }}>RSM</option>
                                             <option value="3" {{ (collect(old('user_type'))->contains(3)) ? 'selected' : '' }}>ASM</option>
