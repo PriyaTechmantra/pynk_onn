@@ -104,7 +104,7 @@ class BarcodeController extends Controller
         }
 
         $data = $query->groupBy('name')->orderBy('id', 'desc')->paginate(25);
-        dd($data);
+       
         return view('reward.barcode.index', compact('data'));
     }
 
