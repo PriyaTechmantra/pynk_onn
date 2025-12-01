@@ -66,7 +66,7 @@ class BarcodeController extends Controller
         $selected = (int) $request->brand_selection;
 
         if ($selected == 3) {
-            $query->whereIn('retailer_barcodes.brand', [1, 2, 3]);
+            $query->whereIn('retailer_barcodes.brand', [1, 2]);
         } else {
             // single brand selected → include that + both
                     $query->where('retailer_barcodes.brand', $request->brand_selection)
