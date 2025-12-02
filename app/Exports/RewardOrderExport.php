@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use Carbon\Carbon;
 use App\Models\RewardOrderProduct;
+use App\Models\Distributor;
 use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -39,7 +40,7 @@ class RewardOrderExport implements FromCollection, WithHeadings, WithMapping, Sh
             'stores.owner_name',
             'stores.owner_lname',
             'retailer_orders.billing_state',
-            'retailer_list_of_occ.distributor_name',
+            'teams.distributor_id',
             'retailer_orders.asm_approval',
             'retailer_orders.rsm_approval',
             'retailer_orders.vp_approval',
@@ -49,7 +50,7 @@ class RewardOrderExport implements FromCollection, WithHeadings, WithMapping, Sh
         )
             ->join('retailer_products', 'retailer_products.id', 'reward_order_products.product_id')
             ->join('retailer_orders', 'retailer_orders.id', 'reward_order_products.order_id')
-            ->join('retailer_list_of_occ', 'retailer_list_of_occ.store_id', 'retailer_orders.user_id')
+            ->join('teams', 'teams.store_id', 'retailer_orders.user_id')
             ->join('stores', 'stores.id', 'retailer_orders.user_id')
             ->whereBetween('retailer_orders.created_at', [$this->from, $this->to]);
 
@@ -101,7 +102,7 @@ class RewardOrderExport implements FromCollection, WithHeadings, WithMapping, Sh
         $rsm = $row->rsm_approval == 1 ? 'Approved' : ($row->rsm_approval == 2 ? 'Wait for approval' : 'Rejected');
         $vp  = $row->vp_approval == 1 ? 'Approved' : ($row->vp_approval == 2 ? 'Wait for approval' : 'Rejected');
         $admin = $row->admin_status == 1 ? 'Approved' : ($row->admin_status == 2 ? 'Wait for approval' : 'Rejected');
-
+        $distributor=Distributor::where('id',$row->distributor_id)->first();
         $statusTitle = match ($row->status) {
             1 => 'New',
             2 => 'Confirmed',
@@ -128,7 +129,7 @@ class RewardOrderExport implements FromCollection, WithHeadings, WithMapping, Sh
             $row->mobile,
             $row->owner_name . ' ' . $row->owner_lname,
             $row->billing_state,
-            $row->distributor_name,
+            $distributor->name,
             $asm,
             $rsm,
             $vp,
