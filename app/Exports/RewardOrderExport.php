@@ -103,6 +103,7 @@ class RewardOrderExport implements FromCollection, WithHeadings, WithMapping, Sh
         $vp  = $row->vp_approval == 1 ? 'Approved' : ($row->vp_approval == 2 ? 'Wait for approval' : 'Rejected');
         $admin = $row->admin_status == 1 ? 'Approved' : ($row->admin_status == 2 ? 'Wait for approval' : 'Rejected');
         $distributor=Distributor::where('id',$row->distributor_id)->first();
+        $state=State::where('id',$row->billing_state)->first();
         $statusTitle = match ($row->status) {
             1 => 'New',
             2 => 'Confirmed',
@@ -128,8 +129,8 @@ class RewardOrderExport implements FromCollection, WithHeadings, WithMapping, Sh
             $row->shop_name,
             $row->mobile,
             $row->owner_name . ' ' . $row->owner_lname,
-            $row->billing_state,
-            $distributor->name,
+            $state->name ??'',
+            $distributor->name ??'',
             $asm,
             $rsm,
             $vp,
