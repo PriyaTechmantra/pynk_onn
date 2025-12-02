@@ -100,95 +100,17 @@ class RetailerOrderController extends Controller
     public function exportCSV(Request $request)
     {
         $from = $request->date_from ?? date('Y-m-01');
-        $to = $request->date_to 
-            ? date('Y-m-d', strtotime($request->date_to . ' +1 day')) 
-            : date('Y-m-d', strtotime('+1 day'));
+        $to   = $request->date_to ? date('Y-m-d', strtotime($request->date_to . ' +1 day')) : date('Y-m-d', strtotime('+1 day'));
 
-        $term = $request->term ?? null;
-        $product = $request->product ?? null;
-        $user_id = $request->user_id ?? null;
+        $export = new RewardOrderExport(
+            $from,
+            $to,
+            $request->product ?? '',
+            $request->term ?? '',
+            $request->user_id ?? ''
+        );
 
-        $query = RewardOrderProduct::join('retailer_products', 'retailer_products.id', '=', 'reward_order_products.product_id')
-            ->join('retailer_orders', 'retailer_orders.id', '=', 'reward_order_products.order_id')
-            ->when($product, fn($q) => $q->where('reward_order_products.product_id', $product))
-            ->when($user_id, fn($q) => $q->where('retailer_orders.user_id', $user_id))
-            ->when($term, function($q) use ($term) {
-                $q->where(function($inner) use ($term) {
-                    $inner->where('retailer_orders.order_no', 'like', '%' . $term . '%')
-                        ->orWhere('retailer_orders.shop_name', 'like', '%' . $term . '%');
-                });
-            })
-            ->whereBetween('retailer_orders.created_at', [$from, $to])
-            ->select(
-                'reward_order_products.qty',
-                'retailer_orders.order_no',
-                'retailer_orders.shop_name',
-                'retailer_orders.email',
-                'retailer_orders.mobile',
-                'retailer_orders.final_amount',
-                'retailer_orders.admin_status',
-                'retailer_products.title as product_title',
-                'retailer_orders.created_at'
-            )
-            ->groupBy('reward_order_products.order_id')
-            ->latest('retailer_orders.id');
-
-        $data = $query->get();
-
-        if ($data->isEmpty()) {
-            return redirect()->back()->with('status', 'No data available to export');
-        }
-
-        // Define the CSV filename
-        $filename = 'reward_orders_' . date('Ymd_His') . '.csv';
-
-        // Create CSV headers
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $columns = [
-            'S.No',
-            'Order No',
-            'Store Name',
-            'Email',
-            'Mobile',
-            'Product',
-            'Quantity',
-            'Final Amount',
-            'Status',
-            'Product Status',
-            'Order Date'
-        ];
-
-        $callback = function() use ($data, $columns) {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, $columns);
-
-            foreach ($data as $index => $row) {
-                fputcsv($file, [
-                    $index + 1,
-                    $row->order_no,
-                    $row->shop_name,
-                    $row->email,
-                    $row->mobile,
-                    $row->product_title,
-                    $row->qty,
-                    $row->final_amount,
-                    match($row->admin_status) {
-                        1 => 'Approved',
-                        0 => 'Rejected',
-                        default => 'Pending'
-                    },
-                    date('d M Y', strtotime($row->created_at)),
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return Excel::download($export, 'reward-order-report-' . date('Y-m-d') . '.xlsx');
     }
 
   
