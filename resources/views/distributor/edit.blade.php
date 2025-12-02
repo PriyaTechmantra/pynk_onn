@@ -421,7 +421,7 @@ $distributorTeam=\App\Models\Team::select('id','brand','vp_id','rsm_id','asm_id'
                                 <div class="form-group">
                                     <label class="small text-muted">Brand</label>
                                     <div class="form-floating mb-3">
-                                        <select class="form-select form-select-sm select2" aria-label="Default select example" name="brand" id="brand">
+                                        <select class="form-select form-select-sm select2" aria-label="Default select example" name="brand" id="brandAdd">
                                             <option value="" selected disabled>Select</option>
                                                     <option value="3" {{ (request()->input('brand') == 3) ? 'selected' : '' }}>All</option>
                                             
