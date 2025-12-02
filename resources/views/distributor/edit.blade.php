@@ -190,6 +190,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                 <thead class="table-light sticky-top" style="top: 0; z-index: 2;">
                     <tr>
                         <th>#SR</th>
+                        <th>Brand</th>
                         <th>State</th>
                         <th>Area</th>
                         <th>VP</th>
@@ -203,6 +204,44 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                 <tbody>
                     @forelse ($distributorTeam as $index => $row)
                         <tr>
+                            <td>
+                                           
+                                                
+
+                                            @php
+                                                
+
+                                            $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
+
+                                            // Collect brand IDs from items (avoid duplicates)
+                                            $brands = [$row->brand];
+                                            
+                                            // Determine brand permissions
+                                            if (in_array(3, $brands)) {
+                                                // If any brand is "Both"
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                                // If both ONN and PYNK exist
+                                                $brandPermissions = 'Both';
+                                            } elseif (in_array(1, $brands)) {
+                                                $brandPermissions = 'ONN';
+                                            } elseif (in_array(2, $brands)) {
+                                                $brandPermissions = 'PYNK';
+                                            } else {
+                                                // Fallback for unexpected values
+                                                $brandPermissions = collect($brands)
+                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                    ->implode(', ');
+                                            }
+
+                                        @endphp
+
+                                           {{ $brandPermissions ?? '' }}
+                            </td>
                             <td>{{ $index + $distributorTeam->firstItem() }}</td>
                             <td>{{ $row->states->name ?? '' }}</td>
                             <td>{{ $row->areas->name ?? '' }}</td>
