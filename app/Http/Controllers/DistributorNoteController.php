@@ -147,7 +147,7 @@ class DistributorNoteController extends Controller
             foreach ($data as $item) {
                 fputcsv($file, [
                     optional($item->user)->name ?? '',
-                    optional($item->distributor)->name ?? '',
+                    optional($item->distributors)->name ?? '',
                     $item->comment,
                     $item->date.' '.$item->time,
                 ]);
