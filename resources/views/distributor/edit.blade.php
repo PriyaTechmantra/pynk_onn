@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-$distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id','distributor_id','state_id','area_id')->where('distributor_id',$data->id)->where('store_id',NULL)->where('status',1)->where('is_deleted',0)->paginate(50);
+$distributorTeam=\App\Models\Team::select('id','brand','vp_id','rsm_id','asm_id','ase_id','distributor_id','state_id','area_id')->where('distributor_id',$data->id)->where('store_id',NULL)->where('status',1)->where('is_deleted',0)->paginate(50);
 
 @endphp
 
@@ -204,6 +204,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                 <tbody>
                     @forelse ($distributorTeam as $index => $row)
                         <tr>
+                            <td>{{ $index + $distributorTeam->firstItem() }}</td>
                             <td>
                                            
                                                 
@@ -242,7 +243,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
 
                                            {{ $brandPermissions ?? '' }}
                             </td>
-                            <td>{{ $index + $distributorTeam->firstItem() }}</td>
+                            
                             <td>{{ $row->states->name ?? '' }}</td>
                             <td>{{ $row->areas->name ?? '' }}</td>
                             <td>{{ $row->vp->name ?? '' }}</td>
