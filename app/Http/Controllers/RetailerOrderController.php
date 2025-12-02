@@ -10,6 +10,7 @@ use App\Models\RewardOrderProduct;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Str;
 use DB;
+use App\Exports\RewardOrderExport;
 class RetailerOrderController extends Controller
 {
     public function index(Request $request)
