@@ -103,7 +103,7 @@ class RetailerOrderController extends Controller
         }
 
         if ($updatedEntry->status == 2 && in_array($status, [1])) {
-            return redirect()->back()->with('failure', 'Order has been shipped');
+            return redirect()->back()->with('failure', 'Order has been confirmed');
         }
         $updatedEntry->status = $status;
 		
