@@ -132,7 +132,7 @@
                                     <tr>
                                         <td>{{ $index+1 }}</td>
                                         <td> {{ optional($item->user)->name ?? '' }}</td>
-                                        <td>{{ optional($item->distributor)->name ?? '' }}</td>
+                                        <td>{{ optional($item->distributors)->name ?? '' }}</td>
                                         <td>{{$item->comment}}</td>
                                         <td><div class="text-muted">{{ date('d M Y', strtotime($item->created_at)) }}</div></td>
                                     
