@@ -71,7 +71,7 @@
                                                     class="form-check-input medium-checkbox" 
                                                     type="checkbox" 
                                                     name="brand" 
-                                                    value="1" 
+                                                    value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}
                                                     id="mediumOnn"
                                                     onchange="checkOnlyOne(this)"
                                                 >
@@ -83,7 +83,7 @@
                                                     class="form-check-input medium-checkbox" 
                                                     type="checkbox" 
                                                     name="brand" 
-                                                    value="2" 
+                                                    value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}
                                                     id="mediumPynk"
                                                     onchange="checkOnlyOne(this)"
                                                 >
@@ -95,7 +95,7 @@
                                                     class="form-check-input medium-checkbox" 
                                                     type="checkbox" 
                                                     name="brand" 
-                                                    value="3" 
+                                                    value="3"  {{ (request()->input('brand') == 3) ? 'selected' : '' }}
                                                     id="mediumBoth"
                                                     onchange="checkOnlyOne(this)"
                                                 >
