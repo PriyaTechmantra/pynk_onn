@@ -219,22 +219,22 @@ $distributorTeam=\App\Models\Team::select('id','brand','vp_id','rsm_id','asm_id'
                                             ];
 
                                             // Collect brand IDs from items (avoid duplicates)
-                                            $brands = [$row->brand];
+                                            $brandList = [$row->brand];
                                             
                                             // Determine brand permissions
-                                            if (in_array(3, $brands)) {
+                                            if (in_array(3, $brandList)) {
                                                 // If any brand is "Both"
                                                 $brandPermissions = 'Both';
-                                            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                            } elseif (in_array(1, $brandList) && in_array(2, $brandList)) {
                                                 // If both ONN and PYNK exist
                                                 $brandPermissions = 'Both';
-                                            } elseif (in_array(1, $brands)) {
+                                            } elseif (in_array(1, $brandList)) {
                                                 $brandPermissions = 'ONN';
-                                            } elseif (in_array(2, $brands)) {
+                                            } elseif (in_array(2, $brandList)) {
                                                 $brandPermissions = 'PYNK';
                                             } else {
                                                 // Fallback for unexpected values
-                                                $brandPermissions = collect($brands)
+                                                $brandPermissions = collect($brandList)
                                                     ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
                                                     ->implode(', ');
                                             }
