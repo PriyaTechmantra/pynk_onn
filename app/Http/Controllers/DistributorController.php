@@ -1074,7 +1074,7 @@ class DistributorController extends Controller
      //team update
      public function userTeamEdit(Request $request,$id)
      {
-         //dd($request->all());
+         dd($request->all());
          $request->validate([
              "distributor_id" => "required|integer",
              "ase_id" => "required|integer",
