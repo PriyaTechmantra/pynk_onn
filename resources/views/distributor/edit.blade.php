@@ -255,7 +255,7 @@ $distributorTeam=\App\Models\Team::select('id','vp_id','rsm_id','asm_id','ase_id
                                                 @endif
                                                 <div class="col-md-6">
                                                     <label for="vp" class="small text-muted">VP *</label>
-                                                    <select class="form-select form-select-sm select2" name="nsm_id">
+                                                    <select class="form-select form-select-sm select2" name="vp_id">
                                                         <option value=""  selected>Select</option>
                                                         @foreach ($data->allZSM as $item)
                                                             <option value="{{ $item->id }}" {{ $row->vp_id == $item->id ? 'selected' : '' }}>
