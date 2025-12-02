@@ -715,7 +715,7 @@ public function aseSalesreport(Request $request)
         				$store->pan= $request->pan;
         }
         $store->status = 0;
-        
+        $store->password = Hash::make('Welcome@2025');
         $store->save();
        
         $result1 = Team::where('distributor_id',$request->distributor_id)->where('ase_id',$request->user_id)->where('state_id',$request->state_id)->where('area_id',$request->area_id)->first();
