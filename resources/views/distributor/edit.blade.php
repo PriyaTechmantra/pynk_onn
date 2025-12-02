@@ -224,24 +224,24 @@ $distributorTeam=\App\Models\Team::select('id','brand','vp_id','rsm_id','asm_id'
                                             // Determine brand permissions
                                             if (in_array(3, $brandList)) {
                                                 // If any brand is "Both"
-                                                $brandPermissions = 'Both';
+                                                $brandPermissionsList = 'Both';
                                             } elseif (in_array(1, $brandList) && in_array(2, $brandList)) {
                                                 // If both ONN and PYNK exist
-                                                $brandPermissions = 'Both';
+                                                $brandPermissionsList = 'Both';
                                             } elseif (in_array(1, $brandList)) {
-                                                $brandPermissions = 'ONN';
+                                                $brandPermissionsList = 'ONN';
                                             } elseif (in_array(2, $brandList)) {
-                                                $brandPermissions = 'PYNK';
+                                                $brandPermissionsList = 'PYNK';
                                             } else {
                                                 // Fallback for unexpected values
-                                                $brandPermissions = collect($brandList)
+                                                $brandPermissionsList = collect($brandList)
                                                     ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
                                                     ->implode(', ');
                                             }
 
                                         @endphp
 
-                                           {{ $brandPermissions ?? '' }}
+                                           {{ $brandPermissionsList ?? '' }}
                             </td>
                             
                             <td>{{ $row->states->name ?? '' }}</td>
