@@ -108,7 +108,14 @@ class RetailerOrderController extends Controller
         $updatedEntry->status = $status;
 		
         $updatedEntry->save();
-		$user_id=$updatedEntry->user_id;
+        $user_id=$updatedEntry->user_id;
+        if($request->status == 5)
+		{
+		  $store=Store::findOrFail($user_id);
+		  $store->wallet += $updatedEntry->final_amount;
+		  $store->save();
+		}
+		
         return redirect()->back()->with('success', 'Order status updated');
     }
 
