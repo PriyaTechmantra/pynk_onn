@@ -91,6 +91,20 @@ class RetailerOrderController extends Controller
     {
 		//dd($request->status);
         $updatedEntry = RetailerOrder::findOrFail($id);
+        if ($updatedEntry->status == 5) {
+            return redirect()->back()->with('failure', 'Order has been cancelled');
+        }
+        if ($updatedEntry->status == 4 && in_array($status, [1,2, 3, 5])) {
+            return redirect()->back()->with('failure', 'Order has been delivered');
+        }
+
+        if ($updatedEntry->status == 3 && in_array($status, [1,2])) {
+            return redirect()->back()->with('failure', 'Order has been shipped');
+        }
+
+        if ($updatedEntry->status == 2 && in_array($status, [1])) {
+            return redirect()->back()->with('failure', 'Order has been shipped');
+        }
         $updatedEntry->status = $status;
 		
         $updatedEntry->save();
