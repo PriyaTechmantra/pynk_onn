@@ -63,7 +63,7 @@ class DistributorNoteController extends Controller
                 'user' => function ($q) {
                     $q->where('status', 1)->where('is_deleted', 0);
                 },
-                'distributor' => function ($q) {
+                'distributors' => function ($q) {
                     $q->where('status', 1)->where('is_deleted', 0);
                 }
             ])
@@ -121,7 +121,7 @@ class DistributorNoteController extends Controller
                 'user' => function ($q) {
                     $q->where('status', 1)->where('is_deleted', 0);
                 },
-                'distributor' => function ($q) {
+                'distributors' => function ($q) {
                     $q->where('status', 1)->where('is_deleted', 0);
                 }
             ])
