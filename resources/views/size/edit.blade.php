@@ -71,8 +71,9 @@
                                                     class="form-check-input medium-checkbox" 
                                                     type="checkbox" 
                                                     name="brand" 
-                                                    value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}
+                                                    value="1"
                                                     id="mediumOnn"
+                                                     {{ ($data->brand == 1) ? 'checked' : '' }}
                                                     onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumOnn">Onn</label>
@@ -83,8 +84,9 @@
                                                     class="form-check-input medium-checkbox" 
                                                     type="checkbox" 
                                                     name="brand" 
-                                                    value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}
+                                                    value="2" 
                                                     id="mediumPynk"
+                                                     {{ ($data->brand == 2) ? 'checked' : '' }}
                                                     onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumPynk">Pynk</label>
@@ -95,8 +97,9 @@
                                                     class="form-check-input medium-checkbox" 
                                                     type="checkbox" 
                                                     name="brand" 
-                                                    value="3"  {{ (request()->input('brand') == 3) ? 'selected' : '' }}
+                                                    value="3"  
                                                     id="mediumBoth"
+                                                    {{ ($data->brand == 3) ? 'checked' : '' }}
                                                     onchange="checkOnlyOne(this)"
                                                 >
                                                 <label class="form-check-label" for="mediumBoth">Both</label>
