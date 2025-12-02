@@ -181,7 +181,7 @@
                                             <p class="small">Order Time : {{date('j M Y g:i A', strtotime($data->created_at))}}</p>
                                             <p>Order No : {{$data->order_no}}</p>
                                             <h2>{{$data->user->name}}</h2>
-                                            <p class="small text-dark mb-0"> <span class="text-muted">Owner Name :</span> {{$data->user->owner_fname.' '.$data->user->owner_lname}} </p>
+                                            <p class="small text-dark mb-0"> <span class="text-muted">Owner Name :</span> {{$data->user->owner_name.' '.$data->user->owner_lname}} </p>
                                             <p class="small text-dark mb-0"> <span class="text-muted">Email : </span> {{$data->user->email}}</p>
                                             <p class="small text-dark mb-0"> <span class="text-muted">Mobile : </span> {{$data->user->contact}}</p>
                                         
