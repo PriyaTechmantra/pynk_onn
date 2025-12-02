@@ -7108,7 +7108,7 @@ public function aseSalesreport(Request $request)
         $newEntry->order_sequence_int = $orderSeq;
         $newEntry->order_no = $order_no;
         $newEntry->user_id = $request['user_id'];
-        $newEntry->shop_name = $user->store_name ?? null;
+        $newEntry->shop_name = $user->name ?? null;
         $newEntry->email = $user->email ?? null;
         $newEntry->mobile = $user->contact ?? null;
         $newEntry->billing_address = $user->address ?? null;

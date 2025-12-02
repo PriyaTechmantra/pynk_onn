@@ -112,7 +112,7 @@ class RetailerOrderController extends Controller
             $request->user_id ?? ''
         );
 
-        return Excel::download($export, 'reward-order-report-' . date('Y-m-d') . '.xlsx');
+        return Excel::download($export, 'reward-order-report-' . date('Y-m-d') . '.csv');
     }
 
   
