@@ -149,7 +149,7 @@ class DistributorNoteController extends Controller
                     optional($item->user)->name ?? '',
                     optional($item->distributors)->name ?? '',
                     $item->comment,
-                    $item->date.' '.$item->time,
+                     date('j M Y g:i A', strtotime($item->created_at)),
                 ]);
             }
 
