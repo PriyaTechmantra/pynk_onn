@@ -224,7 +224,7 @@ class DistributorNoteController extends Controller
             "Expires"             => "0"
         ];
 
-        $columns = ['User','Brand', 'Distributor', 'Comment', 'Date'];
+        $columns = ['Brand','User', 'Distributor', 'Comment', 'Date'];
 
         $callback = function() use ($data, $columns) {
             $file = fopen('php://output', 'w');
