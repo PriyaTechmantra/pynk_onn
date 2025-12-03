@@ -2067,7 +2067,7 @@ public function aseSalesreport(Request $request)
             $q->orWhere('user_type', $userType);
 
             // Case 3: JSON Array → [1,2,3]
-            $q->orWhereRaw("JSON_CONTAINS(REPLACE(user_type,'\"',''), '\"$userType\"')");
+           
         })
         ->get();
 
