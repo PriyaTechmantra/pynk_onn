@@ -3102,7 +3102,7 @@ public function aseSalesreport(Request $request)
 
         // 🔹 Brand filter
         if (!empty($brandText) && $brandText !== "Both") {
-            $query->where('retailer_orders.brand', $brandCode);
+            $query->where('stores.brand', $brandCode);
         }
 
         // 🔹 Date filters
@@ -7045,20 +7045,7 @@ public function aseSalesreport(Request $request)
         if ($validator->fails()) {
             return response()->json(['status' => false, 'message' => $validator->errors()->first()]);
         }
-        $brandMap = [
-                'ONN'  => 1,
-                'PYNK' => 2,
-                'Both' => 3,
-            ];
 
-            $brandValue = $brandMap[$request->brand] ?? null;
-
-            if (!$brandValue) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Invalid brand value.',
-                ]);
-            }
         $userExist = Store::where('id', $request['user_id'])->where('status', 1)->where('is_deleted', 0)->first();
         if (!$userExist) {
             return response()->json(['status' => false, 'message' => 'User is invalid']);
@@ -7120,7 +7107,6 @@ public function aseSalesreport(Request $request)
         $newEntry = new RetailerOrder;
         $newEntry->order_sequence_int = $orderSeq;
         $newEntry->order_no = $order_no;
-        $newEntry->brand = $brandValue;
         $newEntry->user_id = $request['user_id'];
         $newEntry->shop_name = $user->name ?? null;
         $newEntry->email = $user->email ?? null;
