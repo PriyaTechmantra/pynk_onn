@@ -6708,7 +6708,7 @@ public function aseSalesreport(Request $request)
     				    }
                     }
                 }
-               return response()->json(['status'=>true, 'message'=>'Coupon scanned successfully ; ' .$barcode->amount.' ONN currency has been added to your wallet','data'=>$barcode]);
+               return response()->json(['status'=>true, 'message'=>'Coupon scanned successfully ; ' .$barcode->amount.' currency has been added to your wallet','data'=>$barcode]);
             }
         
 		} else {
