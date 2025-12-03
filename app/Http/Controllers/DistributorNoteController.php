@@ -90,8 +90,7 @@ class DistributorNoteController extends Controller
             ->where('is_deleted', 0)
             ->get(['id', 'name']);
 
-        $distributors = Distributor::whereIn('id', $distributorIds)
-            ->where('status', 1)
+        $distributors = Distributor::where('status', 1)
             ->where('is_deleted', 0)
             ->get(['id', 'name']);
 
