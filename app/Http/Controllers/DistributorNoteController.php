@@ -85,7 +85,7 @@ class DistributorNoteController extends Controller
         $userIds = DistributorMom::pluck('user_id')->unique();
         $distributorIds = DistributorMom::pluck('distributor_id')->unique();
 
-        $users = Employee::whereIn('id', $userIds)
+        $users = Employee::where('type', 4)
             ->where('status', 1)
             ->where('is_deleted', 0)
             ->get(['id', 'name']);
