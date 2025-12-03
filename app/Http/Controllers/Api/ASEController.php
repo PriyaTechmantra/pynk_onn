@@ -3789,7 +3789,7 @@ public function aseSalesreport(Request $request)
 
         // Optional brand filter
         if (!empty($brand)) {
-            $query->where('retailer_orders.brand', $brandCode);
+            $query->where('stores.brand', $brandCode);
         }
 
         // Optional date filters
@@ -4435,7 +4435,7 @@ public function aseSalesreport(Request $request)
 
         // Optional brand filter
         if (!empty($brand)) {
-            $query->where('retailer_orders.brand', $brandCode);
+            $query->where('stores.brand', $brandCode);
         }
 
         // Optional date filters
@@ -5102,7 +5102,7 @@ public function aseSalesreport(Request $request)
 
         // Optional brand filter
         if (!empty($brand)) {
-            $query->where('retailer_orders.brand', $brandCode);
+            $query->where('stores.brand', $brandCode);
         }
 
         // Optional date filters
@@ -5979,7 +5979,7 @@ public function aseSalesreport(Request $request)
 
         // Optional brand filter
         if (!empty($brand)) {
-            $query->where('retailer_orders.brand', $brandCode);
+            $query->where('stores.brand', $brandCode);
         }
 
         // Optional date filters
