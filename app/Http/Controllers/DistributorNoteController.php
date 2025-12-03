@@ -224,14 +224,42 @@ class DistributorNoteController extends Controller
             "Expires"             => "0"
         ];
 
-        $columns = ['User', 'Distributor', 'Comment', 'Date'];
+        $columns = ['User','Brand', 'Distributor', 'Comment', 'Date'];
 
         $callback = function() use ($data, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
             foreach ($data as $item) {
+
+                $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
+
+                                            // Collect brand IDs from items (avoid duplicates)
+                                            $brandsList = [$item->brand];
+                                            
+                                            // Determine brand permissions
+                                            if (in_array(3, $brandsList)) {
+                                                // If any brand is "Both"
+                                                $brandPermissionsList = 'Both';
+                                            } elseif (in_array(1, $brandsList) && in_array(2, $brandsList)) {
+                                                // If both ONN and PYNK exist
+                                                $brandPermissionsList = 'Both';
+                                            } elseif (in_array(1, $brandsList)) {
+                                                $brandPermissionsList = 'ONN';
+                                            } elseif (in_array(2, $brandsList)) {
+                                                $brandPermissionsList = 'PYNK';
+                                            } else {
+                                                // Fallback for unexpected values
+                                                $brandPermissionsList = collect($brandsList)
+                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                    ->implode(', ');
+                                            }
                 fputcsv($file, [
+                    $brandPermissionsList,
                     optional($item->user)->name ?? '',
                     optional($item->distributors)->name ?? '',
                     $item->comment,
