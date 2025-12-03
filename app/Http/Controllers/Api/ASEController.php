@@ -2034,67 +2034,101 @@ public function aseSalesreport(Request $request)
 
 
     public function newsList(Request $request)
-    {
-        // Define your brand map first
-        $brandMap = [
-            1 => 'ONN',
-            2 => 'PYNK',
-            3 => 'Both',
-        ];
+{
+    $brandMap = [
+        1 => 'ONN',
+        2 => 'PYNK',
+        3 => 'Both',
+    ];
 
-        $user = Employee::find($request->user_id);
+    $user = Employee::find($request->user_id);
 
-        if (!$user) {
-            return response()->json([
-                'error' => true,
-                'resp'  => 'User not found.',
-                'data'  => []
-            ], 404);
-        }
+    if (!$user) {
+        return response()->json([
+            'error' => true,
+            'resp'  => 'User not found.',
+            'data'  => []
+        ], 404);
+    }
 
-        $userType = $user->type;
-        $today = date('Y-m-d');
+    /* ---------------------------------------------------------
+       NORMALIZE USER TYPE VALUES
+       ---------------------------------------------------------*/
 
-        $data = News::where('status', 1)
+    $userType = $user->type;
+
+    // CASE 1: Already an array like [1,2,3]
+    if (is_array($userType)) {
+        $userTypes = $userType;
+    }
+    // CASE 2: JSON string like "[1,2,3]"
+    elseif ($this->isJson($userType)) {
+        $userTypes = json_decode($userType, true);
+    }
+    // CASE 3: Comma separated string like "1,2,3"
+    else {
+        $userTypes = explode(',', $userType);
+    }
+
+    // Clean every value
+    $userTypes = array_filter(array_map('trim', $userTypes));
+
+    $today = date('Y-m-d');
+
+    /* ---------------------------------------------------------
+       MAIN NEWS QUERY
+       ---------------------------------------------------------*/
+
+    $data = News::where('status', 1)
         ->where('is_deleted', 0)
         ->whereDate('end_date', '>=', $today)
-        ->whereRaw("EXISTS (
-            SELECT 1 
-            FROM (
-                SELECT " . str_replace(',', "' UNION SELECT '", $userType[0]) . "
-            ) t(val)
-            WHERE FIND_IN_SET(t.val, user_type)
-        )")
+        ->where(function ($q) use ($userTypes) {
+            foreach ($userTypes as $type) {
+                $q->orWhereRaw("FIND_IN_SET(?, user_type)", [$type]);
+            }
+        })
         ->get();
 
-        if ($data->isNotEmpty()) {
-            $data = $data->map(function ($news) use ($brandMap) {
-                // If 'brand' is comma separated (like "1,2"), map multiple names
-                if (strpos($news->brand, ',') !== false) {
-                    $brands = explode(',', $news->brand);
-                    $brandNames = array_map(fn($b) => $brandMap[trim($b)] ?? $b, $brands);
-                    $news->brand_name = implode(', ', $brandNames);
-                } else {
-                    $news->brand_name = $brandMap[$news->brand] ?? $news->brand;
-                }
+    /* ---------------------------------------------------------
+       FORMAT BRAND NAME
+       ---------------------------------------------------------*/
 
-                return $news;
-            });
+    if ($data->isNotEmpty()) {
+        $data = $data->map(function ($news) use ($brandMap) {
 
-            return response()->json([
-                'status'  => true,
-                'message' => 'News data fetched successfully',
-                'data'    => $data,
-            ], 200);
-        }else{
+            if (strpos($news->brand, ',') !== false) {
+                $brands = explode(',', $news->brand);
+                $news->brand_name = implode(', ', array_map(fn($b) => $brandMap[$b] ?? $b, $brands));
+            } else {
+                $news->brand_name = $brandMap[$news->brand] ?? $news->brand;
+            }
 
-            return response()->json([
-                'status'  => false,
-                'message' => 'No news data found',
-                'data'    => [],
-            ], 404);
-        }
+            return $news;
+        });
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'News data fetched successfully',
+            'data'    => $data,
+        ]);
     }
+
+    return response()->json([
+        'status'  => false,
+        'message' => 'No news data found',
+        'data'    => [],
+    ], 404);
+}
+
+/* ---------------------------------------------------------
+   FUNCTION: CHECK IF STRING IS JSON
+---------------------------------------------------------*/
+private function isJson($string)
+{
+    json_decode($string);
+    return (json_last_error() === JSON_ERROR_NONE);
+}
+
 
 
     //primary order
