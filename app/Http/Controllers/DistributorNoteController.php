@@ -5,7 +5,9 @@ use Illuminate\Http\Request;
 use App\Models\DistributorMom;
 use App\Models\Employee;
 use App\Models\Distributor;
-
+use Auth;
+use DB;
+use Hash;
 class DistributorNoteController extends Controller
 {
     public function note(Request $request)
