@@ -2056,14 +2056,16 @@ public function aseSalesreport(Request $request)
         $today = date('Y-m-d');
 
         $data = News::where('status', 1)
-            ->where('is_deleted', 0)
-            ->whereDate('end_date', '>=', $today)
-            ->where(function($q) use ($userType) {
-                foreach ($userType as $type) {
-                    $q->orWhereRaw("FIND_IN_SET(?, user_type)", [$type]);
-                }
-            })
-            ->get();
+        ->where('is_deleted', 0)
+        ->whereDate('end_date', '>=', $today)
+        ->whereRaw("EXISTS (
+            SELECT 1 
+            FROM (
+                SELECT " . str_replace(',', "' UNION SELECT '", $userType[0]) . "
+            ) t(val)
+            WHERE FIND_IN_SET(t.val, user_type)
+        )")
+        ->get();
 
         if ($data->isNotEmpty()) {
             $data = $data->map(function ($news) use ($brandMap) {
