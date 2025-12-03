@@ -119,23 +119,58 @@ class DistributorNoteController extends Controller
 
     public function noteCSV(Request $request)
     {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
         $query = DistributorMom::query();
 
         if (!empty($request->term)) {
             $query->where('comment', 'LIKE', '%' . $request->term . '%');
         }
+        if ($request->filled('brand_selection')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand_selection == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('directory_mom.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('directory_mom.brand', $request->brand_selection)
+                    ;
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
 
-        if (!empty($request->brand_selection)) {
-            $brand = $request->brand_selection;
-
-            if ($brand == '1') {
-                $query->whereIn('brand', [1, 3]);
-            } elseif ($brand == '2') {
-                $query->whereIn('brand', [2, 3]);
-            } elseif ($brand == '3') {
-                $query->where('brand', 3);
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('directory_mom.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('directory_mom.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
             }
         }
+
         if ($request->filled('user_name')) {
             $query->where('user_id', $request->user_name);
         }
@@ -143,6 +178,8 @@ class DistributorNoteController extends Controller
         if ($request->filled('distributor_name')) {
             $query->where('distributor_id', $request->distributor_name);
         }
+
+        // Filter by user_type
         if ($request->filled('user_type')) {
             $userIds = Employee::where('status', 1)
                 ->where('is_deleted', 0)
@@ -151,6 +188,18 @@ class DistributorNoteController extends Controller
 
             $query->whereIn('user_id', $userIds);
         }
+
+        $userIds = DistributorMom::pluck('user_id')->unique();
+        $distributorIds = DistributorMom::pluck('distributor_id')->unique();
+
+        $users = Employee::where('type', 4)
+            ->where('status', 1)
+            ->where('is_deleted', 0)
+            ->get(['id', 'name']);
+
+        $distributors = Distributor::where('status', 1)
+            ->where('is_deleted', 0)
+            ->get(['id', 'name']);
 
         $data = $query->latest('id')
             ->with([
@@ -162,6 +211,7 @@ class DistributorNoteController extends Controller
                 }
             ])
             ->get();
+
 
 
         $filename = 'distributor_notes_' . now()->format('Y_m_d') . '.csv';
