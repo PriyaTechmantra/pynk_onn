@@ -2053,9 +2053,9 @@ public function aseSalesreport(Request $request)
         }
 
         $userType = $user->type;
-        dd($userType);
+       
         $today = date('Y-m-d');
-
+       DB::enableQueryLog();
        $data = News::where('status', 1)
         ->where('is_deleted', 0)
         ->whereDate('end_date', '>=', $today)
@@ -2071,7 +2071,7 @@ public function aseSalesreport(Request $request)
            
         })
         ->get();
-
+        dd(DB::getQueryLog());
         if ($data->isNotEmpty()) {
             $data = $data->map(function ($news) use ($brandMap) {
                 // If 'brand' is comma separated (like "1,2"), map multiple names
