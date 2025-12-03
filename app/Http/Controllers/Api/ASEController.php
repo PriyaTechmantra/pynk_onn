@@ -2057,21 +2057,26 @@ public function aseSalesreport(Request $request)
 
     $userType = $user->type;
 
-    // CASE 1: Already an array like [1,2,3]
-    if (is_array($userType)) {
-        $userTypes = $userType;
-    }
-    // CASE 2: JSON string like "[1,2,3]"
-    elseif ($this->isJson($userType)) {
-        $userTypes = json_decode($userType, true);
-    }
-    // CASE 3: Comma separated string like "1,2,3"
-    else {
-        $userTypes = explode(',', $userType);
-    }
+// CASE 1: Value is numeric (ex: 1)
+if (is_numeric($userType)) {
+    $userTypes = [(string)$userType];
+}
+// CASE 2: Already an array like [1,2,3]
+elseif (is_array($userType)) {
+    $userTypes = $userType;
+}
+// CASE 3: JSON string like "[1,2,3]"
+elseif ($this->isJson($userType)) {
+    $decoded = json_decode($userType, true);
+    $userTypes = is_array($decoded) ? $decoded : [$userType];
+}
+// CASE 4: Comma separated string like "1,2,3"
+else {
+    $userTypes = explode(',', $userType);
+}
 
-    // Clean every value
-    $userTypes = array_filter(array_map('trim', $userTypes));
+// Clean and normalize values
+$userTypes = array_filter(array_map('trim', (array)$userTypes));
 
     $today = date('Y-m-d');
 
