@@ -8,16 +8,41 @@
                 @if (session('status'))
                     <div class="alert alert-success">{{ session('status') }}</div>
                 @endif
+                @php
+                            $assignedPermissions = DB::table('user_permission_categories')
+                            ->select('user_permission_categories.*')
+                            ->join('users','users.id','=','user_permission_categories.user_id')
+                            ->where('user_permission_categories.user_id', Auth::user()->id)
+                            ->get();
 
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+                            // Check conditions
+                                if (in_array(3, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } else {
+                                    $brandPermissions = collect($brands)
+                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                        ->implode(', ');
+                                }
+                                @endphp
                 <div class="card data-card mt-3">
                     <div class="card-header">
                         <h4>Distributor Note
-
+                            @can('distributor note export')
                             <a href="{{ route('distributors.note.exportCSV', request()->all()) }}" class="btn btn-sm btn-cta float-end" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                                 CSV
                             </a>
-                           
+                           @endcan
                         </h4>
 
                         <div class="search__filter mb-0">
@@ -31,6 +56,7 @@
                                 <div class="col-12">
                                     <form action="{{url('distributors/note')}}">
                                         <div class="row">
+                                            @if($brandPermissions=='Both')
                                             <div class="col-2">
                                                 <select name="brand_selection" class="form-control form-control-sm">
                                                     <option value="">Select Brand</option>
@@ -39,6 +65,7 @@
                                                     <option value="2" {{ request()->input('brand_selection') == 2 ? 'selected' : '' }}>PYNK</option>
                                                 </select>
                                             </div>
+                                            @endif
                                             <div class="col-2">
                                                  <select name="user_type" class="form-control form-control-sm">
                                                     <option value="">User Type</option>
@@ -112,6 +139,7 @@
                                  <thead>
                                     <tr>
                                         <th class="index-col">#</th>
+                                        <th>Brand</th>
                                         <th>User</th>
                                         <th>Distributor</th>
                                         <th>Comment</th>
@@ -130,7 +158,45 @@
                                     }
                                     @endphp
                                     <tr>
-                                        <td>{{ $index+1 }}</td>
+                                        <td>{{($data->firstItem()) + $index}}</td>
+                                        <td>
+                                           
+                                                
+
+                                            @php
+                                                
+
+                                            $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
+
+                                            // Collect brand IDs from items (avoid duplicates)
+                                            $brandsList = [$item->brand];
+                                            
+                                            // Determine brand permissions
+                                            if (in_array(3, $brandsList)) {
+                                                // If any brand is "Both"
+                                                $brandPermissionsList = 'Both';
+                                            } elseif (in_array(1, $brandsList) && in_array(2, $brandsList)) {
+                                                // If both ONN and PYNK exist
+                                                $brandPermissionsList = 'Both';
+                                            } elseif (in_array(1, $brandsList)) {
+                                                $brandPermissionsList = 'ONN';
+                                            } elseif (in_array(2, $brandsList)) {
+                                                $brandPermissionsList = 'PYNK';
+                                            } else {
+                                                // Fallback for unexpected values
+                                                $brandPermissionsList = collect($brandsList)
+                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                    ->implode(', ');
+                                            }
+
+                                        @endphp
+
+                                           {{ $brandPermissionsList ?? '' }}
+                                        </td>
                                         <td> {{ optional($item->user)->name ?? '' }}</td>
                                         <td>{{ optional($item->distributors)->name ?? '' }}</td>
                                         <td>{{$item->comment}}</td>
