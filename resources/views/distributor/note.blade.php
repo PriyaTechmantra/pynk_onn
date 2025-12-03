@@ -58,7 +58,7 @@
                                         <div class="row">
                                             @if($brandPermissions=='Both')
                                             <div class="col-2">
-                                                <select name="brand_selection" class="form-control form-control-sm">
+                                                <select name="brand_selection" class="form-control form-control-sm select2">
                                                     <option value="">Select Brand</option>
                                                     <option value="3" {{ request()->input('brand_selection') == 3 ? 'selected' : '' }}>ALL</option>
                                                     <option value="1" {{ request()->input('brand_selection') == 1 ? 'selected' : '' }}>ONN</option>
@@ -67,7 +67,7 @@
                                             </div>
                                             @endif
                                             <div class="col-2">
-                                                 <select name="user_type" class="form-control form-control-sm">
+                                                 <select name="user_type" class="form-control form-control-sm select2">
                                                     <option value="">User Type</option>
 
                                                     @php
@@ -90,7 +90,7 @@
 
                                             </div>
                                             <div class="col-2">
-                                                <select name="user_name" class="form-control form-control-sm">
+                                                <select name="user_name" class="form-control form-control-sm select2">
                                                     <option value="">User Name</option>
                                                     @foreach($users as $user)
                                                         <option value="{{ $user->id }}" {{ request('user_name') == $user->id ? 'selected' : '' }}>
@@ -101,7 +101,7 @@
                                             </div>
 
                                             <div class="col-2">
-                                                <select name="distributor_name" class="form-control form-control-sm">
+                                                <select name="distributor_name" class="form-control form-control-sm select2">
                                                     <option value="">Distributor</option>
                                                     @foreach($distributors as $distributor)
                                                         <option value="{{ $distributor->id }}" {{ request('distributor_name') == $distributor->id ? 'selected' : '' }}>
