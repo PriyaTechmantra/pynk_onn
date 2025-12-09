@@ -171,6 +171,9 @@ Route::group(['middleware' => ['auth']], function() {
      Route::get('collections/{userId}/status/change', [CollectionController::class, 'status'])->name('collections.status');
      Route::get('collections/export/csv', [CollectionController::class, 'csvExport'])->name('collections.exportCSV');
      
+
+     Route::get('get-category-collection-by-brand', [CollectionController::class, 'getCategoryCollection']);
+     Route::get('get-color-size-by-brand', [CollectionController::class, 'getColorSize']);
      //colors
      Route::resource('colors', ColorController::class);
      Route::get('colors/{userId}/edit', [ColorController::class, 'edit'])->name('colors.edit');

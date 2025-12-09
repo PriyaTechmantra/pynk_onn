@@ -386,4 +386,34 @@ class CollectionController extends Controller
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
     }
+
+
+
+    public function getCategoryCollection(Request $request)
+    {
+        $brand = $request->brand;
+
+        $categories = Category::where('brand', $brand)->where('status', 1)->where('is_deleted', 0)->get();
+        $collections = Collection::where('brand', $brand)->where('status', 1)->where('is_deleted', 0)->get();
+
+        return response()->json([
+            'categories' => $categories,
+            'collections' => $collections
+        ]);
+    }
+
+
+    public function getColorSize(Request $request)
+    {
+        $brand = $request->brand;
+
+        $colors = Color::where('brand', $brand)->where('status', 1)->where('is_deleted', 0)->get();
+        $sizes = Size::where('brand', $brand)->where('status', 1)->where('is_deleted', 0)->get();
+
+        return response()->json([
+            'colors' => $colors,
+            'sizes'  => $sizes
+        ]);
+    }
+
 }
