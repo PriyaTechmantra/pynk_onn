@@ -438,7 +438,9 @@
 
             // Call AJAX to update dropdowns
             loadCategoryCollection(brand);
-            loadColorSize(brand);
+            $('#timePriceTable tbody tr').each(function () {
+                loadColorSize($(this), brand);
+            });
         }
         
 
