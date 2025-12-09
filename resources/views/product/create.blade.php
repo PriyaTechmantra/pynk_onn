@@ -339,7 +339,7 @@
     });
 
     $(document).on('click','.addNewTime',function(){
-         let brand = $('#brand').val();
+         
 		var thisClickedBtn = $(this);
 		thisClickedBtn.removeClass(['addNewTime','btn-success']);
 		thisClickedBtn.addClass(['removeTimePrice','btn-danger']).text('X');
@@ -371,12 +371,10 @@
             <td><a class="btn btn-sm btn-success actionTimebtn addNewTime">+</a></td>
         </tr>
         `;
-
+         let $newRow = $(toAppend);
 		$('#timePriceTable').append(toAppend);
-        let $newRow = $('#timePriceTable tbody tr:last');
-
-    // call with jQuery object and brand value
-    loadColorSize($newRow, $('#brand').val());
+        let brand = $('#brand').val();
+        loadColorSize($newRow, brand);
 	});
 
 	$(document).on('click','.removeTimePrice',function(){
@@ -469,65 +467,40 @@
         }
 
        // ---------- robust loadColorSize ----------
-        function loadColorSize(rowOrSelector, brand) {
-            // Make sure we have a jQuery object
-            let $row = (rowOrSelector instanceof jQuery) ? rowOrSelector : $(rowOrSelector);
+       function loadColorSize(row, brand) {
 
-            // If still not found, try default: first row in table
-            if (!$row || $row.length === 0) {
-                $row = $('#timePriceTable tbody tr:first');
-                if ($row.length === 0) return; // nothing to fill
-            }
+            $.ajax({
+                url: "{{ url('get-color-size-by-brand') }}",
+                type: "GET",
+                data: { brand: brand },
 
-            // If brand not provided, try reading from a brand input/select
-            if (!brand) {
-                brand = $('#brand').val(); // adjust selector to your brand input
-                if (!brand) return; // cannot load without brand
-            }
+                success: function (response) {
 
-                    $.ajax({
-                        url: "{{ url('get-color-size-by-brand') }}",
-                        type: "GET",
-                        data: { brand: brand },
-                        success: function (response) {
-                            let colorSelect = $row.find("select[name='color_id[]']");
-                            let sizeSelect  = $row.find("select[name='size_id[]']");
-
-                            // If selects are not found inside the row, nothing to do
-                            if (colorSelect.length) {
-                                colorSelect.empty().append('<option value="" hidden selected>Select...</option>');
-                                $.each(response.colors, function (key, item) {
-                                    colorSelect.append(`<option value="${item.id}">${item.name}</option>`);
-                                });
-                                // re-init select2 if used
-                                if (colorSelect.hasClass('select2')) colorSelect.trigger('change.select2');
-                            }
-
-                            if (sizeSelect.length) {
-                                sizeSelect.empty().append('<option value="" hidden selected>Select...</option>');
-                                $.each(response.sizes, function (key, item) {
-                                    sizeSelect.append(`<option value="${item.id}">${item.name}</option>`);
-                                });
-                                if (sizeSelect.hasClass('select2')) sizeSelect.trigger('change.select2');
-                            }
-
-                            // If you want to initialize select2 on newly appended selects:
-                            if (typeof $.fn.select2 === 'function') {
-                                if (colorSelect.length) colorSelect.select2({ width: '100%' });
-                                if (sizeSelect.length) sizeSelect.select2({ width: '100%' });
-                            }
-                        },
-                        error: function (xhr) {
-                            console.error('Could not load color/size:', xhr.responseText || xhr.statusText);
-                        }
+                    // COLOR DROPDOWN
+                    let colorSelect = row.find("select[name='color_id[]']");
+                    colorSelect.empty().append('<option value="" hidden selected>Select...</option>');
+                    $.each(response.colors, function (key, item) {
+                        colorSelect.append(`<option value="${item.id}">${item.name}</option>`);
                     });
+
+                    // SIZE DROPDOWN
+                    let sizeSelect = row.find("select[name='size_id[]']");
+                    sizeSelect.empty().append('<option value="" hidden selected>Select...</option>');
+                    $.each(response.sizes, function (key, item) {
+                        sizeSelect.append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+                }
+            });
         }
+
 
 
         $('#brand').on('change', function () {
             let brand = $(this).val();
-            let firstRow = $('#timePriceTable tbody tr:first'); // jQuery object
-            loadColorSize(firstRow, brand);
+
+            $('#timePriceTable tbody tr').each(function () {
+                loadColorSize($(this), brand);
+            });
         });
 
     </script>
