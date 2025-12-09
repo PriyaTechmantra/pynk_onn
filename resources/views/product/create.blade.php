@@ -443,7 +443,7 @@
 
         function loadCategoryCollection(brand) {
             $.ajax({
-                url: "/get-category-collection-by-brand",
+                url: "{{ url('get-category-collection-by-brand') }}",
                 type: "GET",
                 data: { brand: brand },
                 success: function (response) {
@@ -465,7 +465,7 @@
 
         function loadColorSize(brand) {
             $.ajax({
-                url: "/get-color-size-by-brand",
+                url: "{{url('get-color-size-by-brand')}}",
                 type: "GET",
                 data: { brand: brand },
                 success: function (response) {

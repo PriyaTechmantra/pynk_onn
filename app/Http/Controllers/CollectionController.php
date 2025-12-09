@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Collection;
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Color;
+use App\Models\Size;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
