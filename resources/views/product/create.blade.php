@@ -422,4 +422,66 @@
 			});
 		});
     </script>
+
+    <script>
+
+        function checkOnlyOne(checkbox) {
+            const checkboxes = document.querySelectorAll('.medium-checkbox');
+            checkboxes.forEach(cb => {
+                if (cb !== checkbox) cb.checked = false;
+            });
+
+            let brand = checkbox.value;
+
+            // Call AJAX to update dropdowns
+            loadCategoryCollection(brand);
+            loadColorSize(brand);
+        }
+        
+
+
+
+        function loadCategoryCollection(brand) {
+            $.ajax({
+                url: "/get-category-collection-by-brand",
+                type: "GET",
+                data: { brand: brand },
+                success: function (response) {
+                    // CATEGORY
+                    $("#category").html('<option value="" selected>Select Category</option>');
+                    $.each(response.categories, function (key, item) {
+                        $("#category").append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+
+                    // COLLECTION
+                    $("#collection").html('<option value="" selected disabled>Select</option>');
+                    $("#collection").append('<option value="10000">All</option>');
+                    $.each(response.collections, function (key, item) {
+                        $("#collection").append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+                }
+            });
+        }
+
+        function loadColorSize(brand) {
+            $.ajax({
+                url: "/get-color-size-by-brand",
+                type: "GET",
+                data: { brand: brand },
+                success: function (response) {
+                    // COLOR SELECT
+                    $("select[name='color_id[]']").html('<option value="" hidden selected>Select...</option>');
+                    $.each(response.colors, function (key, item) {
+                        $("select[name='color_id[]']").append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+
+                    // SIZE SELECT
+                    $("select[name='size_id[]']").html('<option value="" hidden selected>Select...</option>');
+                    $.each(response.sizes, function (key, item) {
+                        $("select[name='size_id[]']").append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+                }
+            });
+        }
+    </script>
 @endsection
