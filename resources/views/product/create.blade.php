@@ -372,9 +372,16 @@
         </tr>
         `;
          let $newRow = $(toAppend);
-		$('#timePriceTable').append(toAppend);
-        let brand = $('#brand').val();
-        loadColorSize($newRow, brand);
+
+        // Append NEW ROW properly
+        $('#timePriceTable tbody').append($newRow);
+
+        // Get selected brand
+        let brand = $(".medium-checkbox:checked").val(); // CORRECT
+
+        if (brand) {
+            loadColorSize($newRow, brand);
+        }
 	});
 
 	$(document).on('click','.removeTimePrice',function(){
