@@ -283,7 +283,7 @@ class HomeController extends Controller
                             }
                         }
                         
-                        
+                        dd($uniqueAseList);
                     
                         // Get user_ids of those ASEs from users table
                         $aseUsers = Employee::whereIn('id', $uniqueAseList)->where('brand' ,$brand)->pluck('id');
