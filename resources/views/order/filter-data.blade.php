@@ -26,7 +26,7 @@ $date_to = $date->format('Y-m-t');
                 <div class="row g-3 align-items-end mb-4">
                         <div class="col-auto">
                             <label for="date_from" class="text-muted small">Month</label>
-                            <input type="month" name="month_year" id="month_year" class="form-control form-control-sm" value="{{ $monthValue ?? date('Y-m') }}">
+                            <input type="month" name="month_year" id="month_year" class="form-control form-control-sm" value="{{ request('month_year', date('Y-m')) }}">
                         </div>
                         
                         <div class="col-auto">
