@@ -288,6 +288,7 @@ class HomeController extends Controller
                         // Get user_ids of those ASEs from users table
                         $aseUsers = Employee::whereIn('id', $uniqueAseList)->where('brand' ,$brand)->pluck('id');
                         
+                        if ($aseUsers->isEmpty()) continue;
                         
                             // Get total sales for these ASE user IDs
                             $totalSales = DB::table('order_products')
@@ -296,7 +297,10 @@ class HomeController extends Controller
                                 ->whereIn('orders.user_id', $aseUsers)
                                 ->whereBetween('order_products.created_at', [$startDate, $endDate])
                                 ->sum('order_products.qty');
-                        
+                           // 👉 Skip ASM if total sales is zero
+                        if ($totalSales == 0) {
+                            continue;
+                        }
                     
                         $data[] = [
                             'id' => $asm->id,
