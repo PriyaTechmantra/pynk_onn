@@ -26,7 +26,7 @@
                                     id="mediumOnn"
                                     onchange="checkOnlyOne(this)"
                                 >
-                                <label class="form-check-label" for="mediumLMS">ONN</label>
+                                <label class="form-check-label" for="mediumLMS">Onn</label>
                             </div>
                             <div class="form-check">
                                 <input 
@@ -37,7 +37,7 @@
                                     id="mediumPynk"
                                     onchange="checkOnlyOne(this)"
                                 >
-                                <label class="form-check-label" for="mediumFMS">PYNK</label>
+                                <label class="form-check-label" for="mediumFMS">Pynk</label>
                             </div>
                             
                             {{--<div class="form-check">

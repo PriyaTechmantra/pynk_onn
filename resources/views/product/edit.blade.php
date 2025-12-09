@@ -1127,4 +1127,87 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 </script>
+
+
+
+<script>
+
+        function checkOnlyOne(checkbox) {
+            const checkboxes = document.querySelectorAll('.medium-checkbox');
+            checkboxes.forEach(cb => {
+                if (cb !== checkbox) cb.checked = false;
+            });
+
+            let brand = checkbox.value;
+
+            // Call AJAX to update dropdowns
+            loadCategoryCollection(brand);
+            $('#timePriceTable tbody tr').each(function () {
+                loadColorSize($(this), brand);
+            });
+        }
+        
+
+
+
+        function loadCategoryCollection(brand) {
+            $.ajax({
+                url: "{{ url('get-category-collection-by-brand') }}",
+                type: "GET",
+                data: { brand: brand },
+                success: function (response) {
+                    // CATEGORY
+                    $("#category").html('<option value="" selected>Select Category</option>');
+                    $.each(response.categories, function (key, item) {
+                        $("#category").append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+
+                    // COLLECTION
+                    $("#collection").html('<option value="" selected disabled>Select</option>');
+                    $("#collection").append('<option value="10000">All</option>');
+                    $.each(response.collections, function (key, item) {
+                        $("#collection").append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+                }
+            });
+        }
+
+       // ---------- robust loadColorSize ----------
+       function loadColorSize(row, brand) {
+
+            $.ajax({
+                url: "{{ url('get-color-size-by-brand') }}",
+                type: "GET",
+                data: { brand: brand },
+
+                success: function (response) {
+
+                    // COLOR DROPDOWN
+                    let colorSelect = row.find("select[name='color_id[]']");
+                    colorSelect.empty().append('<option value="" hidden selected>Select...</option>');
+                    $.each(response.colors, function (key, item) {
+                        colorSelect.append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+
+                    // SIZE DROPDOWN
+                    let sizeSelect = row.find("select[name='size_id[]']");
+                    sizeSelect.empty().append('<option value="" hidden selected>Select...</option>');
+                    $.each(response.sizes, function (key, item) {
+                        sizeSelect.append(`<option value="${item.id}">${item.name}</option>`);
+                    });
+                }
+            });
+        }
+
+
+
+        $('#brand').on('change', function () {
+            let brand = $(this).val();
+
+            $('#timePriceTable tbody tr').each(function () {
+                loadColorSize($(this), brand);
+            });
+        });
+
+    </script>
 @endsection
