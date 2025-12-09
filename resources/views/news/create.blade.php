@@ -32,13 +32,21 @@
                                     </div>
                                     <div class="mb-3">
                                         <label for="">User Type <span class="text-danger">*</span></label>
-                                        <select name="user_type[]" class="form-control" id="userTypeSelect" multiple>
-                                            <option value="1" {{ (collect(old('user_type'))->contains(1)) ? 'selected' : '' }}>VP</option>
-                                            <option value="2" {{ (collect(old('user_type'))->contains(2)) ? 'selected' : '' }}>RSM</option>
-                                            <option value="3" {{ (collect(old('user_type'))->contains(3)) ? 'selected' : '' }}>ASM</option>
-                                            <option value="4" {{ (collect(old('user_type'))->contains(4)) ? 'selected' : '' }}>ASE</option>
-                                        </select>
-                                        @error('user_type') <p class="small text-danger">{{ $message }}</p> @enderror
+                                            @php
+                                                // Old input only (create page)
+                                                $selectedTypes = old('user_type', []); // always returns array or empty
+                                            @endphp
+
+                                            <select name="user_type[]" class="form-control" id="userTypeSelect" multiple>
+                                                <option value="1" {{ in_array(1, $selectedTypes) ? 'selected' : '' }}>VP</option>
+                                                <option value="2" {{ in_array(2, $selectedTypes) ? 'selected' : '' }}>RSM</option>
+                                                <option value="3" {{ in_array(3, $selectedTypes) ? 'selected' : '' }}>ASM</option>
+                                                <option value="4" {{ in_array(4, $selectedTypes) ? 'selected' : '' }}>ASE</option>
+                                            </select>
+
+                                            @error('user_type')
+                                            <p class="small text-danger">{{ $message }}</p>
+                                            @enderror
                                     </div>
                                     <div class="form-group mb-3">
                                         <label class="label-control">Validity From<span class="text-danger">*</span> </label>

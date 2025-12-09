@@ -244,7 +244,7 @@ class HomeController extends Controller
 
             case 'product':
                 $data = DB::table('order_products')
-                    ->select('products.id','products.style_no', DB::raw('SUM(order_products.qty) as total_sales'))->join('products', 'products.id', 'order_products.product_id')->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('states', 'states.id', 'stores.state_id')
+                    ->select('products.id','products.style_no', DB::raw('SUM(order_products.qty) as total_sales'))->join('products', 'products.id', 'order_products.product_id')->join('orders', 'orders.id', 'order_products.order_id')
                     ->where('orders.brand' ,$brand)
                     ->whereBetween('order_products.created_at', [$startDate, $endDate])
                     ->groupBy('products.id')->orderByDesc('total_sales')
@@ -252,7 +252,7 @@ class HomeController extends Controller
                 break;
             case 'ase':
                 $data = DB::table('order_products')
-                    ->select('employees.name','employees.id','employees.status', DB::raw('SUM(order_products.qty) as total_sales'))->join('orders', 'orders.id', 'order_products.order_id')->join('stores', 'stores.id', 'orders.store_id')->join('employees', 'employees.id', 'orders.user_id')
+                    ->select('employees.name','employees.id','employees.status', DB::raw('SUM(order_products.qty) as total_sales'))->join('orders', 'orders.id', 'order_products.order_id')->join('employees', 'employees.id', 'orders.user_id')
                     ->where('orders.brand' ,$brand)
                     ->whereBetween('order_products.created_at', [$startDate, $endDate])
                     ->groupBy('employees.id')->orderByDesc('total_sales')
@@ -288,9 +288,7 @@ class HomeController extends Controller
                         // Get user_ids of those ASEs from users table
                         $aseUsers = Employee::whereIn('id', $uniqueAseList)->where('brand' ,$brand)->pluck('id');
                         
-                        if ($aseUsers->isEmpty()) {
-                            $totalSales = 0;
-                        } else {
+                        
                             // Get total sales for these ASE user IDs
                             $totalSales = DB::table('order_products')
                                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
@@ -298,7 +296,7 @@ class HomeController extends Controller
                                 ->whereIn('orders.user_id', $aseUsers)
                                 ->whereBetween('order_products.created_at', [$startDate, $endDate])
                                 ->sum('order_products.qty');
-                        }
+                        
                     
                         $data[] = [
                             'id' => $asm->id,
