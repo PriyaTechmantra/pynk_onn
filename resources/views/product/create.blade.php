@@ -339,6 +339,7 @@
     });
 
     $(document).on('click','.addNewTime',function(){
+         let brand = $('#brand').val();
 		var thisClickedBtn = $(this);
 		thisClickedBtn.removeClass(['addNewTime','btn-success']);
 		thisClickedBtn.addClass(['removeTimePrice','btn-danger']).text('X');
@@ -372,6 +373,10 @@
         `;
 
 		$('#timePriceTable').append(toAppend);
+        let newRow = $('#timePriceTable tbody tr:last');
+
+        // Load brand-wise color & size into only the NEW ROW
+       loadColorSize(newRow, brand);
 	});
 
 	$(document).on('click','.removeTimePrice',function(){
@@ -463,25 +468,44 @@
             });
         }
 
-        function loadColorSize(brand) {
+        function loadColorSize(row, brand) {
             $.ajax({
-                url: "{{url('get-color-size-by-brand')}}",
+                url: "{{ url('get-color-size-by-brand') }}",
                 type: "GET",
                 data: { brand: brand },
+
                 success: function (response) {
-                    // COLOR SELECT
-                    $("select[name='color_id[]']").html('<option value="" hidden selected>Select...</option>');
+
+                    let colorSelect = row.find("select[name='color_id[]']");
+                    let sizeSelect  = row.find("select[name='size_id[]']");
+
+                    // Reset dropdowns
+                    colorSelect.html('<option value="" hidden selected>Select...</option>');
+                    sizeSelect.html('<option value="" hidden selected>Select...</option>');
+
+                    // Fill Colors
                     $.each(response.colors, function (key, item) {
-                        $("select[name='color_id[]']").append(`<option value="${item.id}">${item.name}</option>`);
+                        colorSelect.append(`<option value="${item.id}">${item.name}</option>`);
                     });
 
-                    // SIZE SELECT
-                    $("select[name='size_id[]']").html('<option value="" hidden selected>Select...</option>');
+                    // Fill Sizes
                     $.each(response.sizes, function (key, item) {
-                        $("select[name='size_id[]']").append(`<option value="${item.id}">${item.name}</option>`);
+                        sizeSelect.append(`<option value="${item.id}">${item.name}</option>`);
                     });
+
+                    // Reinitialize select2
+                    colorSelect.select2();
+                    sizeSelect.select2();
                 }
             });
         }
+
+
+        $('#brand').on('change', function () {
+            let brand = $(this).val();
+            let firstRow = $('#timePriceTable tbody tr:first');
+            loadColorSize(firstRow, brand);
+        });
+
     </script>
 @endsection
