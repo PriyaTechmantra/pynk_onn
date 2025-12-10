@@ -30,7 +30,7 @@ class AuthController extends Controller
         try {
             $phoneNumber = $request->input('mobile');
             $password = $request->password;
-            $user = Employee::where('mobile', $phoneNumber)->first();
+            $user = Employee::where('mobile', $phoneNumber)->where('is_deleted',0)->first();
     
             if (!$user) {
                 return response()->json([
