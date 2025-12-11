@@ -696,16 +696,17 @@ class DistributorController extends Controller
                          // Step 3: Extract the data from each row
                         $rowData = [
                             'brand' => isset($filedata[0]) ? $filedata[0] : null,
-                            'code' => isset($filedata[3]) ? $filedata[3] : null,
-                            'name' => isset($filedata[4]) ? $filedata[4] : null,
-                            'email' => isset($filedata[5]) ? $filedata[5] : null,
-                            'contact' => isset($filedata[6]) ? $filedata[6] : null,
+                            'designation' => isset($filedata[1]) ? $filedata[1] : null,
+                            'code' => isset($filedata[2]) ? $filedata[2] : null,
+                            'name' => isset($filedata[3]) ? $filedata[3] : null,
+                            'email' => isset($filedata[4]) ? $filedata[4] : null,
+                            'contact' => isset($filedata[5]) ? $filedata[5] : null,
                             
-                            'whatsapp' => isset($filedata[7]) ? $filedata[7] : null,
-                            'state_id' => isset($filedata[8]) ? $filedata[8] : null,
-                            'area_id' => isset($filedata[9]) ? $filedata[9] : null,
-                            'date_of_joining' => isset($filedata[10]) ? $filedata[10] : null,
-                            'password' => isset($filedata[11]) ? $filedata[11] : null,
+                            'whatsapp' => isset($filedata[6]) ? $filedata[6] : null,
+                            'state_id' => isset($filedata[7]) ? $filedata[7] : null,
+                            'area_id' => isset($filedata[8]) ? $filedata[8] : null,
+                            'date_of_joining' => isset($filedata[9]) ? $filedata[9] : null,
+                            'password' => isset($filedata[10]) ? $filedata[10] : null,
                             
                             
                         ];

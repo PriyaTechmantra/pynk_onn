@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Employee;
+use App\Models\Distributor;
 use Carbon\Carbon;
 use DB;
 use Hash;
@@ -111,7 +112,7 @@ class AuthController extends Controller
         try {
             $phoneNumber = $request->input('mobile');
             $password = $request->password;
-            $user = Distributor::where('mobile', $phoneNumber)->where('is_deleted',0)->first();
+            $user = Distributor::where('contact', $phoneNumber)->where('is_deleted',0)->first();
     
             if (!$user) {
                 return response()->json([
