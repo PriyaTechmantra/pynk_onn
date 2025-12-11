@@ -92,6 +92,87 @@ class AuthController extends Controller
             ], 500);
         }
     }
+
+
+
+    public function distributorLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'mobile' => 'required|numeric',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'error' => $validator->errors()
+            ], 400);
+        }
+    
+        try {
+            $phoneNumber = $request->input('mobile');
+            $password = $request->password;
+            $user = Distributor::where('mobile', $phoneNumber)->where('is_deleted',0)->first();
+    
+            if (!$user) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Distributor not found'
+                ], 404);
+            }
+            if (Hash::check($password, $user->password)) {
+				
+                if ($user->status == 1) {
+                    
+                   
+
+                                            $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
+
+                                            $brands = [$user->brand];
+
+                                    // Check conditions
+                                        if (in_array(3, $brands)) {
+                                            $brandPermissions = 'Both';
+                                        } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                            $brandPermissions = 'Both';
+                                        } else {
+                                            $brandPermissions = collect($brands)
+                                                ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                                ->implode(', ');
+                                        }
+                    
+        
+                    return response()->json([
+                        'status' => true,
+                        'message' => 'Login successful',
+                        'user' => $user,
+                        'brand' => $brandPermissions
+                       
+                    ], 200);
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Your account is temporarily blocked. Contact Admin.'
+                    ], 403); 
+                }
+            } else {
+
+                return response()->json(['status' => false, 'message' => 'You have entered wrong login credential. Please try with the correct one.', 'data' => $user->password]);
+            }
+    
+        } catch (\Exception $e) {
+            Log::error('Login error: ' . $e->getMessage());
+
+    
+            return response()->json([
+                'message' => 'An error occurred while login.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
     
 
 
