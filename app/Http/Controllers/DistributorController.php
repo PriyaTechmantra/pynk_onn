@@ -723,8 +723,20 @@ class DistributorController extends Controller
                         // Accumulate errors with row number context
                         $errors[$i] = $validator->errors()->all();
                     } else {
-                        $stateName=State::where('name',$rowData['state_id'])->first();
-                        $areaName=Area::where('name',$rowData['area_id'])->first();
+                        $stateName = State::where('name', trim($rowData['state_id']))->first();
+                        $areaName  = Area::where('name', trim($rowData['area_id']))->first();
+
+                        if (!$stateName) {
+                            $errors[$i][] = "Invalid state: ". $rowData['state_id'];
+                        }
+                        if (!$areaName) {
+                            $errors[$i][] = "Invalid area: ". $rowData['area_id'];
+                        }
+
+                        if (!empty($errors[$i])) {
+                            $i++;
+                            continue;  // skip insertion
+                        }
                             // Map brand text to numeric value
                                 $brandValue = null;
                                 if (!empty($rowData['brand'])) {
@@ -745,7 +757,7 @@ class DistributorController extends Controller
                             "contact" => $rowData['contact'],
                             "whatsapp" => $rowData['whatsapp'],
                             "state_id" => $stateName->id,
-                            "area_id" => $areaName->id,
+                            "area_id" => $areaName->id ??'',
                             "date_of_joining" => $rowData['date_of_joining'],
                              "brand" => $brandValue,
                             "password" => $rowData['password'],
