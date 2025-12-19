@@ -9,6 +9,7 @@ use App\Models\CouponUsage;
 use App\Models\User;
 use App\Models\QrSequence;
 use App\Models\Distributor;
+use App\Models\Employee;
 use App\Models\RetailerOrder;
 use App\Models\RewardOrderProduct;
 use App\Models\State;
