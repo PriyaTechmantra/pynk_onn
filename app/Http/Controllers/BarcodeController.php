@@ -490,6 +490,7 @@ class BarcodeController extends Controller
                     'retailer_user_txn_histories.user_id',
                     'retailer_user_txn_histories.barcode_id',
                     'retailer_barcodes.name',
+                    'retailer_barcodes.brand',
                     'retailer_barcodes.code',
                     'retailer_barcodes.serial_number',
                     'retailer_barcodes.name',

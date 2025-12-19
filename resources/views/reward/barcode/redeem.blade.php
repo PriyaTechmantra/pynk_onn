@@ -134,7 +134,39 @@
                                                 <select class="form-select form-select-sm select2" id="distributor" name="distributor">
                                                     <option value="" selected disabled>Select</option>
                                                     @foreach ($allDistributors as $item)
-                                                        <option value="{{$item->id}}" {{ (request()->input('distributor') == $item->id) ? 'selected' : '' }}>{{$item->name}} ({{$item->code}}) ({{$item->states->name}})</option>
+
+                                                        @php
+                                                
+
+                                                                $brandMap = [
+                                                                    1 => 'ONN',
+                                                                    2 => 'PYNK',
+                                                                    3 => 'Both',
+                                                                ];
+
+                                                                // Collect brand IDs from items (avoid duplicates)
+                                                                $disbrands = [$item->brand];
+                                                                
+                                                                // Determine brand permissions
+                                                                if (in_array(3, $disbrands)) {
+                                                                    // If any brand is "Both"
+                                                                    $disbrandPermissions = 'Both';
+                                                                } elseif (in_array(1, $disbrands) && in_array(2, $disbrands)) {
+                                                                    // If both ONN and PYNK exist
+                                                                    $disbrandPermissions = 'Both';
+                                                                } elseif (in_array(1, $disbrands)) {
+                                                                    $disbrandPermissions = 'ONN';
+                                                                } elseif (in_array(2, $disbrands)) {
+                                                                    $disbrandPermissions = 'PYNK';
+                                                                } else {
+                                                                    // Fallback for unexpected values
+                                                                    $disbrandPermissions = collect($disbrands)
+                                                                        ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                                        ->implode(', ');
+                                                                }
+
+                                                            @endphp
+                                                        <option value="{{$item->id}}" {{ (request()->input('distributor') == $item->id) ? 'selected' : '' }}>{{$item->name}} ({{$item->code}}) ({{$item->states->name}}) ({{$disbrandPermissions}})</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -143,7 +175,38 @@
                                                 <select class="form-select form-select-sm select2" id="ase" name="ase">
                                                     <option value="" selected disabled>Select</option>
                                                     @foreach ($allASEs as $item)
-                                                        <option value="{{$item->id}}" {{ (request()->input('ase') == $item->id) ? 'selected' : '' }}>{{$item->name}} ({{$item->employee_id}}) ({{$item->stateDetail->name}})</option>
+                                                            @php
+                                                
+
+                                                                $brandMap = [
+                                                                    1 => 'ONN',
+                                                                    2 => 'PYNK',
+                                                                    3 => 'Both',
+                                                                ];
+
+                                                                // Collect brand IDs from items (avoid duplicates)
+                                                                $asebrands = [$item->brand];
+                                                                
+                                                                // Determine brand permissions
+                                                                if (in_array(3, $asebrands)) {
+                                                                    // If any brand is "Both"
+                                                                    $asebrandPermissions = 'Both';
+                                                                } elseif (in_array(1, $asebrands) && in_array(2, $asebrands)) {
+                                                                    // If both ONN and PYNK exist
+                                                                    $asebrandPermissions = 'Both';
+                                                                } elseif (in_array(1, $asebrands)) {
+                                                                    $asebrandPermissions = 'ONN';
+                                                                } elseif (in_array(2, $asebrands)) {
+                                                                    $asebrandPermissions = 'PYNK';
+                                                                } else {
+                                                                    // Fallback for unexpected values
+                                                                    $asebrandPermissions = collect($asebrands)
+                                                                        ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                                        ->implode(', ');
+                                                                }
+
+                                                            @endphp
+                                                        <option value="{{$item->id}}" {{ (request()->input('ase') == $item->id) ? 'selected' : '' }}>{{$item->name}} ({{$item->employee_id}}) ({{$item->stateDetail->name}}) ({{$asebrandPermissions}})</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -206,36 +269,36 @@
                                                 @php
                                                 
 
-                                            $brandMap = [
-                                                1 => 'ONN',
-                                                2 => 'PYNK',
-                                                3 => 'Both',
-                                            ];
+                                                    $brandMap = [
+                                                        1 => 'ONN',
+                                                        2 => 'PYNK',
+                                                        3 => 'Both',
+                                                    ];
 
-                                            // Collect brand IDs from items (avoid duplicates)
-                                            $brands = [$item->brand];
-                                            
-                                            // Determine brand permissions
-                                            if (in_array(3, $brands)) {
-                                                // If any brand is "Both"
-                                                $brandPermissions = 'Both';
-                                            } elseif (in_array(1, $brands) && in_array(2, $brands)) {
-                                                // If both ONN and PYNK exist
-                                                $brandPermissions = 'Both';
-                                            } elseif (in_array(1, $brands)) {
-                                                $brandPermissions = 'ONN';
-                                            } elseif (in_array(2, $brands)) {
-                                                $brandPermissions = 'PYNK';
-                                            } else {
-                                                // Fallback for unexpected values
-                                                $brandPermissions = collect($brands)
-                                                    ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
-                                                    ->implode(', ');
-                                            }
+                                                    // Collect brand IDs from items (avoid duplicates)
+                                                    $brands = [$item->brand];
+                                                    
+                                                    // Determine brand permissions
+                                                    if (in_array(3, $brands)) {
+                                                        // If any brand is "Both"
+                                                        $brandPermissions = 'Both';
+                                                    } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                                        // If both ONN and PYNK exist
+                                                        $brandPermissions = 'Both';
+                                                    } elseif (in_array(1, $brands)) {
+                                                        $brandPermissions = 'ONN';
+                                                    } elseif (in_array(2, $brands)) {
+                                                        $brandPermissions = 'PYNK';
+                                                    } else {
+                                                        // Fallback for unexpected values
+                                                        $brandPermissions = collect($brands)
+                                                            ->map(fn($b) => $brandMap[$b] ?? 'Unknown')
+                                                            ->implode(', ');
+                                                    }
 
-                                        @endphp
+                                                @endphp
 
-                                               ({{ $brandPermissions ?? '' }})
+                                                ({{ $brandPermissions ?? '' }})
                                             </td>
 
                                             <td>{{ $item->code }}</td>
