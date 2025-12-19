@@ -459,6 +459,22 @@ class BarcodeController extends Controller
 
     public function qrRedeem(Request $request)
     {
+        $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
+        
+            $brandsToShow = [];
+
+            if (in_array(3, $userBrands) || (in_array(1, $userBrands) && in_array(2, $userBrands))) {
+                // Both brands access
+                $brandsToShow = [1, 2, 3];
+            } elseif (in_array(1, $userBrands)) {
+                $brandsToShow = [1];
+            } elseif (in_array(2, $userBrands)) {
+                $brandsToShow = [2];
+            }
         $from = $request->date_from ?? date('Y-m-01');
         $to   = $request->date_to 
                     ? date('Y-m-d', strtotime($request->date_to . ' +1 day')) 
@@ -530,17 +546,15 @@ class BarcodeController extends Controller
 
         $data = $query->latest('retailer_wallet_txns.id')->paginate(25);
 
-        $allDistributors = Distributor::select('id','name','user_id','state_id')
-                                ->whereNotNull('name')
-                                ->groupBy('name')
-                                ->orderBy('name')
-                                ->get();
+        $allASEs = Employee::whereIn('brand',$brandsToShow)->where('type',4)->where('name', '!=', null)->groupBy('name')->orderBy('name')->with('stateDetail')->get();
+        
+        $allDistributors = Distributor::whereIn('brand',$brandsToShow)->where('name', '!=', null)->groupBy('name')->orderBy('name')->with('states')->get();
 
        
 
         return view('reward.barcode.redeem', compact(
             'data',
-            'allDistributors',
+            'allDistributors','allASEs'
             'request',
         ));
     }
