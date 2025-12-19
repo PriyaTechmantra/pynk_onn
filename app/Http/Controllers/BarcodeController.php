@@ -536,10 +536,7 @@ class BarcodeController extends Controller
                                 ->orderBy('name')
                                 ->get();
 
-        // $allDistributor = User::where('type', 5)
-        //                     ->where('status', 1)
-        //                     ->orderBy('name')
-        //                     ->get();
+       
 
         return view('reward.barcode.redeem', compact(
             'data',

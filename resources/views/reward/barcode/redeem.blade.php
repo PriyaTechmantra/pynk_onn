@@ -35,6 +35,33 @@
                     <div class="alert alert-success">{{ session('status') }}</div>
                 @endif
 
+                        @php
+                            $assignedPermissions = DB::table('user_permission_categories')
+                            ->select('user_permission_categories.*')
+                            ->join('users','users.id','=','user_permission_categories.user_id')
+                            ->where('user_permission_categories.user_id', Auth::user()->id)
+                            ->get();
+
+                            $brandMap = [
+                                1 => 'ONN',
+                                2 => 'PYNK',
+                                3 => 'Both',
+                            ];
+
+                            $brands = $assignedPermissions->pluck('brand')->unique()->toArray();
+
+                            // Check conditions
+                                if (in_array(3, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                    $brandPermissions = 'Both';
+                                } else {
+                                    $brandPermissions = collect($brands)
+                                        ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                        ->implode(', ');
+                                }
+                        @endphp
+
                 <div class="card data-card mt-3">
                     <div class="card-header">
                         <h4>QRCODE REDEEM HISTORY
@@ -53,6 +80,20 @@
                                         <div class="row g-2 align-items-center">
 
                                             <div class="col-12 d-flex align-items-center gap-2">
+                                                    @if($brandPermissions=='Both')
+                                                    <div class="col">
+                                                        <label class="small text-muted">Brand</label>
+                                                        <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
+                                                            <option value="" selected disabled>Select</option>
+                                                                 <option value="3" {{ (request()->input('brand') == 3) ? 'selected' : '' }}>All</option>
+                                                            
+                                                                <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
+                                                                <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
+                                                                
+                                                                
+                                                        </select>
+                                                    </div>
+                                                    @endif
                                                 <label for="date_from" class="text-muted small">Date from</label>
                                                 <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_from')}}">
                                             
