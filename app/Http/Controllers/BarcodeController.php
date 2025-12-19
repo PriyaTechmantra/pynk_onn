@@ -550,7 +550,7 @@ class BarcodeController extends Controller
         $allASEs = Employee::whereIn('brand',$brandsToShow)->where('type',4)->where('name', '!=', null)->groupBy('name')->orderBy('name')->with('stateDetail')->get();
         
         $allDistributors = Distributor::whereIn('brand',$brandsToShow)->where('name', '!=', null)->groupBy('name')->orderBy('name')->with('states')->get();
-        dd($allDistributors);
+       
        
 
         return view('reward.barcode.redeem', compact(
