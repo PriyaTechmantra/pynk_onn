@@ -196,7 +196,7 @@ class BarcodeController extends Controller
         } else {
         	$coupons = RetailerBarcode::where('slug', $slug)->get();
 		}
-        $usage = RetailerWalletTxn::where('barcode_id',$data->id)->with('users')->get();
+        $usage = RetailerUserTxnHistory::where('barcode_id',$data->id)->with('users')->get();
         return view('reward.barcode.detail', compact('data','coupons','usage','request'));
     }
 	
@@ -205,7 +205,7 @@ class BarcodeController extends Controller
         $data = RetailerBarcode::where('slug', $slug)->where('no_of_usage','!=',0)->first();
         $coupons = RetailerBarcode::where('slug', $slug)->where('no_of_usage','!=',0)->get();
 		if(!empty($data)){
-        $usage = RetailerWalletTxn::where('barcode_id',$data->id)->with('users')->get();
+        $usage = RetailerUserTxnHistory::where('barcode_id',$data->id)->with('users')->get();
 		}
 		else{
 			$usage ='';}
@@ -216,7 +216,7 @@ class BarcodeController extends Controller
         $data = RetailerBarcode::where('id', $id)->first();
         
         $coupons = RetailerBarcode::where('id', $id)->get();
-        $usage = RetailerWalletTxn::where('barcode_id',$data->id)->with('users')->get();
+        $usage = RetailerUserTxnHistory::where('barcode_id',$data->id)->with('users')->get();
         return view('reward.barcode.view', compact('data','coupons','usage'));
     }
 	public function edit(Request $request, $id)
@@ -364,8 +364,8 @@ class BarcodeController extends Controller
         $store = Store::find($storeId);
 
         // Calculate opening balance (total credit - total debit before the date range)
-        $openingBalance = RetailerWalletTxn::where('user_id', $storeId)
-                            ->where('type', 1)
+        $openingBalance = RetailerUserTxnHistory::where('user_id', $storeId)
+                            ->where('type', 'Qrcode scan')
                             ->whereDate('created_at', '<', $from)
                             ->sum('amount')
                         - RetailerOrder::where('user_id', $storeId)
@@ -379,8 +379,8 @@ class BarcodeController extends Controller
         // Loop through each day in the range
         while (strtotime($currentDate) <= strtotime($to)) {
             // Fetch daily credit and debit
-            $dailyCredit = RetailerWalletTxn::where('user_id', $storeId)
-                ->where('type', 1)
+            $dailyCredit = RetailerUserTxnHistory::where('user_id', $storeId)
+                ->where('type', 'Qrcode scan')
                 ->whereDate('created_at', $currentDate)
                 ->sum('amount');
 
@@ -485,10 +485,10 @@ class BarcodeController extends Controller
         $distributor = $request->distributor;
         $ase         = $request->ase;
 
-        $query = RetailerWalletTxn::select(
-                    'retailer_barcodes.id',
-                    'retailer_wallet_txns.user_id',
-                    'retailer_wallet_txns.barcode_id',
+        $query = RetailerUserTxnHistory::select(
+                    'retailer_user_txn_histories.id',
+                    'retailer_user_txn_histories.user_id',
+                    'retailer_user_txn_histories.barcode_id',
                     'retailer_barcodes.name',
                     'retailer_barcodes.code',
                     'retailer_barcodes.serial_number',
@@ -502,24 +502,68 @@ class BarcodeController extends Controller
                     'stores.city',
                     'stores.state_id',
                     'stores.pin',
-                    'retailer_wallet_txns.amount',
-                    'retailer_wallet_txns.created_at',
+                    'retailer_user_txn_histories.amount',
+                    'retailer_user_txn_histories.created_at',
                     'teams.distributor_id',
                     'teams.ase_id'
                 )
-                ->join('stores', 'stores.id', '=', 'retailer_wallet_txns.user_id')
-                ->join('retailer_barcodes', 'retailer_barcodes.id', '=', 'retailer_wallet_txns.barcode_id')
+                ->join('stores', 'stores.id', '=', 'retailer_user_txn_histories.user_id')
+                ->join('retailer_barcodes', 'retailer_barcodes.id', '=', 'retailer_user_txn_histories.barcode_id')
                 ->leftJoin('teams', 'teams.store_id', '=', 'stores.id')
                 ->where('stores.user_id', '!=', '');
+        /**
+         * STEP 1: Brand filter (1 = ONN, 2 = PYNK, 3 = BOTH)
+         */
+        if ($request->filled('brand')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->brand == 3) {
+                    // “Both” selected → show ONN (1), PYNK (2), and Both (3)
+                    $q->whereIn('stores.brand', [1, 2, 3]);
+                } else {
+                    // single brand selected → include that + both
+                    $q->where('stores.brand', $request->brand)
+                    ->orWhere('stores.brand', 3);
+                }
+            });
+        } else {
+            // if brand not selected — show according to user permission
+            $userBrandPermissions = DB::table('user_permission_categories')
+                ->where('user_id', $user->id)
+                ->pluck('brand')
+                ->toArray();
 
+            if (!empty($userBrandPermissions)) {
+                $query->where(function ($q) use ($userBrandPermissions) {
+                    if (in_array(3, $userBrandPermissions)) {
+                        // user has both brand permission
+                        $q->whereIn('stores.brand', [1, 2, 3]);
+                    } else {
+                        // user has limited brand(s)
+                        $q->whereIn('stores.brand', array_merge($userBrandPermissions, [3]));
+                    }
+                });
+            }
+        }
        
-        $query->when($distributor, function ($q) use ($distributor) {
-            $q->where('teams.distributor_id', $distributor);
-        });
+        /**
+         * STEP 2: Date range filter (if available)
+         */
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $from = date('Y-m-d 00:00:00', strtotime($request->date_from));
+            $to   = date('Y-m-d 23:59:59', strtotime($request->date_to));
+            $query->whereBetween('retailer_user_txn_histories.created_at', [$from, $to]);
+        }
+        /**
+         * STEP 3: Distributor filter
+         */
+        if ($request->filled('distributor')) {
+            $query->whereRaw("find_in_set('".$request->distributor."', teams.distributor_id)");
+        }
 
-        $query->when($ase, function ($q) use ($ase) {
-            $q->where('teams.ase_id', $ase);
-        });
+
+        if ($request->filled('ase')) {
+            $query->whereRaw("find_in_set('".$request->ase."', teams.ase_id)");
+        }
 
         $query->when($keyword, function ($q) use ($keyword) {
             $q->where(function ($k) use ($keyword) {
@@ -539,13 +583,15 @@ class BarcodeController extends Controller
                     ->orWhere('stores.contact_person_whatsapp', 'LIKE', "%$keyword%")
                     ->orWhere('stores.unique_code', 'LIKE', "%$keyword%")
                     ->orWhere('retailer_barcodes.code', 'LIKE', "%$keyword%")
+                    ->orWhere('retailer_barcodes.name', 'LIKE', "%$keyword%")
+                     ->orWhere('retailer_barcodes.serial_number', 'LIKE', "%$keyword%")
                     ->orWhere('stores.gst_no', 'LIKE', "%$keyword%");
             });
         });
 
-        $query->whereBetween('retailer_wallet_txns.created_at', [$from, $to]);
+        
 
-        $data = $query->latest('retailer_wallet_txns.id')->paginate(25);
+        $data = $query->latest('retailer_user_txn_histories.id')->paginate(25);
 
         $allASEs = Employee::whereIn('brand',$brandsToShow)->where('type',4)->where('name', '!=', null)->groupBy('name')->orderBy('name')->with('stateDetail')->get();
         
@@ -732,7 +778,7 @@ class BarcodeController extends Controller
 
             $count = 1;
 
-            RetailerWalletTxn::select(
+            RetailerUserTxnHistory::select(
                 'retailer_barcodes.name',
                 'retailer_barcodes.code',
                 'retailer_barcodes.serial_number',
@@ -749,19 +795,19 @@ class BarcodeController extends Controller
                 'employees.name as assign_distributor',
                 'employees.state as assign_distributor_state',
                 'employees.city as assign_distributor_city',
-                'retailer_wallet_txns.amount',
-                'retailer_wallet_txns.created_at'
+                'retailer_user_txn_histories.amount',
+                'retailer_user_txn_histories.created_at'
             )
-            ->join('stores', 'stores.id', '=', 'retailer_wallet_txns.user_id')
+            ->join('stores', 'stores.id', '=', 'retailer_user_txn_histories.user_id')
             ->join('team', 'stores.id', '=', 'team.store_id')
-            ->join('retailer_barcodes', 'retailer_barcodes.id', '=', 'retailer_wallet_txns.barcode_id')
+            ->join('retailer_barcodes', 'retailer_barcodes.id', '=', 'retailer_user_txn_histories.barcode_id')
             ->leftJoin('qr_sequences', function ($join) {
                 $join->on('retailer_barcodes.serial_number', '>=', 'qr_sequences.from')
                     ->on('retailer_barcodes.serial_number', '<=', 'qr_sequences.to');
             })
             ->leftJoin('employees', 'qr_sequences.distributor_id', '=', 'employees.id')
             ->whereBetween('qr_sequences.actual_date', [$from, $to])
-            ->orderBy('retailer_wallet_txns.id')
+            ->orderBy('retailer_user_txn_histories.id')
             ->chunk(500, function ($rows) use (&$count, $handle) {
 
                 foreach ($rows as $row) {
@@ -813,7 +859,7 @@ class BarcodeController extends Controller
             // Fetch transactions grouped by store and calculate points
             
                 
-            $pointsEarned = RetailerWalletTxn::select( DB::raw('SUM(retailer_wallet_txns.amount) as points_earned'))->where('user_id', $store->id)->where('type',1)->whereBetween('retailer_wallet_txns.created_at', [$from, $to])->get();
+            $pointsEarned = RetailerUserTxnHistory::select( DB::raw('SUM(retailer_user_txn_histories.amount) as points_earned'))->where('user_id', $store->id)->where('type','Qrcode scan')->whereBetween('retailer_user_txn_histories.created_at', [$from, $to])->get();
             //dd($pointsEarned);
             $pointsRedeemed = RetailerOrder::select(DB::raw('SUM(retailer_orders.final_amount) as points_redeemed'))->where('user_id', $store->id)->where('admin_status', '!=', 0)->whereBetween('retailer_orders.created_at', [$from, $to])->get();
             $availablePoints = Store::where('id', $store->id)
@@ -879,8 +925,8 @@ class BarcodeController extends Controller
         
 
         // Calculate opening balance (total credit - total debit before the date range)
-        $openingBalance = RetailerWalletTxn::where('user_id', $storeId)
-                            ->where('type', 1)
+        $openingBalance = RetailerUserTxnHistory::where('user_id', $storeId)
+                            ->where('type', 'Qrcode scan')
                             ->whereDate('created_at', '<', $from)
                             ->sum('amount')
                         - RetailerOrder::where('user_id', $storeId)
@@ -894,8 +940,8 @@ class BarcodeController extends Controller
         // Loop through each day in the range
         while (strtotime($currentDate) <= strtotime($to)) {
             // Fetch daily credit and debit
-            $dailyCredit = RetailerWalletTxn::where('user_id', $storeId)
-                ->where('type', 1)
+            $dailyCredit = RetailerUserTxnHistory::where('user_id', $storeId)
+                ->where('type', 'Qrcode scan')
                 ->whereDate('created_at', $currentDate)
                 ->sum('amount');
 
@@ -1139,7 +1185,7 @@ class BarcodeController extends Controller
                     $displayASEName .= $catDetails->name.',';
                 }
 				}
-                $scanCount=RetailerWalletTxn::where('user_id', $row->id)->where('type',1)->where('created_at', 'like','%'.$month.'%')->count();
+                $scanCount=RetailerUserTxnHistory::where('user_id', $row->id)->where('type','Qrcode scan')->where('created_at', 'like','%'.$month.'%')->count();
                 $dis_name = Distributor::select('name')->where('id', $row->distributor_id)->first();
                                                
                 //dd(\DB::getQueryLog());

@@ -6648,7 +6648,7 @@ public function aseSalesreport(Request $request)
 					if ($barcode->end_date < \Carbon\Carbon::now() || $barcode->status == 0) {
 						return response()->json(['status'=>false, 'message'=>'Sorry! Coupon is expired']);
 					}else{
-					        $maxtimeusage = RetailerWalletTxn::where('user_id',$userId)->where('type',1)->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
+					        $maxtimeusage = RetailerUserTxnHistory::where('user_id',$userId)->where('type','Qrcode scan')->whereYear('created_at', Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->count();
                         					         
                             $limit=20;
                             					    
@@ -6659,11 +6659,11 @@ public function aseSalesreport(Request $request)
     						if ($barcode->no_of_usage == $barcode->max_time_of_use || $barcode->no_of_usage >= $barcode->max_time_of_use){
     							return response()->json(['status'=>false, 'message'=>'Sorry! Coupon Already scanned']);
     						}else{
-    						     $walletusage = RetailerWalletTxn::where('barcode',$barcode->code)->count();
+    						     $walletusage = RetailerUserTxnHistory::where('barcode',$barcode->code)->count();
                                  if ($walletusage >= $barcode->max_time_of_use || $walletusage >= $barcode->max_time_one_can_use) {
                                      return response()->json(['status'=>false, 'message'=>'Sorry! Coupon Already scanned']);
                                 }else{
-    							    $usage = RetailerWalletTxn::where('barcode_id',$barcode->id)->where('user_id',$userId)->count();
+    							    $usage = RetailerUserTxnHistory::where('barcode_id',$barcode->id)->where('user_id',$userId)->count();
                                      if ($usage >= $barcode->max_time_of_use || $usage >= $barcode->max_time_one_can_use) {
                                          return response()->json(['status'=>false, 'message'=>'Sorry! Coupon Already scanned']);
                                     }else{
@@ -6674,13 +6674,16 @@ public function aseSalesreport(Request $request)
         									return response()->json(['status'=>false, 'message'=>'User is invalid']);
         								}else{
         									
-        									$userAmount=RetailerWalletTxn::where('user_id',$userId)->orderby('id','desc')->first();
-        									$walletTxn=new RetailerWalletTxn();
+        									$userAmount=RetailerUserTxnHistory::where('user_id',$userId)->orderby('id','desc')->first();
+        									$walletTxn=new RetailerUserTxnHistory();
         									$walletTxn->user_id = $userId;
         									$walletTxn->barcode_id = $barcode->id;
         									$walletTxn->barcode = $barcode->code;
         									$walletTxn->amount = $barcode->amount;
-        									$walletTxn->type = 1 ?? '';
+        									$walletTxn->type = 'Qrcode scan' ?? '';
+                                            $walletTxn->title = $barcode->amount.' points earn';
+        									$walletTxn->description = 'Using '.$barcode->code.' code';
+        									$walletTxn->status = 'increment';
         									if(!$userAmount){
         										$walletTxn->final_amount += $barcode->amount ?? '';
         									}else{
@@ -6689,21 +6692,11 @@ public function aseSalesreport(Request $request)
         									$walletTxn->created_at = date('Y-m-d H:i:s');
         									$walletTxn->updated_at = date('Y-m-d H:i:s');
         									$walletTxn->save();
+
         									$user=Store::findOrFail($userId);
         									$user->wallet += $barcode->amount;
         									$user->save();
-        									$userwalletTxn=new RetailerUserTxnHistory();
-        									$userwalletTxn->user_id = $userId;
-        									$userwalletTxn->barcode_id = $barcode->id;
-        									$userwalletTxn->barcode = $barcode->code;
-        									$userwalletTxn->amount = $barcode->amount;
-        									$userwalletTxn->type = 'Qrcode scan' ?? '';
-        									$userwalletTxn->title = $barcode->amount.' points earn';
-        									$userwalletTxn->description = 'Using '.$barcode->code.' code';
-        									$userwalletTxn->status = 'increment';
-        									$userwalletTxn->created_at = date('Y-m-d H:i:s');
-        									$userwalletTxn->updated_at = date('Y-m-d H:i:s');
-        									$userwalletTxn->save();
+        									
         									$barcodeDetails=RetailerBarcode::findOrFail($barcode->id);
         									$barcodeDetails->no_of_usage = $barcode->no_of_usage+1;
         									$barcodeDetails->save();
@@ -7159,23 +7152,17 @@ public function aseSalesreport(Request $request)
         $user->save();
 
         // Wallet transaction
-        $userAmount = RetailerWalletTxn::where('user_id', $request['user_id'])->orderBy('id', 'desc')->first();
-        $walletTxn = new RetailerWalletTxn();
-        $walletTxn->user_id = $newEntry->user_id;
-        $walletTxn->amount = $newEntry->final_amount;
-        $walletTxn->type = 2;
-        $walletTxn->final_amount = $userAmount
-            ? $userAmount->final_amount - $newEntry->final_amount
-            : 0;
-        $walletTxn->created_at = now();
-        $walletTxn->updated_at = now();
-        $walletTxn->save();
+        $userAmount = RetailerUserTxnHistory::where('user_id', $request['user_id'])->orderBy('id', 'desc')->first();
+        
 
         // Transaction history
         $userwalletTxn = new RetailerUserTxnHistory();
         $userwalletTxn->user_id = $request['user_id'];
         $userwalletTxn->order_id = $newEntry->id;
         $userwalletTxn->amount = $newEntry->final_amount;
+        $userwalletTxn->final_amount = $userAmount
+            ? $userAmount->final_amount - $newEntry->final_amount
+            : 0;
         $userwalletTxn->type = 'points redeem';
         $userwalletTxn->title = 'Redeem points';
         $userwalletTxn->description = 'You Purchase gift';

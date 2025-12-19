@@ -134,7 +134,7 @@
                                                 <select class="form-select form-select-sm select2" id="distributor" name="distributor">
                                                     <option value="" selected disabled>Select</option>
                                                     @foreach ($allDistributors as $item)
-                                                        <option value="{{$item->id}}" {{ (request()->input('distributor') == $item->id) ? 'selected' : '' }}>{{$item->name}}({{$item->code}})({{$item->states->name}})</option>
+                                                        <option value="{{$item->id}}" {{ (request()->input('distributor') == $item->id) ? 'selected' : '' }}>{{$item->name}} ({{$item->code}}) ({{$item->states->name}})</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -143,13 +143,13 @@
                                                 <select class="form-select form-select-sm select2" id="ase" name="ase">
                                                     <option value="" selected disabled>Select</option>
                                                     @foreach ($allASEs as $item)
-                                                        <option value="{{$item->id}}" {{ (request()->input('ase') == $item->id) ? 'selected' : '' }}>{{$item->name}}({{$item->employee_id}})({{$item->stateDetail->name}})</option>
+                                                        <option value="{{$item->id}}" {{ (request()->input('ase') == $item->id) ? 'selected' : '' }}>{{$item->name}} ({{$item->employee_id}}) ({{$item->stateDetail->name}})</option>
                                                     @endforeach
                                                 </select>
                                             </div>
                                             <div class="col">
                                                             <label for="ase" class="small text-muted">Keyword</label>
-                                                        <input type="search" name="keyword" id="keyword" class="form-control form-control-sm" placeholder="Search by store name/ contact" value="{{request()->input('keyword')}}" autocomplete="off">
+                                                        <input type="search" name="keyword" id="keyword" class="form-control form-control-sm" placeholder="Search by store name/ contact/QR details" value="{{request()->input('keyword')}}" autocomplete="off">
                                                     
                                             </div>
                                             
