@@ -554,7 +554,7 @@ class BarcodeController extends Controller
 
         return view('reward.barcode.redeem', compact(
             'data',
-            'allDistributors','allASEs'
+            'allDistributors','allASEs',
             'request',
         ));
     }
