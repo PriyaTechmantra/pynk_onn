@@ -65,6 +65,7 @@
                 <div class="card data-card mt-3">
                     <div class="card-header">
                         <h4>QRCODE REDEEM HISTORY
+                            <br>
                             @can('qrcode redeem history export')
                             <a href="{{ url('reward/qrcode/redeem/list/csv/export',['brand'=>$request->brand,'date_from'=>$request->date_from,'date_to'=>$request->date_to,'distributor'=>$request->distributor,'ase'=>$request->ase,'keyword'=>$request->keyword]) }}" class="btn btn-sm btn-cta ms-auto" data-bs-toggle="tooltip" title="Export data in CSV">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-download"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -97,75 +98,79 @@
                             <div class="row">
                                         
                                 <div class="col-12">                        
-                                    <form action="{{ route('reward.qrcode.redeem.index') }}">
-                                        <div class="row g-2 align-items-center">
-
-                                            <div class="col-12 d-flex align-items-center gap-2">
-                                                    @if($brandPermissions=='Both')
-                                                    <div class="col">
-                                                        <label class="small text-muted">Brand</label>
-                                                        <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
-                                                            <option value="" selected disabled>Select</option>
-                                                                 <option value="3" {{ (request()->input('brand') == 3) ? 'selected' : '' }}>All</option>
-                                                            
-                                                                <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
-                                                                <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
-                                                                
-                                                                
-                                                        </select>
-                                                    </div>
-                                                    @endif
-                                                <label for="date_from" class="text-muted small">Date from</label>
-                                                <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_from')}}">
+                                    <form action="">
+                                        <div class="row">
+                                            @if($brandPermissions=='Both')
+                                            <div class="col">
+                                                <label class="small text-muted">Brand</label>
+                                                <select class="form-select form-select-sm" aria-label="Default select example" name="brand" id="brand">
+                                                    <option value="" selected disabled>Select</option>
+                                                            <option value="3" {{ (request()->input('brand') == 3) ? 'selected' : '' }}>All</option>
+                                                    
+                                                        <option value="1" {{ (request()->input('brand') == 1) ? 'selected' : '' }}>ONN</option>
+                                                        <option value="2" {{ (request()->input('brand') == 2) ? 'selected' : '' }}>PYNK</option>
+                                                        
+                                                        
+                                                </select>
+                                            </div>
+                                            @endif
+                                            <div class="col">
+                                                <label for="date_from" class="small text-muted">Date from</label>
+                                                <input type="date" name="date_from" id="date_from" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_from') }}">
+                                            </div>
+                                            <div class="col">
+                                                <label for="date_to" class="small text-muted">Date to</label>
+                                                <input type="date" name="date_to" id="date_to" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_to')  }}">
+                                            </div>
                                             
-                                                <label for="date_to" class="text-muted small">Date to</label>
-                                                <input type="date" name="date_to" id="date_to" class="form-control form-control-sm" aria-label="Default select example" value="{{request()->input('date_to')}}">
                                             
+                                                   
+                                                    
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col">
                                                 <label for="distributor" class="small text-muted">Distributor</label>
-                                                <select class="form-control form-control-sm select2class" id="distributor" name="distributor">
+                                                <select class="form-select form-select-sm select2" id="distributor" name="distributor">
                                                     <option value="" selected disabled>Select</option>
                                                     @foreach ($allDistributors as $item)
-                                                        <option value="{{$item->name}}" {{ (request()->input('distributor') == $item->name) ? 'selected' : '' }}>{{$item->name}}</option>
+                                                        <option value="{{$item->id}}" {{ (request()->input('distributor') == $item->id) ? 'selected' : '' }}>{{$item->name}}({{$item->states->name}})</option>
                                                     @endforeach
                                                 </select>
-                                            
-                                                <label for="distributor" class="small text-muted">ASE</label>
-                                                <select class="form-control form-control-sm sselect2class" id="ase" name="ase">
+                                            </div>
+                                            <div class="col">
+                                                <label for="ase" class="small text-muted">ASE</label>
+                                                <select class="form-select form-select-sm select2" id="ase" name="ase">
                                                     <option value="" selected disabled>Select</option>
-                                                    @foreach ($allASE as $item)
-                                                        <option value="{{$item->name}}" {{ (request()->input('ase') == $item->name) ? 'selected' : '' }}>{{$item->name}}</option>
+                                                    @foreach ($allASEs as $item)
+                                                        <option value="{{$item->id}}" {{ (request()->input('ase') == $item->id) ? 'selected' : '' }}>{{$item->name}}({{$item->stateDetail->name}})</option>
                                                     @endforeach
                                                 </select>
                                             </div>
-                                        
-                                            <div class="col-12 d-flex align-items-center gap-2 text-right">
-                                               
-                                                <div class="col-6 text-end">
-                                                </div>
-
-                                                <div class="col-3 text-end">
-                                                    <input type="search" name="keyword" id="keyword" class="form-control form-control-sm" placeholder="Search by store name/ contact/qrcode" value="{{request()->input('keyword')}}" autocomplete="off">
-                                                </div>
-                                                <div class="col-3 text-end">
-                                                    <button type="submit" class="btn btn-sm btn-cta">Filter</button>
-                                                    <a href="{{ url()->current() }}" 
-                                                    class="btn btn-sm btn-cta" 
-                                                    data-bs-toggle="tooltip" 
-                                                    title="Clear Filter">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" 
-                                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-                                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-                                                            class="feather feather-x">
-                                                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                                                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                                                        </svg>
-                                                    </a>
-                                                </div>
+                                            <div class="col">
+                                                            <label for="ase" class="small text-muted">Keyword</label>
+                                                        <input type="search" name="keyword" id="keyword" class="form-control form-control-sm" placeholder="Search by store name/ contact" value="{{request()->input('keyword')}}" autocomplete="off">
+                                                    
                                             </div>
-
                                             
+                                                
                                         </div>
-                                    </form>
+
+                                                <div class="row mt-2">
+                                                    
+                                                    <div class="col-12 text-end">
+                                                        <!--<div class="btn-group books_btn_group">-->
+                                                            
+                                                            <button type="submit" class="btn btn-sm btn-cta">
+                                                                Filter
+                                                            </button>
+                            
+                                                            <a href="{{ url()->current() }}" class="btn btn-sm btn-cta" data-bs-toggle="tooltip" title="Clear Filter">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                                            </a>
+                                                        <!--</div>-->
+                                                    </div>
+                                                </div>
+                                            </form>
                                 </div>
                             </div>
                         </div>
