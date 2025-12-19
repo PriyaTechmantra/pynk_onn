@@ -32,11 +32,7 @@
                                         <input type="text" name="title" placeholder="" class="form-control" value="{{ $data->name }}">
                                         @error('title') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label class="label-control">Parent</label>
-                                        <input type="text" name="parent" placeholder="" class="form-control" value="{{ $data->parent }}">
-                                        @error('parent') <p class="small text-danger">{{ $message }}</p> @enderror
-                                    </div>
+                                    
                             
                                     <div class="form-group mb-3">
                                         <label class="label-control">Description </label>

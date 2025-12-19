@@ -241,7 +241,7 @@
                                 <label class="form-check-label" for="mediumFMS">Pynk</label>
                             </div>
                             
-                            <div class="form-check">
+                            {{--<div class="form-check">
                                 <input 
                                     class="form-check-input medium-checkbox" 
                                     type="checkbox" 
@@ -253,7 +253,7 @@
                                 >
                                 
                                 <label class="form-check-label" for="mediumCave">Both</label>
-                            </div>
+                            </div>--}}
                         </div>
                     </div>
                     </div>

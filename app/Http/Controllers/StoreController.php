@@ -679,7 +679,7 @@ class StoreController extends Controller
 
     public function noOrderreason(Request $request)
     {
-         $user = auth()->user();
+        $user = auth()->user();
         $userBrands = DB::table('user_permission_categories')
                 ->where('user_id', Auth::id())
                 ->pluck('brand')
@@ -756,7 +756,7 @@ class StoreController extends Controller
 
     public function noOrderReasonCsv(Request $request)
     {
-         $user = auth()->user();
+        $user = auth()->user();
         $userBrands = DB::table('user_permission_categories')
                 ->where('user_id', Auth::id())
                 ->pluck('brand')

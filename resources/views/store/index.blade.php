@@ -193,7 +193,7 @@
                                         <th>Contact</th>
                                         <th>Distributor</th>
                                         <th>Address</th>
-                                        <th>Onn Currency</th>
+                                        <th>Currency</th>
 				                        <th>Secret Pin</th>
                                         <th>Status</th>
                                         <th>Created At</th>
