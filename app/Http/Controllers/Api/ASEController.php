@@ -5342,7 +5342,7 @@ public function aseSalesreport(Request $request)
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/distributor/cart/pdf/view/?distributorId='.$request->distributorId.'&brand='.$brandId,
+            'data' => url('/').'/api/distributor/app/cart/pdf/view/?distributorId='.$request->distributorId.'&brand='.$brandId,
         ]);
     }
 
@@ -5362,7 +5362,7 @@ public function aseSalesreport(Request $request)
         // Base query
         $query = CartDistributor::where('distributor_id', $request->distributorId)->where('user_id', 0)->whereHas('product')
             ->with(['product', 'distributors', 'color', 'size']);
-
+       
         // Apply brand filter
         if ($brandCode) {
             if ($brandCode == 3) {
@@ -5370,12 +5370,12 @@ public function aseSalesreport(Request $request)
                 $query->whereIn('brand', [1, 2, 3]);
             } else {
                 // If ONN or PYNK, show its brand and "Both"
-                $query->whereIn('brand', [$brandCode, 3]);
+                $query->where('brand', $brandCode);
             }
         }
 
         $cartData = $query->get();
-
+       
         return view('api.distributor-cart-pdf', compact('cartData'));
     }
 
@@ -5482,7 +5482,7 @@ public function aseSalesreport(Request $request)
     
     			// notification: sender, receiver, type, route, title
                 // notification to ASE
-                sendNotification($collectedData['user_id'], $brandValue, 'admin', 'primary-order-place', 'front.user.order', $totalOrderQty.' New order placed',$totalOrderQty.' new order placed  '.$name);
+                sendNotification($collectedData['distributor_id'], $brandValue, 'admin', 'primary-order-place', 'front.user.order', $totalOrderQty.' New order placed',$totalOrderQty.' new order placed  '.$name);
     
                 $today = date('Y-m-d');
 
@@ -5529,7 +5529,7 @@ public function aseSalesreport(Request $request)
         return response()->json([
             'error' => false,
             'resp' => 'URL generated',
-            'data' => url('/').'/api/distributor/order/pdf/view/'.$id,
+            'data' => url('/').'/api/distributor/app/order/pdf/view/'.$id,
         ]);
     }
 

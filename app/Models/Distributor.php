@@ -10,7 +10,7 @@ class Distributor extends Model
     use HasFactory;
     protected $fillable = [
         'name','code',  'email', 'contact', 'whatsapp',
-        'password', 'address', 'state_id', 'city', 'pin','brand','area_id'
+        'password', 'address', 'state_id', 'city', 'pin','brand','area_id','user_id','date_of_joining','status','is_deleted'
     ];
      public function areas() {
         return $this->belongsTo('App\Models\Area', 'area_id', 'id');

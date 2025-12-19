@@ -158,7 +158,7 @@
                                     
                                     
                                     <tr>
-                                        <td class="index-col">{{ $index + 1 }}</td>
+                                        <td>{{ $index + 1 }}</td>
                                         <td>
                                             @php
                                                
@@ -235,7 +235,9 @@
                                 </tbody>
                             </table>
                         </div>
+                         <div class="d-flex justify-content-end">
                          {{ $data->appends($_GET)->render() }}
+                        </div>
                         
                     </div>
 

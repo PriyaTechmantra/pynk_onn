@@ -619,9 +619,9 @@ class DistributorController extends Controller
                 $lineData = array(
                     $count,
                     $brandPermissions,
-                    $row['createdBy']['name'],
+                    $row['createdBy']['name'] ??'',
 					$row['name'] ?? 'NA',
-                    $row['employee_id']?? 'NA',
+                    $row['code']?? 'NA',
                     $row['contact'] ?? 'NA',
                     $row['whatsapp'] ?? 'NA',
                     $row['email'] ?? 'NA',
@@ -696,16 +696,17 @@ class DistributorController extends Controller
                          // Step 3: Extract the data from each row
                         $rowData = [
                             'brand' => isset($filedata[0]) ? $filedata[0] : null,
-                            'code' => isset($filedata[3]) ? $filedata[3] : null,
-                            'name' => isset($filedata[4]) ? $filedata[4] : null,
-                            'email' => isset($filedata[5]) ? $filedata[5] : null,
-                            'contact' => isset($filedata[6]) ? $filedata[6] : null,
+                            'designation' => isset($filedata[1]) ? $filedata[1] : null,
+                            'code' => isset($filedata[2]) ? $filedata[2] : null,
+                            'name' => isset($filedata[3]) ? $filedata[3] : null,
+                            'email' => isset($filedata[4]) ? $filedata[4] : null,
+                            'contact' => isset($filedata[5]) ? $filedata[5] : null,
                             
-                            'whatsapp' => isset($filedata[7]) ? $filedata[7] : null,
-                            'state_id' => isset($filedata[8]) ? $filedata[8] : null,
-                            'area_id' => isset($filedata[9]) ? $filedata[9] : null,
-                            'date_of_joining' => isset($filedata[10]) ? $filedata[10] : null,
-                            'password' => isset($filedata[11]) ? $filedata[11] : null,
+                            'whatsapp' => isset($filedata[6]) ? $filedata[6] : null,
+                            'state_id' => isset($filedata[7]) ? $filedata[7] : null,
+                            'area_id' => isset($filedata[8]) ? $filedata[8] : null,
+                            'date_of_joining' => isset($filedata[9]) ? $filedata[9] : null,
+                            'password' => isset($filedata[10]) ? $filedata[10] : null,
                             
                             
                         ];
@@ -713,7 +714,7 @@ class DistributorController extends Controller
                         // Step 4: Validate each row's data
                         $validator = Validator::make($rowData, [
                             'name' => 'required|string|max:255',
-                            'code' => 'required',
+                            'code' => 'required|unique:distributors',
                             'contact' => 'required',
                         
                         ]);
@@ -722,12 +723,24 @@ class DistributorController extends Controller
                         // Accumulate errors with row number context
                         $errors[$i] = $validator->errors()->all();
                     } else {
-                        $stateName=State::where('name',$rowData['state_id'])->first();
-                        $areaName=Area::where('name',$rowData['area_id'])->first();
+                        $stateName = State::where('name', trim($rowData['state_id']))->first();
+                        $areaName  = Area::where('name', trim($rowData['area_id']))->first();
+
+                        if (!$stateName) {
+                            $errors[$i][] = "Invalid state: ". $rowData['state_id'];
+                        }
+                        if (!$areaName) {
+                            $errors[$i][] = "Invalid area: ". $rowData['area_id'];
+                        }
+
+                        if (!empty($errors[$i])) {
+                            $i++;
+                            continue;  // skip insertion
+                        }
                             // Map brand text to numeric value
                                 $brandValue = null;
                                 if (!empty($rowData['brand'])) {
-                                    $brandText = strtolower(trim($rowData['brand']));
+                                    $brandText = $rowData['brand'];
                                     if ($brandText === 'ONN') {
                                         $brandValue = 1;
                                     } elseif ($brandText === 'PYNK') {
@@ -744,20 +757,27 @@ class DistributorController extends Controller
                             "contact" => $rowData['contact'],
                             "whatsapp" => $rowData['whatsapp'],
                             "state_id" => $stateName->id,
-                            "area_id" => $areaName->id,
+                            "area_id" => $areaName->id ??'',
                             "date_of_joining" => $rowData['date_of_joining'],
                              "brand" => $brandValue,
                             "password" => $rowData['password'],
-                            
+                            "user_id"  => auth()->id(),
                             "status" => 1,
                             "is_deleted" => 0,
                             "created_at" => date('Y-m-d H:i:s'),
                             "updated_at" => date('Y-m-d H:i:s'),
                         ];
-                        
-                        Distributor::create($insertData);
-                        
                        
+                        $distributor = Distributor::create($insertData);
+                        
+                         // ✅ Log creation
+                        DB::table('edit_logs')->insert([
+                            'table_name' => 'distributors',
+                            'record_id'  => $distributor->id,
+                            'action'     => 'created',
+                            'updated_by' => Auth::id(),
+                            'created_at' => now(),
+                        ]);
                         
                         $successCount++;
 

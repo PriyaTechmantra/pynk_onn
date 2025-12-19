@@ -38,6 +38,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 //ase
 Route::post('login', [AuthController::class, 'sendOtp']);
+
+Route::post('distributor/login', [AuthController::class, 'distributorLogin']);
 Route::post('verify-otp', [AuthController::class, 'verifyOtp']);
 Route::get('state/list', [ASEController::class, 'stateList']);
 Route::get('area/list', [ASEController::class, 'areaList']);

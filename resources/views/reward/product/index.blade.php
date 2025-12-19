@@ -83,7 +83,7 @@
                             <tbody>
                                 @forelse ($data as $index=> $item)
                                 <tr>
-                                    <td class="index-col">{{ $index+1 }}</td>
+                                    <td>{{ $index+1 }}</td>
                                 @if($item->image == "" || !file_exists($item->image))
                                     <td class="column-thumb">
                                     </td>

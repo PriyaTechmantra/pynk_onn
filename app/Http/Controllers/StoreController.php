@@ -679,6 +679,11 @@ class StoreController extends Controller
 
     public function noOrderreason(Request $request)
     {
+         $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
         $query = UserNoOrderReason::query();
 
         if ($request->filled('ase')) {
@@ -751,6 +756,11 @@ class StoreController extends Controller
 
     public function noOrderReasonCsv(Request $request)
     {
+         $user = auth()->user();
+        $userBrands = DB::table('user_permission_categories')
+                ->where('user_id', Auth::id())
+                ->pluck('brand')
+                ->toArray();
         $query = UserNoOrderReason::query();
 
         if ($request->filled('ase')) {
