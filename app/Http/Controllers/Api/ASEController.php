@@ -2062,10 +2062,10 @@ public function aseSalesreport(Request $request)
         ->where(function ($q) use ($userType) {
 
             // Case 1: CSV Format → "1,2,3" OR 1,2,3
-            $q->orWhereRaw("FIND_IN_SET(?, user_type)", [$userType]);
+            $q->whereRaw('TRIM(user_type) = ?', [(string)$userType])
 
-            // Case 2: Exact string format → "1"
-            $q->orWhere('user_type', (string) $userType);
+          // CSV match ("1,2,3")
+          ->orWhereRaw('FIND_IN_SET(?, REPLACE(user_type, " ", ""))', [$userType]);
 
             // Case 3: JSON Array → [1,2,3]
            
