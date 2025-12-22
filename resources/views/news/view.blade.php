@@ -39,14 +39,15 @@
                                                     4 => 'ASE',
                                                 ];
 
-                                                $userTypes = is_array($data->user_type)
-                                                    ? $data->user_type
-                                                    : explode(',', $data->user_type);
+                                                 $allRelatedUserTypes = News::where('title', $data->title)
+                                                    ->where('start_date', $data->start_date)
+                                                    ->pluck('user_type')
+                                                    ->toArray();
 
                                                 $roleNames = [];
 
-                                                if (is_array($userTypes)) {
-                                                    foreach ($userTypes as $type) {
+                                                if (is_array($allRelatedUserTypes)) {
+                                                    foreach ($allRelatedUserTypes as $type) {
                                                         $roleNames[] = $roles[$type] ?? $type;
                                                     }
                                                 }
