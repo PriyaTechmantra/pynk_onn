@@ -163,48 +163,62 @@ class NewsController extends Controller
         return view('news.edit', compact('data', 'allRelatedUserTypes'));
     }
 
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            "title" => "required|string|max:255",
-            "start_date" => "required|date",
-            "end_date" => "required|date",
-            "user_type" => "nullable|array",
-            "image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
-        
-        ]);
-        foreach ($request->user_type as $type) {
-            $storeData = News::findOrFail($id);
-            $upload_path = "public/uploads/news/";
+   public function update(Request $request, $id)
+{
+    $request->validate([
+        "title" => "required|string|max:255",
+        "start_date" => "required|date",
+        "end_date" => "required|date",
+        "user_type" => "required|array",
+        "image" => "nullable|mimes:jpg,jpeg,png,svg,gif|max:10000",
+        "pdf" => "nullable|mimes:doc,docx,pdf|max:10000",
+    ]);
 
-            $storeData->title = $request->title;
-            $storeData->user_type = $type; 
-            $storeData->start_date = $request->start_date;
-            $storeData->end_date = $request->end_date;
-            $storeData->brand = $request->brand;
+    // 1. Get the current record to keep track of existing files
+    $currentRecord = News::findOrFail($id);
+    $upload_path = "public/uploads/news/";
 
-            if ($request->hasFile('image')) {
-                $image = $request->file('image');
-                $imageName = time() . "." . $image->getClientOriginalName();
-                $image->move($upload_path, $imageName);
-                $storeData->image = $upload_path . $imageName;
-            }
+    // 2. Prepare File Paths (Use existing if no new file is uploaded)
+    $imagePath = $currentRecord->image;
+    $pdfPath = $currentRecord->pdf;
 
-            if ($request->hasFile('pdf')) {
-                $pdf = $request->file('pdf');
-                $pdfName = time() . "." . $pdf->getClientOriginalName();
-                $pdf->move($upload_path, $pdfName);
-                $storeData->pdf = $upload_path . $pdfName;
-            }
-
-            $storeData->save();
-
-
-        }
-       
-        return redirect('/news')->with('success', 'News updated successfully!');
+    if ($request->hasFile('image')) {
+        $image = $request->file('image');
+        $imageName = time() . "_" . $image->getClientOriginalName();
+        $image->move($upload_path, $imageName);
+        $imagePath = $upload_path . $imageName;
     }
+
+    if ($request->hasFile('pdf')) {
+        $pdf = $request->file('pdf');
+        $pdfName = time() . "_" . $pdf->getClientOriginalName();
+        $pdf->move($upload_path, $pdfName);
+        $pdfPath = $upload_path . $pdfName;
+    }
+
+    // 3. DELETE old records for this specific news item
+    // We target all rows that share the same title and start_date 
+    // (Or use a group_id if you added one)
+    News::where('title', $currentRecord->title)
+        ->where('start_date', $currentRecord->start_date)
+        ->delete();
+
+    // 4. CREATE new separate records for only the selected types
+    foreach ($request->user_type as $type) {
+        $newData = new News;
+        $newData->title = $request->title;
+        $newData->user_type = $type; 
+        $newData->start_date = $request->start_date;
+        $newData->end_date = $request->end_date;
+        $newData->brand = $request->brand;
+        $newData->image = $imagePath;
+        $newData->pdf = $pdfPath;
+        $newData->status = 1;
+        $newData->save();
+    }
+
+    return redirect('/news')->with('success', 'News updated and synced successfully!');
+}
 
     public function status(Request $request, $id)
     {
