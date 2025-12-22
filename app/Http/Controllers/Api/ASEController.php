@@ -2053,7 +2053,7 @@ public function aseSalesreport(Request $request)
         }
 
         $userType = (string) $user->type;
-       
+       dd($userType);
         $today = date('Y-m-d');
        DB::enableQueryLog();
        $data = News::where('status', 1)
