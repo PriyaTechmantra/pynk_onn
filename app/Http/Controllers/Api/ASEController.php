@@ -5997,7 +5997,7 @@ public function aseSalesreport(Request $request)
             $query->whereDate('retailer_orders.created_at', '<=', $dateTo);
         }
 
-        $query->orderByDesc('retailer_orders.id');
+        $query->with('orderProduct')->orderByDesc('retailer_orders.id');
 
         $data = $query->paginate($perPage);
        
