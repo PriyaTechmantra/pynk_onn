@@ -2065,7 +2065,10 @@ public function aseSalesreport(Request $request)
             $q->whereRaw('TRIM(user_type) = ?', [(string)$userType])
 
           // CSV match ("1,2,3")
-          ->orWhereRaw('FIND_IN_SET(?, REPLACE(user_type, " ", ""))', [$userType]);
+           ->orWhereRaw(
+              "FIND_IN_SET(?, REPLACE(user_type, ' ', ''))",
+              [$userType]
+            );
 
             // Case 3: JSON Array → [1,2,3]
            
