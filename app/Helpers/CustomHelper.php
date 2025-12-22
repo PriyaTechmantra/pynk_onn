@@ -868,7 +868,7 @@ if (!function_exists('orderProductsUpdatedMatrixUpdated')) {
 function removeQuotes($value)
 {
     // Remove both single and double quotes
-    $content = str_replace(['"', "'"], '', $value);
+    $content = trim(str_replace(['"', "'", '“', '”', '‘', '’'], '', $value));
     dd($content);
     return $content;
 }
