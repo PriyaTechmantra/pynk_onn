@@ -9,7 +9,5 @@ class News extends Model
 {
     use HasFactory;
 
-    protected $casts = [
-        'user_type' => 'array',
-    ];
+    
 }
