@@ -2065,11 +2065,11 @@ public function aseSalesreport(Request $request)
             $q->where('user_type', $userType)
 
               // CSV match: "1,2,3"
-              ->orWhereRaw("FIND_IN_SET(?, user_type)", [$userType]);
+              ->orWhereRaw("FIND_IN_SET('?', user_type)", [$userType]);
         })
         ->orderByDesc('id')
         ->get();
-        dd(DB::getQueryLog());
+        //dd(DB::getQueryLog());
         if ($data->isNotEmpty()) {
             $data = $data->map(function ($news) use ($brandMap) {
                 // If 'brand' is comma separated (like "1,2"), map multiple names
