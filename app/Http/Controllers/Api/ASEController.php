@@ -5965,17 +5965,8 @@ public function aseSalesreport(Request $request)
         $query = RetailerOrder::with([
                 'user' => function ($q) {
                     $q->where('status', 1)->where('is_deleted', 0);
-                },
-                'orderProduct' => function ($q) {
-                    $q->whereHas('product', function ($p) {
-                            $p->where('status', 1)->where('is_deleted', 0);
-                        })
-                        ->with([
-                            'product' => function ($p) {
-                                $p->where('status', 1)->where('is_deleted', 0);
-                            }
-                        ]);
                 }
+                
             ])
             ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
