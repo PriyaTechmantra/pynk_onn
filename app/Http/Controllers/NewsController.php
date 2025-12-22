@@ -167,42 +167,34 @@ class NewsController extends Controller
             "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
         
         ]);
-        
-        $upload_path = "public/uploads/news/";
-        $imagePath = null;
-        $pdfPath = null;
-
-        // 1. Handle File Uploads first (do it once, outside the loop)
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $imageName = time() . "_" . $image->getClientOriginalName();
-            $image->move($upload_path, $imageName);
-            $imagePath = $upload_path . $imageName;
-        }
-
-        if ($request->hasFile('pdf')) {
-            $pdf = $request->file('pdf');
-            $pdfName = time() . "_" . $pdf->getClientOriginalName();
-            $pdf->move($upload_path, $pdfName);
-            $pdfPath = $upload_path . $pdfName;
-        }
         foreach ($request->user_type as $type) {
             $storeData = News::findOrFail($id);
+            $upload_path = "public/uploads/news/";
+
             $storeData->title = $request->title;
             $storeData->user_type = $type; 
             $storeData->start_date = $request->start_date;
             $storeData->end_date = $request->end_date;
             $storeData->brand = $request->brand;
 
-        
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = time() . "." . $image->getClientOriginalName();
+                $image->move($upload_path, $imageName);
+                $storeData->image = $upload_path . $imageName;
+            }
 
-            $storeData->image = $imagePath;
-            $storeData->pdf = $pdfPath;
+            if ($request->hasFile('pdf')) {
+                $pdf = $request->file('pdf');
+                $pdfName = time() . "." . $pdf->getClientOriginalName();
+                $pdf->move($upload_path, $pdfName);
+                $storeData->pdf = $upload_path . $pdfName;
+            }
+
             $storeData->save();
+
+
         }
-
-
-        
        
         return redirect('/news')->with('success', 'News updated successfully!');
     }
