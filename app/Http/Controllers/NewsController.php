@@ -111,6 +111,7 @@ class NewsController extends Controller
 
         $storeData = new News;
         $storeData->title = $request->title;
+        
         $storeData->user_type = implode(',',$request->user_type);
         $storeData->start_date = $request->start_date;
         $storeData->end_date = $request->end_date;
@@ -132,6 +133,16 @@ class NewsController extends Controller
 
         $storeData->save();
 
+
+         $record = News::find($storeData->id);
+
+        // Convert "1,4" to [1,4]
+        $userTypes = explode(',', $record->user_type);
+
+        // Optional: convert strings to integers
+        $userTypes = array_map('intval', $userTypes);
+        $record->user_type = implode(',',$request->user_type);
+        $record->save();
         return redirect('/news')->with('success', 'New added successfully!');
     }
 
@@ -183,6 +194,17 @@ class NewsController extends Controller
         }
 
         $storeData->save();
+
+
+        $record = News::find($id);
+
+        // Convert "1,4" to [1,4]
+        $userTypes = explode(',', $record->user_type);
+
+        // Optional: convert strings to integers
+        $userTypes = array_map('intval', $userTypes);
+        $record->user_type = implode(',',$request->user_type);
+        $record->save();
 
         return redirect('/news')->with('success', 'News updated successfully!');
     }
