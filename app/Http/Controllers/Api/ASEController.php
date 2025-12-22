@@ -2065,7 +2065,7 @@ public function aseSalesreport(Request $request)
             $q->orWhereRaw("FIND_IN_SET(?, user_type)", [$userType]);
 
             // Case 2: Exact string format → "1"
-            $q->orWhere('user_type', $userType);
+            $q->orWhere('user_type', (string) $userType);
 
             // Case 3: JSON Array → [1,2,3]
            
