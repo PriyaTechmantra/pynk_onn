@@ -2052,7 +2052,7 @@ public function aseSalesreport(Request $request)
             ], 404);
         }
 
-        $userType = $user->type;
+        $userType = (string) $user->type;
        
         $today = date('Y-m-d');
        DB::enableQueryLog();
@@ -2061,18 +2061,16 @@ public function aseSalesreport(Request $request)
         ->whereDate('end_date', '>=', $today)
         ->where(function ($q) use ($userType) {
 
-            // Case 1: CSV Format → "1,2,3" OR 1,2,3
-            $q->whereRaw('TRIM(user_type) = ?', [(string)$userType])
+            // Exact match: "1"
+            $q->where('user_type', $userType)
 
-          // CSV match ("1,2,3")
-           ->orWhereRaw(
-              "FIND_IN_SET(?, REPLACE(user_type, ' ', ''))",
-              [$userType]
-            );
-
-            // Case 3: JSON Array → [1,2,3]
-           
+              // CSV match: "1,2,3"
+              ->orWhereRaw(
+                  "FIND_IN_SET(?, REPLACE(user_type, ' ', ''))",
+                  [$userType]
+              );
         })
+        ->orderByDesc('id')
         ->get();
         //dd(DB::getQueryLog());
         if ($data->isNotEmpty()) {
