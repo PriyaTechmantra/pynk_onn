@@ -141,7 +141,7 @@ class NewsController extends Controller
 
         // Optional: convert strings to integers
         $userTypes = array_map('intval', $userTypes);
-        $record->user_type = implode(',',$request->user_type);
+        $record->user_type = implode(',',$userTypes);
         $record->save();
         return redirect('/news')->with('success', 'New added successfully!');
     }
@@ -203,8 +203,8 @@ class NewsController extends Controller
         
         // Optional: convert strings to integers
         $userTypes = array_map('intval', $userTypes);
-        dd($userTypes);
-        $record->user_type = implode(',',$request->user_type);
+        
+        $record->user_type = implode(',',$userTypes);
         $record->save();
 
         return redirect('/news')->with('success', 'News updated successfully!');
