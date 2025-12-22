@@ -90,7 +90,11 @@ class NewsController extends Controller
         return view('news.index', compact('data', 'request'));
     }
 
-
+    private function removeQuotes($value)
+    {
+        // Remove both single and double quotes
+        return str_replace(['"', "'"], '', $value);
+    }
     public function create()
     {
         return view('news.create');
@@ -137,11 +141,7 @@ class NewsController extends Controller
          $record = News::find($storeData->id);
 
         // Convert "1,4" to [1,4]
-        $userTypes = explode(',', $record->user_type);
-
-        // Optional: convert strings to integers
-        $userTypes = array_map('intval', $userTypes);
-        $record->user_type = implode(',',$userTypes);
+        $record->user_type = removeQuotes($record->user_type);
         $record->save();
         return redirect('/news')->with('success', 'New added successfully!');
     }
@@ -198,14 +198,7 @@ class NewsController extends Controller
 
         $record = News::find($id);
         
-        // Convert "1,4" to [1,4]
-        $userTypes = explode(',', $record->user_type);
-        
-        // Optional: convert strings to integers
-        $userTypes = array_map('intval', $userTypes);
-         
-        $record->user_type = implode(',',$userTypes);
-        dd($record->user_type);
+        $record->user_type = removeQuotes($record->user_type);
         $record->save();
        
         return redirect('/news')->with('success', 'News updated successfully!');
