@@ -206,7 +206,7 @@ class NewsController extends Controller
         
         $record->user_type = implode(',',$userTypes);
         $record->save();
-
+        dd($record);
         return redirect('/news')->with('success', 'News updated successfully!');
     }
 
