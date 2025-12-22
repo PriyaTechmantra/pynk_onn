@@ -2065,10 +2065,7 @@ public function aseSalesreport(Request $request)
             $q->where('user_type', $userType)
 
               // CSV match: "1,2,3"
-              ->orWhereRaw(
-              'FIND_IN_SET(?, user_type)',
-              ['"' . $userType . '"']   // 👈 produces '"1"'
-              );
+              ->orWhereRaw('FIND_IN_SET(?, user_type)', [$userType]);
         })
         ->orderByDesc('id')
         ->get();
