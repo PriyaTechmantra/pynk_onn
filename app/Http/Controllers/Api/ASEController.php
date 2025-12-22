@@ -5962,7 +5962,7 @@ public function aseSalesreport(Request $request)
                 return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
             }
         // Build query dynamically
-        $query = RetailerOrder::select('retailer_orders.*')->with([
+        $query = RetailerOrder::select('retailer_orders.id', 'retailer_orders.*')->with([
                 'user' => function ($q) {
                     $q->where('status', 1)->where('is_deleted', 0);
                 },
