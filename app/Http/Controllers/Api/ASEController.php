@@ -6002,12 +6002,13 @@ public function aseSalesreport(Request $request)
         $data = $query->paginate($perPage);
        
          $filtered = $data->filter(function ($order) {
+            dd($order->orderProduct);
             return $order->user &&
-                //$order->user->status == 1 &&
-                //$order->user->is_deleted == 0 &&
+                $order->user->status == 1 &&
+                $order->user->is_deleted == 0 &&
                 $order->orderProduct->isNotEmpty();
             })->values();
-            dd($filtered);
+
         return response()->json([
             'error' => false,
             'message' => 'Retailer orders with quantity and brand filter',
