@@ -193,7 +193,7 @@ class NewsController extends Controller
 
 
         $record = News::find($id);
-        dd(removeQuotes($record->user_type));
+        
         $record->user_type = removeQuotes($record->user_type);
         $record->save();
        
