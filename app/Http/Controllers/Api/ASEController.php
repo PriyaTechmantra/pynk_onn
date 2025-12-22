@@ -2053,7 +2053,7 @@ public function aseSalesreport(Request $request)
         }
 
         $userType = (string) $user->type;
-       dd($userType);
+       //dd($userType);
         $today = date('Y-m-d');
        DB::enableQueryLog();
        $data = News::where('status', 1)
@@ -2065,10 +2065,7 @@ public function aseSalesreport(Request $request)
             $q->where('user_type', $userType)
 
               // CSV match: "1,2,3"
-              ->orWhereRaw(
-                  "FIND_IN_SET(?, REPLACE(user_type, ' ', ''))",
-                  [$userType]
-              );
+              ->orWhereRaw("FIND_IN_SET(?, user_type)", [$userType]);
         })
         ->orderByDesc('id')
         ->get();
