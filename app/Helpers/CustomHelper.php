@@ -865,5 +865,12 @@ if (!function_exists('orderProductsUpdatedMatrixUpdated')) {
 }
 
 
+function removeQuotes($value)
+    {
+        // Remove both single and double quotes
+        return str_replace(['"', "'"], '', $value);
+    }
+
+
 
 

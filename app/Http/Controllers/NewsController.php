@@ -90,11 +90,7 @@ class NewsController extends Controller
         return view('news.index', compact('data', 'request'));
     }
 
-    private function removeQuotes($value)
-    {
-        // Remove both single and double quotes
-        return str_replace(['"', "'"], '', $value);
-    }
+    
     public function create()
     {
         return view('news.create');
