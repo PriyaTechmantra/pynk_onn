@@ -6002,6 +6002,7 @@ public function aseSalesreport(Request $request)
         $data = $query->paginate($perPage);
        
          $filtered = $data->filter(function ($order) {
+            dd($order->id);
             $orderPro=RewardOrderProduct::where('order_id',$order->id)->get();
             dd($orderPro);
             return $order->user &&
