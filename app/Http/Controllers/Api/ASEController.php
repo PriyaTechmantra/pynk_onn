@@ -6000,14 +6000,14 @@ public function aseSalesreport(Request $request)
         $query->orderByDesc('retailer_orders.id');
 
         $data = $query->paginate($perPage);
-       dd($data);
+       
          $filtered = $data->filter(function ($order) {
             return $order->user &&
-                $order->user->status == 1 &&
-                $order->user->is_deleted == 0 &&
+                //$order->user->status == 1 &&
+                //$order->user->is_deleted == 0 &&
                 $order->orderProduct->isNotEmpty();
             })->values();
-
+            dd($filtered);
         return response()->json([
             'error' => false,
             'message' => 'Retailer orders with quantity and brand filter',
