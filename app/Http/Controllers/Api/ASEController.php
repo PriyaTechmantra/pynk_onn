@@ -6000,7 +6000,7 @@ public function aseSalesreport(Request $request)
         $query->orderByDesc('retailer_orders.id');
 
         $data = $query->paginate($perPage);
-       
+       dd($data);
          $filtered = $data->filter(function ($order) {
             return $order->user &&
                 $order->user->status == 1 &&
