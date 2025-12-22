@@ -200,9 +200,10 @@ class NewsController extends Controller
         
         // Convert "1,4" to [1,4]
         $userTypes = explode(',', $record->user_type);
-        dd($userTypes);
+        
         // Optional: convert strings to integers
         $userTypes = array_map('intval', $userTypes);
+        dd($userTypes);
         $record->user_type = implode(',',$request->user_type);
         $record->save();
 
