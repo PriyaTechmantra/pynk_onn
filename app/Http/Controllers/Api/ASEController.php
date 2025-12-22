@@ -2065,7 +2065,7 @@ public function aseSalesreport(Request $request)
             $q->whereJsonContains('user_type', $userType)
 
               // CSV match: "1,2,3"
-              ->orWhereRaw('FIND_IN_SET(?, user_type)', [$userType]);
+              ->orWhereJsonContains('FIND_IN_SET(?, user_type)', [$userType]);
         })
         ->orderByDesc('id')
         ->get();
