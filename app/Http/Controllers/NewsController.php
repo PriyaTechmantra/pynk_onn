@@ -189,7 +189,7 @@ class NewsController extends Controller
         foreach ($request->user_type as $type) {
             $storeData = News::findOrFail($id);
             $storeData->title = $request->title;
-            $$storeData->user_type = $type; 
+            $storeData->user_type = $type; 
             $storeData->start_date = $request->start_date;
             $storeData->end_date = $request->end_date;
             $storeData->brand = $request->brand;
