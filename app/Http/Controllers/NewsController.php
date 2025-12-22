@@ -103,43 +103,44 @@ class NewsController extends Controller
             "title" => "required|string|max:255",
             "start_date" => "required|date",
             "end_date" => "required|date",
-            "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10000000",
-            "pdf" => "required|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
+            "user_type" => "required|array", // Ensure user_type is an array
+            "image" => "required|mimes:jpg,jpeg,png,svg,gif|max:10240",
+            "pdf" => "required|mimes:doc,docx,png,svg,jpg,xls,xlsx,csv,pdf|max:10240",
         ]);
 
         $upload_path = "public/uploads/news/";
+        $imagePath = null;
+        $pdfPath = null;
 
-        $storeData = new News;
-        $storeData->title = $request->title;
-        
-        $storeData->user_type = implode(',',$request->user_type);
-        $storeData->start_date = $request->start_date;
-        $storeData->end_date = $request->end_date;
-        $storeData->brand = $request->brand ;
-
+        // 1. Handle File Uploads first (do it once, outside the loop)
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . "." . $image->getClientOriginalName();
+            $imageName = time() . "_" . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
-            $storeData->image = $upload_path . $imageName;
+            $imagePath = $upload_path . $imageName;
         }
 
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
-            $pdfName = time() . "." . $pdf->getClientOriginalName();
+            $pdfName = time() . "_" . $pdf->getClientOriginalName();
             $pdf->move($upload_path, $pdfName);
-            $storeData->pdf = $upload_path . $pdfName;
+            $pdfPath = $upload_path . $pdfName;
         }
 
-        $storeData->save();
+        // 2. Loop through each user_type and create a NEW record
+        foreach ($request->user_type as $type) {
+            $storeData = new News;
+            $storeData->title = $request->title;
+            $storeData->user_type = $type; // Saves just "1", then "2", etc.
+            $storeData->start_date = $request->start_date;
+            $storeData->end_date = $request->end_date;
+            $storeData->brand = $request->brand;
+            $storeData->image = $imagePath;
+            $storeData->pdf = $pdfPath;
+            $storeData->save();
+        }
 
-
-         $record = News::find($storeData->id);
-
-        // Convert "1,4" to [1,4]
-        $record->user_type = removeQuotes($record->user_type);
-        $record->save();
-        return redirect('/news')->with('success', 'New added successfully!');
+        return redirect('/news')->with('success', 'News items added successfully for all types!');
     }
 
 
@@ -166,36 +167,42 @@ class NewsController extends Controller
             "pdf" => "nullable|mimes:doc,docs,png,svg,jpg,excel,csv,pdf|max:10000000",
         
         ]);
-        $storeData = News::findOrFail($id);
+        
         $upload_path = "public/uploads/news/";
+        $imagePath = null;
+        $pdfPath = null;
 
-        $storeData->title = $request->title;
-        $storeData->user_type = implode(',',$request->user_type);
-        $storeData->start_date = $request->start_date;
-        $storeData->end_date = $request->end_date;
-        $storeData->brand = $request->brand;
-
+        // 1. Handle File Uploads first (do it once, outside the loop)
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . "." . $image->getClientOriginalName();
+            $imageName = time() . "_" . $image->getClientOriginalName();
             $image->move($upload_path, $imageName);
-            $storeData->image = $upload_path . $imageName;
+            $imagePath = $upload_path . $imageName;
         }
 
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
-            $pdfName = time() . "." . $pdf->getClientOriginalName();
+            $pdfName = time() . "_" . $pdf->getClientOriginalName();
             $pdf->move($upload_path, $pdfName);
-            $storeData->pdf = $upload_path . $pdfName;
+            $pdfPath = $upload_path . $pdfName;
+        }
+        foreach ($request->user_type as $type) {
+            $storeData = News::findOrFail($id);
+            $storeData->title = $request->title;
+            $$storeData->user_type = $type; 
+            $storeData->start_date = $request->start_date;
+            $storeData->end_date = $request->end_date;
+            $storeData->brand = $request->brand;
+
+        
+
+            $storeData->image = $imagePath;
+            $storeData->pdf = $pdfPath;
+            $storeData->save();
         }
 
-        $storeData->save();
 
-
-        $record = News::find($id);
         
-        $record->user_type = removeQuotes($record->user_type);
-        $record->save();
        
         return redirect('/news')->with('success', 'News updated successfully!');
     }
