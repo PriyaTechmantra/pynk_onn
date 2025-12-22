@@ -29,6 +29,31 @@
                                     
                                     <div class="row">
                                         <div class="col-md-12">
+                                            <h3 class="text-dark font-weight-bold">@php
+                                               
+
+                                            $brandMap = [
+                                                1 => 'ONN',
+                                                2 => 'PYNK',
+                                                3 => 'Both',
+                                            ];
+
+                                            $brands = [$data->brand];
+
+                                    // Check conditions
+                                        if (in_array(3, $brands)) {
+                                            $brandPermissions = 'Both';
+                                        } elseif (in_array(1, $brands) && in_array(2, $brands)) {
+                                            $brandPermissions = 'Both';
+                                        } else {
+                                            $brandPermissions = collect($brands)
+                                                ->map(fn($brand) => $brandMap[$brand] ?? $brand)
+                                                ->implode(', ');
+                                        }
+                                    @endphp
+
+                                           {{ $brandPermissions ?? '' }}</h3>
+                                            
                                             <h3 class="text-dark font-weight-bold">{{ $data->title }}</h3>
                                             <p>Status:<span class="btn {{ $data->status == '1' ? 'btn-success' : 'btn-danger'}}">{{ $data->status == '1' ? 'Active' : 'Inactive'}}</span></p>
                                             @php
