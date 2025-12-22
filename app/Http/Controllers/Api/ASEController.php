@@ -5962,32 +5962,33 @@ public function aseSalesreport(Request $request)
                 return response()->json(['error' => true, 'resp' => 'Invalid brand value']);
             }
         // Build query dynamically
-        $query = RetailerOrder::select('retailer_orders.id', 'retailer_orders.*')->with([
-                'user' => function ($q) {
-                    $q->where('status', 1)->where('is_deleted', 0);
-                },
-                'orderProduct' => function ($q) {
-                    $q->whereHas('product', function ($p) {
-                            $p->where('status', 1)->where('is_deleted', 0);
-                        })
-                        ->with([
-                            'product' => function ($p) {
-                                $p->where('status', 1)->where('is_deleted', 0);
-                            }
-                        ]);
-                }
-            ])
-            ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
-            ->join('teams', 'teams.store_id', '=', 'stores.id')
-            ->whereRaw("FIND_IN_SET(?, teams.distributor_id)", [$distributorId])
-            ->where('stores.status', 1)
-            ->where('stores.is_deleted', 0)
-            ->where('teams.is_deleted', 0);
+        $query = RetailerOrder::with([
+            'user' => function ($q) {
+                $q->where('status', 1)
+                  ->where('is_deleted', 0);
+            },
+            'orderProduct' => function ($q) {
+                $q->whereHas('product', function ($p) {
+                    $p->where('status', 1)
+                      ->where('is_deleted', 0);
+                })->with('product');
+            }
+        ])
+            ->whereHas('user.team', function ($q) use ($distributorId) {
+                $q->whereRaw("FIND_IN_SET(?, distributor_id)", [$distributorId])
+                ->where('is_deleted', 0);
+            })
+            ->whereHas('user', function ($q) {
+                $q->where('status', 1)
+                ->where('is_deleted', 0);
+            });
 
         // Optional brand filter
-        if (!empty($brand)) {
-            $query->where('stores.brand', $brandCode);
-        }
+           if ($brandCode) {
+                $query->whereHas('user', function ($q) use ($brandCode) {
+                    $q->where('brand', $brandCode);
+                });
+            }
 
         // Optional date filters
         if (!empty($dateFrom)) {
@@ -6001,18 +6002,18 @@ public function aseSalesreport(Request $request)
 
         $data = $query->paginate($perPage);
        
-         $filtered = $data->filter(function ($order) {
+        //  $filtered = $data->filter(function ($order) {
            
-            return $order->user &&
-                $order->user->status == 1 &&
-                $order->user->is_deleted == 0 &&
-                $order->orderProduct->isNotEmpty();
-            })->values();
+        //     return $order->user &&
+        //         $order->user->status == 1 &&
+        //         $order->user->is_deleted == 0 &&
+        //         $order->orderProduct->isNotEmpty();
+        //     })->values();
 
         return response()->json([
             'error' => false,
             'message' => 'Retailer orders with quantity and brand filter',
-            'data' => $filtered,
+            'data' => $data,
         ]);
     }
 

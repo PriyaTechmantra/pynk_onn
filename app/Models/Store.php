@@ -27,4 +27,9 @@ class Store extends Model
       public function ProductDetails() {
         return $this->HasMany('App\Models\Product', 'store_id', 'id')->where('status', 1);
     }
+
+    public function team()
+    {
+        return $this->hasOne(Team::class, 'store_id');
+    }
 }
