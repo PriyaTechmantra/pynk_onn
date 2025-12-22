@@ -85,7 +85,7 @@ class NewsController extends Controller
             $query->where('start_date', '<=', $request->date_to);
         }
 
-        $data = $query->orderByDesc('id')->paginate(25);
+        $data = $query->groupby('title')->orderByDesc('id')->paginate(25);
 
         return view('news.index', compact('data', 'request'));
     }
@@ -153,7 +153,13 @@ class NewsController extends Controller
     public function edit($id)
     {
         $data = News::findOrFail($id);
-        return view('news.edit', compact('data'));
+
+        // Fetch all user_types for records with the same title (or shared group_id)
+        $allRelatedUserTypes = News::where('title', $data->title)
+                                    ->where('start_date', $data->start_date)
+                                    ->pluck('user_type')
+                                    ->toArray();
+        return view('news.edit', compact('data', 'allRelatedUserTypes'));
     }
 
     public function update(Request $request, $id)

@@ -28,15 +28,13 @@
                                 @csrf
                                     <h4 class="page__subtitle">Edit Collection</h4>
                                     <div class="form-group mb-3">
-                                        @php
-                                            $selectedTypes = isset($data->user_type) ? explode(',', $data->user_type) : [];
-                                        @endphp
                                         <label class="label-control">User Type <span class="text-danger">*</span></label>
                                         <select name="user_type[]" id="userTypeSelect" class="form-control" multiple>
-                                            <option value="1" {{ in_array(1, $selectedTypes) ? 'selected' : '' }}>VP</option>
-                                            <option value="2" {{ in_array(2, $selectedTypes) ? 'selected' : '' }}>RSM</option>
-                                            <option value="3" {{ in_array(3, $selectedTypes) ? 'selected' : '' }}>ASM</option>
-                                            <option value="4" {{ in_array(4, $selectedTypes) ? 'selected' : '' }}>ASE</option>
+                                            {{-- Use the plucked array $allRelatedUserTypes --}}
+                                            <option value="1" {{ in_array(1, $allRelatedUserTypes) ? 'selected' : '' }}>VP</option>
+                                            <option value="2" {{ in_array(2, $allRelatedUserTypes) ? 'selected' : '' }}>RSM</option>
+                                            <option value="3" {{ in_array(3, $allRelatedUserTypes) ? 'selected' : '' }}>ASM</option>
+                                            <option value="4" {{ in_array(4, $allRelatedUserTypes) ? 'selected' : '' }}>ASE</option>
                                         </select>
                                         @error('user_type') <p class="small text-danger">{{ $message }}</p> @enderror
                                     </div>
