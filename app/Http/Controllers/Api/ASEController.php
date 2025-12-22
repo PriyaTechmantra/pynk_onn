@@ -2062,7 +2062,7 @@ public function aseSalesreport(Request $request)
         ->where(function ($q) use ($userType) {
 
             // Exact match: "1"
-            $q->where('user_type', $userType)
+            $q->whereJsonContains('user_type', $userType)
 
               // CSV match: "1,2,3"
               ->orWhereRaw('FIND_IN_SET(?, user_type)', [$userType]);
