@@ -5965,8 +5965,17 @@ public function aseSalesreport(Request $request)
         $query = RetailerOrder::with([
                 'user' => function ($q) {
                     $q->where('status', 1)->where('is_deleted', 0);
+                },
+                'orderProduct' => function ($q) {
+                    $q->whereHas('product', function ($p) {
+                            $p->where('status', 1)->where('is_deleted', 0);
+                        })
+                        ->with([
+                            'product' => function ($p) {
+                                $p->where('status', 1)->where('is_deleted', 0);
+                            }
+                        ]);
                 }
-                
             ])
             ->join('stores', 'stores.id', '=', 'retailer_orders.user_id')
             ->join('teams', 'teams.store_id', '=', 'stores.id')
@@ -5988,22 +5997,23 @@ public function aseSalesreport(Request $request)
             $query->whereDate('retailer_orders.created_at', '<=', $dateTo);
         }
 
-        $query->with('orderProduct')->orderByDesc('retailer_orders.id');
+        $query->orderByDesc('retailer_orders.id');
 
         $data = $query->paginate($perPage);
        
-        //  $filtered = $data->filter(function ($order) {
-            
-        //     return $order->user &&
-        //         $order->user->status == 1 &&
-        //         $order->user->is_deleted == 0
-        //         ;
-        //     })->values();
+         $filtered = $data->filter(function ($order) {
+            $orderPro=RewardOrderProduct::where('order_id',$order->id)->get();
+            dd($orderPro);
+            return $order->user &&
+                $order->user->status == 1 &&
+                $order->user->is_deleted == 0 &&
+                $order->orderProduct->isNotEmpty();
+            })->values();
 
         return response()->json([
             'error' => false,
             'message' => 'Retailer orders with quantity and brand filter',
-            'data' => $data,
+            'data' => $filtered,
         ]);
     }
 
