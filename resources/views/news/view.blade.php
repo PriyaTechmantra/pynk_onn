@@ -39,7 +39,7 @@
                                                     4 => 'ASE',
                                                 ];
 
-                                                 $allRelatedUserTypes = News::where('title', $data->title)
+                                                 $allRelatedUserTypes = \App\Models\News::where('title', $data->title)
                                                     ->where('start_date', $data->start_date)
                                                     ->pluck('user_type')
                                                     ->toArray();
