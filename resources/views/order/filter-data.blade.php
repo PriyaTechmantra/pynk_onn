@@ -441,17 +441,20 @@ $date_to = $date->format('Y-m-t');
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const monthInput = document.getElementById('month_year');
-        monthInput.addEventListener('change', function() {
-            const selectedMonthValue = this.value;
-            
-            if (selectedMonthValue) {
-                const date = new Date(selectedMonthValue + "-01");
-                const selectedMonth = date.toLocaleString('default', { month: 'long' });
-                
-                console.log("Selected Month Name:", selectedMonth);
-                // Now you can use monthName to update your UI or send to your Controller
-            }
-        });
+        const selectedValue = monthInput.value; // e.g., "2025-12"
+
+        if (selectedValue) {
+            const months = [
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+
+            // Split "2025-12" to get "12", convert to Number, and subtract 1 for index
+            const monthIndex = parseInt(selectedValue.split('-')[1]) - 1;
+            const selectedMonth = months[monthIndex];
+
+            console.log(selectedMonth); // Result: "December"
+        }
         const brand = @json($brand);
         //const selectedMonth = monthInput.value;
         const selectedYear = @json($year);
