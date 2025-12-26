@@ -441,35 +441,37 @@ $date_to = $date->format('Y-m-t');
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const monthInput = document.getElementById('month_year');
-        const selectedValue = monthInput.value; // e.g., "2025-12"
-
-        if (selectedValue) {
-            const months = [
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            ];
-
-            // Split "2025-12" to get "12", convert to Number, and subtract 1 for index
-            const monthIndex = parseInt(selectedValue.split('-')[1]) - 1;
-            const selectedMonth = months[monthIndex];
-
-            console.log(selectedMonth); // Result: "December"
-        }
         const brand = @json($brand);
-        //const selectedMonth = monthInput.value;
         const selectedYear = @json($year);
+
+        const months = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
         document.querySelectorAll('.report-btn').forEach(btn => {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
-                const monthYear = monthInput.value;
+                
+                const monthYear = monthInput.value; // e.g., "2025-11"
+
                 if (!monthYear) {
                     alert('Please select a month first.');
                     return;
                 }
 
-                // Build URL with month-year
+                // 1. Calculate the month name right here, inside the click event
+                // This fixes the "ReferenceError"
+                const parts = monthYear.split('-'); // ["2025", "11"]
+                const monthIndex = parseInt(parts[1]) - 1;
+                const selectedMonthName = months[monthIndex];
+
+                // 2. Build URL
                 const reportType = this.getAttribute('data-report');
-                const url = `?month=${selectedMonth}&year=${selectedYear}&month_year=${monthYear}&report_type=${reportType}&brand=${brand}`;
+                
+                // Use selectedMonthName instead of the old variable
+                const url = `?month=${selectedMonthName}&year=${selectedYear}&month_year=${monthYear}&report_type=${reportType}&brand=${brand}`;
+                
                 window.location.href = url;
             });
         });
