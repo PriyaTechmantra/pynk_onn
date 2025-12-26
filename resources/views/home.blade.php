@@ -375,7 +375,7 @@
                                             @if($aseKey == 4 && count($inactiveASE) > 5)
                                                 <tr id="showMoreRow">
                                                     <td colspan="100%" class="text-end">
-                                                        <a href="javascript:void(0)" id="aseShowMore" class="btn btn-sm btn-link">Show more</a>
+                                                        <a href="javascript:void(0)" id="aseShowMore">Show more</a>
                                                     </td>
                                                 </tr>
                                             @endif
@@ -578,8 +578,17 @@
             $('#distributorCard').css('maxHeight', '40%');
         });
 	 $('#aseShowMore').on('click', function() {
-            $(this).parent().parent().hide();
-            $('#aseCard').css('maxHeight', '40%');
+    // 1. Remove the 'd-none' class from all hidden rows to show them
+        $('.ase-row').removeClass('d-none');
+        
+        // 2. Hide the "Show more" row itself
+        $('#showMoreRow').hide();
+    
+        // 3. Remove height restrictions on the card to allow it to expand
+        $('#aseCard').css({
+            'maxHeight': 'none',
+            'overflow': 'visible'
         });
+    });
 </script>
 @endsection 
