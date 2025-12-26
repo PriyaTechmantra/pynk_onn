@@ -37,7 +37,7 @@
                     <rect x="236.66" y="137.665" width="60" height="180" rx="30" transform="rotate(45 236.66 137.665)" fill="#c10909" />
                     <rect x="141.908" y="42.9132" width="60" height="180" rx="30" transform="rotate(45 141.908 42.9132)" fill="#c10909" />
                 </svg> --}}
-                <img src="{{ asset('backend/images/logo.png') }}">
+                <img src="{{ asset('backend/images/ONN-PYNK-logo.png') }}">
             </div>
             <div class="admin__info" style="width: 100% ; overflow : hidden" >
                 <h1>{{ Auth::user()->name }}</h1>

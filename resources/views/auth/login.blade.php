@@ -39,14 +39,15 @@ body, html {
 
 .logo-row {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 30px;
+  /*gap: 30px;*/
   margin-bottom: 25px;
 }
 
 .logo-row img {
-  height: 60px;
-  max-width: 100px;
+  /*height: 60px;*/
+  max-width: 120px;
   object-fit: contain;
 }
 
@@ -98,8 +99,7 @@ button:hover {
 
 <div class="login-box">
   <div class="logo-row">
-    <img src="{{ asset('backend/images/logo.png') }}" alt="ONN Logo">
-    <img src="{{ asset('backend/images/Pynk_logo.png') }}" alt="PYNK Logo">
+    <img src="{{ asset('backend/images/ONN-PYNK-logo.png') }}" alt="ONN Logo">
   </div>
 
   <h2>Login to Your Account</h2>
