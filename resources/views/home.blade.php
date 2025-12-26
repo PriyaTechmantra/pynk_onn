@@ -575,7 +575,7 @@
         });
 	 $('#aseShowMore').on('click', function() {
             $(this).parent().parent().hide();
-            $('#aseCard').css('maxHeight', '100%');
+            $('#aseCard').css('maxHeight', '40%');
         });
 </script>
 @endsection 
