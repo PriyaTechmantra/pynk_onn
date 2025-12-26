@@ -441,8 +441,19 @@ $date_to = $date->format('Y-m-t');
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const monthInput = document.getElementById('month_year');
+        monthInput.addEventListener('change', function() {
+            const selectedMonthValue = this.value;
+            
+            if (selectedMonthValue) {
+                const date = new Date(selectedMonthValue + "-01");
+                const selectedMonth = date.toLocaleString('default', { month: 'long' });
+                
+                console.log("Selected Month Name:", selectedMonth);
+                // Now you can use monthName to update your UI or send to your Controller
+            }
+        });
         const brand = @json($brand);
-        const selectedMonth = document.getElementById('month_year');
+        //const selectedMonth = monthInput.value;
         const selectedYear = @json($year);
         document.querySelectorAll('.report-btn').forEach(btn => {
             btn.addEventListener('click', function (e) {
