@@ -332,57 +332,61 @@
                     
                 
 			</div>
-	<div class="row mt-4">
-		<div class="col-md-12">
-                <div class="card h-100" id="aseCard" style="max-height: 530px;overflow:hidden">
-                    <div class="card-body">
-                        <h5 class="card-title">Today's Inactive ASE report</h5>
-                        <table class="table table-sm table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ASE Name</th>
-                                    <th>Contact</th>
-									<th>Area</th>
-									<th>State</th>
-									<th>ASM</th>
-									<th>RSM</th>
-									<th>VP</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+            <div class="row mt-4">
+                <div class="col-md-12">
+                        <div class="card h-100" id="aseCard" style="max-height: 530px;overflow:hidden">
+                            <div class="card-body">
+                                <h5 class="card-title">Today's Inactive ASE report</h5>
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ASE Name</th>
+                                            <th>Contact</th>
+                                            <th>Area</th>
+                                            <th>State</th>
+                                            <th>ASM</th>
+                                            <th>RSM</th>
+                                            <th>VP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($inactiveASE as $aseKey => $item)
+                                            @php
+                                                // NOTE: It is better to eager load this in your Controller!
+                                                $salesTeam = \App\Models\Team::where('ase_id', $item->id)->with('vp','rsm','asm','ase')->first();
+                                            @endphp
+                                            
+                                            {{-- Add 'd-none' class to every row after the 5th row (index 4) --}}
+                                            <tr class="ase-row {{ $aseKey > 4 ? 'd-none' : '' }}">
+                                                <td>
+                                                    <a href="{{route('employees.index',['type'=>$item->type,'brand'=>$brandValue])}}"> 
+                                                        {{ $item->name ?? 'NA' }}
+                                                    </a>
+                                                </td>
+                                                <td>{{ $item->mobile ?? '' }}</td>
+                                                <td>{{ $item->area->name ?? '' }}</td>
+                                                <td>{{ $item->stateDetail->name ?? '' }}</td>
+                                                <td>{{ $salesTeam->asm->name ?? '' }}</td>
+                                                <td>{{ $salesTeam->rsm->name ?? '' }}</td>
+                                                <td>{{ $salesTeam->vp->name ?? '' }}</td>
+                                            </tr>
 
-                                @foreach ($inactiveASE as $aseKey => $item)
-							     @php
-								   $salesTeam=\App\Models\Team::select('vp_id','rsm_id','asm_id')->where('ase_id', $item->id)->with('vp','rsm','asm','ase')->first();
-								@endphp
-                                    <tr>
-
-                                        <td>
-
-                                            <a href="{{route('employees.index',['type'=>$item->type,'brand'=>$brandValue])}}"> {{ ($item->name == null) ? 'NA' : $item->name }}</a>
-                                        </td>
-                                        <td> {{$item->mobile ?? ''}}</td>
-										 <td> {{$item->area->name ?? ''}}</td>
-										 <td> {{$item->stateDetail->name ?? ''}}</td>
-										<td> {{$salesTeam->asm->name ?? ''}}</td>
-										<td> {{$salesTeam->rsm->name ?? ''}}</td>
-										<td> {{$salesTeam->vp->name ?? ''}}</td>
-                                    </tr>
-                                    @if($aseKey == 5)
-                                    <tr>
-                                        <td colspan="100%" class="text-end">
-                                            <a href="javascript: void(0)" id="aseShowMore">Show more</a>
-                                        </td>
-                                    </tr>
-                                    @endif
-                                @endforeach
-                            </tbody>
-                        </table>
-                        
+                                            {{-- Show the "Show More" link only once, exactly after the 5th item --}}
+                                            @if($aseKey == 4 && count($inactiveASE) > 5)
+                                                <tr id="showMoreRow">
+                                                    <td colspan="100%" class="text-end">
+                                                        <a href="javascript:void(0)" id="aseShowMore" class="btn btn-sm btn-link">Show more</a>
+                                                    </td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+                        </div>
                     </div>
-                </div>
             </div>
-	</div>
   
 
 
