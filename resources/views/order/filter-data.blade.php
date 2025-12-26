@@ -442,7 +442,7 @@ $date_to = $date->format('Y-m-t');
     document.addEventListener('DOMContentLoaded', function () {
         const monthInput = document.getElementById('month_year');
         const brand = @json($brand);
-        const selectedMonth = @json($monthName);
+        const selectedMonth = document.getElementById('month_year');
         const selectedYear = @json($year);
         document.querySelectorAll('.report-btn').forEach(btn => {
             btn.addEventListener('click', function (e) {
