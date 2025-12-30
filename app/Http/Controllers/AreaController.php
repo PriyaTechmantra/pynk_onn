@@ -274,7 +274,7 @@ class AreaController extends Controller
                 if ($rowValidator->fails()) {
                     $errors[$i] = $rowValidator->errors()->all();
                 } else {
-                    $state = State::where('name', $rowData['state_id'])->first();
+                    $state = State::where('name', $rowData['state_id'])->where('status',1)->where('is_deleted',0)->first();
 
                     if ($state) {
                         $data = Area::create([
@@ -297,7 +297,7 @@ class AreaController extends Controller
 
                         $successCount++;
                     } else {
-                        $errors[$i][] = "State '{$rowData['state_id']}' not found.";
+                        $errors[$i][] = "State '{$rowData['state_id']}' not found or inactive.";
                     }
                 }
 

@@ -523,7 +523,7 @@ class RetailerUserController extends Controller
 
         $query = \DB::table('stores as s')
             ->select('s.state_id','s.brand', \DB::raw('COUNT(s.secret_pin) AS count'))
-            ->groupBy('s.state_id')
+            
             ->orderByDesc('count');
 
         if ($stateId) {
@@ -577,7 +577,7 @@ class RetailerUserController extends Controller
         // Base query
         $query = DB::table('stores as s')
             ->select('s.state_id','s.brand', DB::raw('COUNT(s.secret_pin) AS count'))
-            ->groupBy('s.state_id')
+            
             ->orderByDesc('count');
 
         // Apply filters
